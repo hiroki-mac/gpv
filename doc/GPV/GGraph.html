@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>module GPV::GGraph - RDoc Documentation</title>
+
+<script type="text/javascript">
+  var rdoc_rel_prefix = "../";
+  var index_rel_prefix = "../";
+</script>
+
+<script src="../js/jquery.js"></script>
+<script src="../js/darkfish.js"></script>
+
+<link href="../css/fonts.css" rel="stylesheet">
+<link href="../css/rdoc.css" rel="stylesheet">
+
+
+
+
+<body id="top" role="document" class="module">
+<nav role="navigation">
+  <div id="project-navigation">
+    <div id="home-section" role="region" title="Quick navigation" class="nav-section">
+  <h2>
+    <a href="../index.html" rel="home">Home</a>
+  </h2>
+
+  <div id="table-of-contents-navigation">
+    <a href="../table_of_contents.html#pages">Pages</a>
+    <a href="../table_of_contents.html#classes">Classes</a>
+    <a href="../table_of_contents.html#methods">Methods</a>
+  </div>
+</div>
+
+    <div id="search-section" role="search" class="project-section initially-hidden">
+  <form action="#" method="get" accept-charset="utf-8">
+    <div id="search-field-wrapper">
+      <input id="search-field" role="combobox" aria-label="Search"
+             aria-autocomplete="list" aria-controls="search-results"
+             type="text" name="search" placeholder="Search" spellcheck="false"
+             title="Type to search, Up and Down to navigate, Enter to load">
+    </div>
+
+    <ul id="search-results" aria-label="Search Results"
+        aria-busy="false" aria-expanded="false"
+        aria-atomic="false" class="initially-hidden"></ul>
+  </form>
+</div>
+
+  </div>
+
+  
+
+  <div id="class-metadata">
+    
+    
+    
+    
+    <!-- Method Quickref -->
+<div id="method-list-section" class="nav-section">
+  <h3>Methods</h3>
+
+  <ul class="link-list" role="directory">
+    
+    <li ><a href="#method-c-annotate">::annotate</a>
+    
+  </ul>
+</div>
+
+  </div>
+</nav>
+
+<main role="main" aria-labelledby="module-GPV::GGraph">
+  <h1 id="module-GPV::GGraph" class="module">
+    module GPV::GGraph
+  </h1>
+
+  <section class="description">
+    
+  </section>
+
+  
+  <section id="5Buntitled-5D" class="documentation-section">
+    
+
+    
+
+    
+
+    
+
+    
+     <section id="public-class-5Buntitled-5D-method-details" class="method-section">
+       <header>
+         <h3>Public Class Methods</h3>
+       </header>
+
+    
+      <div id="method-c-annotate" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">annotate</span><span
+            class="method-args">(str_ary, noff=nil)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>class_function</p>
+          
+          
+
+          
+          <div class="method-source-code" id="annotate-source">
+            <pre><span class="ruby-comment"># File gpv_gphysmod.rb, line 9</span>
+<span class="ruby-keyword">def</span> <span class="ruby-constant">GGraph</span><span class="ruby-operator">::</span><span class="ruby-identifier ruby-title">annotate</span>(<span class="ruby-identifier">str_ary</span>, <span class="ruby-identifier">noff</span>=<span class="ruby-keyword">nil</span>)
+  <span class="ruby-identifier">lclip</span> = <span class="ruby-constant">DCL</span>.<span class="ruby-identifier">sgpget</span>(<span class="ruby-string">&#39;lclip&#39;</span>)
+  <span class="ruby-constant">DCL</span>.<span class="ruby-identifier">sgpset</span>(<span class="ruby-string">&#39;lclip&#39;</span>,<span class="ruby-keyword">nil</span>)
+  <span class="ruby-identifier">lnum</span> = <span class="ruby-value">0</span>
+  <span class="ruby-identifier">str_ary</span>.<span class="ruby-identifier">each</span>{ <span class="ruby-operator">|</span><span class="ruby-identifier">str</span><span class="ruby-operator">|</span><span class="ruby-identifier">lnum</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span> }
+    <span class="ruby-identifier">charsize</span> = <span class="ruby-value">0.7</span> <span class="ruby-operator">*</span> <span class="ruby-constant">DCL</span>.<span class="ruby-identifier">uzpget</span>(<span class="ruby-string">&#39;rsizec1&#39;</span>)
+  <span class="ruby-identifier">dvx</span> = <span class="ruby-value">0.01</span>
+  <span class="ruby-identifier">dvy</span> = <span class="ruby-identifier">charsize</span><span class="ruby-operator">*</span><span class="ruby-value">1.5</span>
+  <span class="ruby-identifier">raise</span> <span class="ruby-constant">TypeError</span>,<span class="ruby-string">&quot;Array expected&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-operator">!</span> <span class="ruby-identifier">str_ary</span>.<span class="ruby-identifier">is_a?</span>(<span class="ruby-constant">Array</span>)
+  <span class="ruby-identifier">vxmin</span>,<span class="ruby-identifier">vxmax</span>,<span class="ruby-identifier">vymin</span>,<span class="ruby-identifier">vymax</span> = <span class="ruby-constant">DCL</span>.<span class="ruby-identifier">sgqvpt</span>
+  <span class="ruby-comment">#vx = 0.70</span>
+  <span class="ruby-comment">#vy = 0.0045 + (lnum-1)*dvy</span>
+  <span class="ruby-identifier">vx</span> = [<span class="ruby-value">0.5</span> <span class="ruby-operator">+</span> <span class="ruby-value">0.3</span><span class="ruby-operator">*</span>(<span class="ruby-identifier">vxmax</span><span class="ruby-operator">-</span><span class="ruby-identifier">vxmin</span>), <span class="ruby-value">0.7</span>].<span class="ruby-identifier">min</span>
+  <span class="ruby-identifier">vy</span> = [<span class="ruby-identifier">vymin</span><span class="ruby-value">-0.1</span>, <span class="ruby-value">0</span>].<span class="ruby-identifier">max</span> <span class="ruby-operator">+</span> (<span class="ruby-identifier">lnum</span><span class="ruby-value">-1</span>)<span class="ruby-operator">*</span><span class="ruby-identifier">dvy</span>
+
+  <span class="ruby-keyword">if</span> <span class="ruby-identifier">@@nannot</span> <span class="ruby-operator">&gt;</span> <span class="ruby-value">1</span> <span class="ruby-keyword">then</span> <span class="ruby-comment"># ３つ目以降の annotation は図の右上に書く</span>
+    <span class="ruby-identifier">vx</span> = <span class="ruby-identifier">vxmax</span> <span class="ruby-operator">+</span> <span class="ruby-value">0.01</span>
+    <span class="ruby-identifier">vy</span> = <span class="ruby-identifier">vymax</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">charsize</span><span class="ruby-operator">/</span><span class="ruby-value">2</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">str_ary</span>.<span class="ruby-identifier">each</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">str</span><span class="ruby-operator">|</span>
+    <span class="ruby-constant">DCL</span><span class="ruby-operator">::</span><span class="ruby-identifier">sgtxzv</span>(<span class="ruby-identifier">vx</span>,<span class="ruby-identifier">vy</span>,<span class="ruby-identifier">str</span>,<span class="ruby-identifier">charsize</span>,<span class="ruby-value">0</span>,<span class="ruby-value">-1</span>,<span class="ruby-constant">DCL</span>.<span class="ruby-identifier">sgiget</span>(<span class="ruby-string">&#39;index&#39;</span>))
+    <span class="ruby-identifier">vy</span> <span class="ruby-operator">-=</span> <span class="ruby-identifier">dvy</span>
+    <span class="ruby-identifier">@@nannot</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+  }
+  <span class="ruby-constant">DCL</span>.<span class="ruby-identifier">sgpset</span>(<span class="ruby-string">&#39;lclip&#39;</span>,<span class="ruby-identifier">lclip</span>)
+  <span class="ruby-keyword">nil</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+    </section>
+  
+  </section>
+
+</main>
+
+
+<footer id="validator-badges" role="contentinfo">
+  <p><a href="https://validator.w3.org/check/referer">Validate</a>
+  <p>Generated by <a href="https://ruby.github.io/rdoc/">RDoc</a> 6.1.1.
+  <p>Based on <a href="http://deveiate.org/projects/Darkfish-RDoc/">Darkfish</a> by <a href="http://deveiate.org">Michael Granger</a>.
+</footer>
+
