@@ -16,8 +16,13 @@ Hiroki Kashimura (hiroki@gfd-dennou.org)
 =end
 
 #################################################
-
-GPV_DIR = "/Users/hiroki/Dropbox/RubyScripts/gpv_dir/"
+if File.ftype($0) == 'link' then
+  link = File.readlink($0)
+  path = File.expand_path(link, File.dirname($0))
+else
+  path = File.expand_path($0)
+end
+GPV_DIR = File.dirname(path) + "/"
 
 require GPV_DIR+"gpv_config.rb"
 require GPV_DIR+"gpv_analysis.rb"
@@ -26,7 +31,6 @@ require GPV_DIR+"gpv_utils.rb"
 require GPV_DIR+"gpv_visualize.rb"
 require GPV_DIR+"gpv_gphysmod.rb"
 require GPV_DIR+"gpv_spherical_harmonics_next.rb"
-
 
 
 class GPV
