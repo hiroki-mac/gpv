@@ -59,8 +59,6 @@
 
   <ul class="link-list">
   
-    <li><a href="./README_md.html">README</a>
-  
     <li><a href="./README_rdoc.html">README</a>
   
     <li><a href="./rdoc_css.html">rdoc.css</a>
@@ -98,7 +96,185 @@
 <main role="main">
 
 
-<h3 id="label-See+GPV+-23__set_options+source+code+for+available+options.">See <a href="GPV.html"><code>GPV</code></a> #__set_options source code for available options.<span><a href="#label-See+GPV+-23__set_options+source+code+for+available+options.">&para;</a> <a href="#top">&uarr;</a></span></h3>
+<h1 id="label-gpv">gpv<span><a href="#label-gpv">&para;</a> <a href="#top">&uarr;</a></span></h1>
+
+<p><strong>NOTE: See <a href="GPV.html"><code>GPV</code></a> #__set_options source code for available options. </strong></p>
+
+<p>gpvは、GPhysライブラリに付属のコマンドラインツール gpview を私的に建て増し改造したものである。今のところ非公開。</p>
+
+<p>独自に追加した機能が多くなってきたので、自分用備忘録として、ここにまとめる。</p>
+
+<p>gpvという名前は、コマンド入力を簡単にするために gpview から iew をとったもの。</p>
+
+<p>気象庁のデータ形式GPVと同じ名前だが、無関係である。# 名前がかぶってしまった…</p>
+
+<h2 id="label-Required+libraries">Required libraries<span><a href="#label-Required+libraries">&para;</a> <a href="#top">&uarr;</a></span></h2>
+<ul><li>
+<p>RubyGems</p>
+<ul><li>
+<p>pry</p>
+</li><li>
+<p>ruby-progressbar</p>
+</li><li>
+<p>parallel</p>
+</li></ul>
+</li><li>
+<p>External command line tools</p>
+<ul><li>
+<p><a href="http://www.imagemagick.org/script/index.php">ImageMagic</a></p>
+</li><li>
+<p><a href="https://www.sno.phy.queensu.ca/~phil/exiftool/">Exiftool</a></p>
+</li><li>
+<p><a href="https://www.ffmpeg.org">FFmpeg</a></p>
+</li><li>
+<p>ssed</p>
+</li><li>
+<p>pdfcrop (included in TexLive)</p>
+</li><li>
+<p><a href="http://community.coherentpdf.com">cpdf</a></p>
+</li></ul>
+</li></ul>
+
+<h2 id="label-Settings">Settings<span><a href="#label-Settings">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Edit gpv_config.rb </p>
+
+<h2 id="label-Usage">Usage<span><a href="#label-Usage">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The first command form is</p>
+
+<p><code>gpv gturl1 gturl2 gturl3 ... (options)</code></p>
+
+<p>where the format of the gturl is</p>
+
+<p><code>filepath@varname(,dimname=pos1(:pos2(:thinning_intv))(,dimname=...))</code></p>
+
+<p>The second command form is</p>
+
+<p><code>gpv gtfile1 gtfile2 ... --var url (options)</code></p>
+
+<p>where the format of the url is</p>
+
+<p><code>varname(,dimname=pos1(:pos2(:thinning_intv))(,dimname=...))</code></p>
+
+<h3 id="label-Tips+-28gpview-E3-81-A7-E3-82-82-E4-BD-BF-E3-81-88-E3-82-8B-E5-B0-8F-E6-8A-80-29">Tips (gpviewでも使える小技)<span><a href="#label-Tips+-28gpview-E3-81-A7-E3-82-82-E4-BD-BF-E3-81-88-E3-82-8B-E5-B0-8F-E6-8A-80-29">&para;</a> <a href="#top">&uarr;</a></span></h3>
+<ul><li>
+<p>シェルのワイルドカード機能を使うことで、複数のファイルを一度に開くことができる。ただし、ファイル名をマッチさせられるように、@ではなく–varオプションで変数名を指定する。</p>
+
+<p><code>gpv *.nc --var T</code></p>
+</li><li>
+<p>シェルの{}機能を使うことで、複数のファイルや変数を一度に開くことができる。</p>
+
+<p><code>gpv file{1,2,3}.nc@T</code></p>
+
+<p><code>gpv file.nc@{U,V}</code></p>
+</li><li>
+<p>“*”や“?”をエスケープして渡す（i.e., *, ?）ことで、GPhys内部でワイルドカードの処理が行われる。</p>
+
+<p><code>gpv file*.nc --var T </code></p>
+
+<p>は file*.nc にマッチするすべてのファイルを結合可能と仮定して１つのオブジェクトとして開く。</p>
+
+<p><code>gpv file.nc@*wind </code></p>
+
+<p>は file.nc に格納された変数のうち、*windにマッチするすべての変数を開く。つまり file.nc に変数 uwind と vwind があるときは、 上記と </p>
+
+<p><code>gpv file.nc@uwind file.nc@vwind&quot;</code> </p>
+
+<p>は等価。</p>
+</li><li>
+<p>切り出し時に、^num の形で指定すると、num番目(先頭は0番目) の要素を意味する。</p>
+
+<p><code>gpv file.nc@T,time=^10</code></p>
+
+<p><code>gpv file.nc@T,time=^10:20</code></p>
+
+<p>範囲指定のときは始めにだけ^をつける。上記の例では10番目から20番目のデータを指す。</p>
+</li></ul>
+
+<h3 id="label-E7-8B-AC-E8-87-AA-E3-81-AB-E8-BF-BD-E5-8A-A0-E3-81-97-E3-81-9F-E6-A9-9F-E8-83-BD">独自に追加した機能<span><a href="#label-E7-8B-AC-E8-87-AA-E3-81-AB-E8-BF-BD-E5-8A-A0-E3-81-97-E3-81-9F-E6-A9-9F-E8-83-BD">&para;</a> <a href="#top">&uarr;</a></span></h3>
+<ul><li>
+<p>変数名を指定しなかった場合は、ファイル内の変数をすべて開く。</p>
+
+<p><code>gpv file.nc</code></p>
+</li><li>
+<p>–var オプションで変数名を指定する場合に、{var1,var2,…}のように複数を指定できる。この場合、存在する変数だけを開く。</p>
+
+<p><code>gpv file.nc --var \{T,U,V\},time=y2010:y2020</code></p>
+</li><li>
+<p>変数切り出し時に、時間軸については日付指定が可能。</p>
+
+<p><code>gpv file.nc@T,time=y2010:y2020</code></p>
+
+<p><code>gpv file.nc@T,time=y2010m3d10</code></p>
+
+<p>なお、日付による範囲指定の場合、m(d)を省略した場合は、開始日は1月(1日)、終了日は12月(28|30|31日)になる。</p>
+</li><li>
+<p>変数切り出し時に、演算式で与えられる。</p>
+
+<p><code>gpv file.nc@T,lat=10*3</code></p>
+
+<p><code>gpv file.nc@T,lat=10:10+5</code></p>
+
+<p>シェルの記号と重なるものはエスケープする必要がある。</p>
+</li><li>
+<p>演算の結果、0次元量になった場合はその値をターミナルに表示する。例えば、file.nc@Tが(lon,lat,time)の3次元量だった場合、</p>
+
+<p><code>gpv file.nc@T,lat=0 --mean time,lon</code></p>
+
+<p>は赤道上の、東西・時間平均値を表示する。 なお、–mean は単純平均なので、–mean lon,lat は正しく重み付けされた全球平均にはならない。 全球平均を求める時は、追加したオプション –gm を使うべき。</p>
+</li><li>
+<p>2GBを超えるファイルを与えた場合には、分割・並列処理を行う。</p>
+</li><li>
+<p>以下のオプションで指示する演算は、オプションを並べた順に実行する。</p>
+
+<p><code>mean, running_mean (rm), global_mean (gm), stddev, derivative, max, min, eddy, integrate, sum, addingup</code></p>
+</li></ul>
+
+<h2 id="label-GPV+CLASS"><a href="GPV.html"><code>GPV</code></a> CLASS<span><a href="#label-GPV+CLASS">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>新たにクラスGPVを定義し、コマンドラインから実行できるgpvの機能を、rubyスクリプトのなかで使用できるようにした。 任意のrubyスクリプト内で</p>
+
+<p><code>require &quot;/Users/hiroki/RubyScripts/gpv&quot; </code></p>
+
+<p>などとすることで、使用可能となる。</p>
+
+<h2 id="label-Methods">Methods<span><a href="#label-Methods">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<h3 id="label-new+">new <span><a href="#label-new+">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p>GPVクラスのインスタンスを作成する。</p>
+
+<p><code>a = GPV.new</code></p>
+
+<p>作成したGPVクラスのオブジェクトは、そのなかで、オプション設定(rangeなど)を保持する（インスタンス変数として保持される）。</p>
+
+<h3 id="label-main-28gpary-3Dnil-2Cstring-3Dnil-2Cwindow-3D0-29">main(gpary=nil,string=nil,window=0)<span><a href="#label-main-28gpary-3Dnil-2Cstring-3Dnil-2Cwindow-3D0-29">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p>gpvを実行する。引数は全て省略可能で、省略時の動作は、コマンドラインでgpvを実行した場合と同じ。返り値は処理された結果のGPhysオブジェクトのArray。</p>
+<ul><li>
+<p>gpary: GPhysのArrayを渡すことで、そのGPhysオブジェクトを演算・可視化の対象とする。</p>
+</li><li>
+<p>string: コマンドラインで与えるgturlやオプションをそのままの形で与えられる。</p>
+</li><li>
+<p>window: DCL描画の設定。0ならopenしてcloseする。1ならopenせずにcloseする。2ならopenするがcloseしない。3ならopenもcloseもしない。 複数回mainを呼ぶときに、DCLの同じページに描画したい場合には、はじめに2として、次から3、最後に1などとする。</p>
+
+<p><code>GPV.new.main # 単に実行するだけ</code></p>
+
+<p><code>a = GPV.new </code></p>
+
+<p><code>gpa = a.main # 演算結果を返り値として取得できる </code></p>
+
+<p><code>a.main(gpa,&quot;--mean time&quot;) # 任意のArray of GPhysを与えられる </code></p>
+</li></ul>
+
+<h3 id="label-set_options-28string-3Dnil-29">set_options(string=nil)<span><a href="#label-set_options-28string-3Dnil-29">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p>string で与えたオプションを設定する。省略時はARGVを読んで設定する。</p>
+
+<h3 id="label-E3-81-9D-E3-81-AE-E4-BB-96">その他<span><a href="#label-E3-81-9D-E3-81-AE-E4-BB-96">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p>main から呼ぶために、機能別に幾つかメソッドを定義しているが、mainを通さずに個別に使って正常に動作するかは未確認。</p>
 
 
 </main>
