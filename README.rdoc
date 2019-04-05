@@ -1,1 +1,150 @@
-===See GPV #__set_options source code for available options.
+=gpv
+<b>NOTE: See GPV #__set_options source code for available options. </b>
+
+gpvは、GPhysライブラリに付属のコマンドラインツール gpview を私的に建て増し改造したものである。今のところ非公開。
+
+独自に追加した機能が多くなってきたので、自分用備忘録として、ここにまとめる。
+
+gpvという名前は、コマンド入力を簡単にするために gpview から iew をとったもの。
+
+気象庁のデータ形式GPVと同じ名前だが、無関係である。# 名前がかぶってしまった...
+
+==Required libraries
+* RubyGems
+  * pry
+  * ruby-progressbar
+  * parallel
+* External command line tools
+  * {ImageMagic}[http://www.imagemagick.org/script/index.php]
+  * {Exiftool}[https://www.sno.phy.queensu.ca/~phil/exiftool/]
+  * {FFmpeg}[https://www.ffmpeg.org]
+  * ssed
+  * pdfcrop (included in TexLive)
+  * {cpdf}[http://community.coherentpdf.com]
+
+==Settings
+Edit gpv_config.rb 
+
+==Usage
+The first command form is
+
+<tt>gpv gturl1 gturl2 gturl3 ... (options)</tt>
+
+where the format of the gturl is
+
+<tt>filepath@varname(,dimname=pos1(:pos2(:thinning_intv))(,dimname=...))</tt>
+
+The second command form is
+
+<tt>gpv gtfile1 gtfile2 ... --var url (options)</tt>
+
+where the format of the url is
+
+<tt>varname(,dimname=pos1(:pos2(:thinning_intv))(,dimname=...))</tt>
+
+===Tips (gpviewでも使える小技)
+* シェルのワイルドカード機能を使うことで、複数のファイルを一度に開くことができる。ただし、ファイル名をマッチさせられるように、@ではなく--varオプションで変数名を指定する。
+
+  <tt>gpv *.nc --var T</tt>
+
+* シェルの{}機能を使うことで、複数のファイルや変数を一度に開くことができる。
+
+  <tt>gpv file{1,2,3}.nc@T</tt>
+
+  <tt>gpv file.nc@{U,V}</tt>
+
+* "*"や"?"をエスケープして渡す（i.e., \*, \?）ことで、GPhys内部でワイルドカードの処理が行われる。
+
+  <tt>gpv file\*.nc --var T </tt>
+
+  は file*.nc にマッチするすべてのファイルを結合可能と仮定して１つのオブジェクトとして開く。
+
+  <tt>gpv file.nc@\*wind </tt>
+
+  は file.nc に格納された変数のうち、*windにマッチするすべての変数を開く。つまり file.nc に変数 uwind と vwind があるときは、 上記と 
+
+  <tt>gpv file.nc@uwind file.nc@vwind"</tt> 
+
+  は等価。
+
+* 切り出し時に、^num の形で指定すると、num番目(先頭は0番目) の要素を意味する。
+
+  <tt>gpv file.nc@T,time=^10</tt>
+
+  <tt>gpv file.nc@T,time=^10:20</tt>
+
+  範囲指定のときは始めにだけ^をつける。上記の例では10番目から20番目のデータを指す。
+
+===独自に追加した機能
+* 変数名を指定しなかった場合は、ファイル内の変数をすべて開く。
+
+  <tt>gpv file.nc</tt>
+
+* --var オプションで変数名を指定する場合に、\{var1,var2,...\}のように複数を指定できる。この場合、存在する変数だけを開く。
+
+  <tt>gpv file.nc --var \{T,U,V\},time=y2010:y2020</tt>
+
+* 変数切り出し時に、時間軸については日付指定が可能。
+
+  <tt>gpv file.nc@T,time=y2010:y2020</tt>
+
+  <tt>gpv file.nc@T,time=y2010m3d10</tt>
+
+  なお、日付による範囲指定の場合、m(d)を省略した場合は、開始日は1月(1日)、終了日は12月(28|30|31日)になる。
+
+* 変数切り出し時に、演算式で与えられる。
+
+  <tt>gpv file.nc@T,lat=10\*3</tt>
+  
+  <tt>gpv file.nc@T,lat=10:10+5</tt>
+
+  シェルの記号と重なるものはエスケープする必要がある。
+
+* 演算の結果、0次元量になった場合はその値をターミナルに表示する。例えば、file.nc@Tが(lon,lat,time)の3次元量だった場合、
+
+  <tt>gpv file.nc@T,lat=0 --mean time,lon</tt>
+
+  は赤道上の、東西・時間平均値を表示する。
+  なお、--mean は単純平均なので、--mean lon,lat は正しく重み付けされた全球平均にはならない。
+  全球平均を求める時は、追加したオプション --gm を使うべき。
+
+* 2GBを超えるファイルを与えた場合には、分割・並列処理を行う。
+
+* 以下のオプションで指示する演算は、オプションを並べた順に実行する。
+
+  <tt>mean, running_mean (rm), global_mean (gm), stddev, derivative, max, min, eddy, integrate, sum, addingup</tt>
+
+==GPV CLASS
+新たにクラスGPVを定義し、コマンドラインから実行できるgpvの機能を、rubyスクリプトのなかで使用できるようにした。 任意のrubyスクリプト内で
+
+<tt>require "/Users/hiroki/RubyScripts/gpv" </tt>
+
+などとすることで、使用可能となる。
+
+==Methods
+===new 
+GPVクラスのインスタンスを作成する。
+
+<tt>a = GPV.new</tt>
+
+作成したGPVクラスのオブジェクトは、そのなかで、オプション設定(rangeなど)を保持する（インスタンス変数として保持される）。
+
+===main(gpary=nil,string=nil,window=0)
+gpvを実行する。引数は全て省略可能で、省略時の動作は、コマンドラインでgpvを実行した場合と同じ。返り値は処理された結果のGPhysオブジェクトのArray。
+* gpary: GPhysのArrayを渡すことで、そのGPhysオブジェクトを演算・可視化の対象とする。
+* string: コマンドラインで与えるgturlやオプションをそのままの形で与えられる。
+* window: DCL描画の設定。0ならopenしてcloseする。1ならopenせずにcloseする。2ならopenするがcloseしない。3ならopenもcloseもしない。 複数回mainを呼ぶときに、DCLの同じページに描画したい場合には、はじめに2として、次から3、最後に1などとする。
+
+  <tt>GPV.new.main # 単に実行するだけ</tt>
+  
+  <tt>a = GPV.new </tt>
+  
+  <tt>gpa = a.main # 演算結果を返り値として取得できる </tt>
+  
+  <tt>a.main(gpa,"--mean time") # 任意のArray of GPhysを与えられる </tt>
+  
+===set_options(string=nil)
+string で与えたオプションを設定する。省略時はARGVを読んで設定する。
+
+===その他
+main から呼ぶために、機能別に幾つかメソッドを定義しているが、mainを通さずに個別に使って正常に動作するかは未確認。
