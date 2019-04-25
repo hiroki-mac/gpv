@@ -91,6 +91,8 @@ def __set_options(opts=nil)
     GetoptLong::REQUIRED_ARGUMENT],
   ['--map_radius', # <radius>                 | (for itr>=20) set clipping radius (degree) around the tangential point. Deafault=90.
     GetoptLong::REQUIRED_ARGUMENT],
+  ['--sateliteview', #<distance>              | simulate satelite view. use with --itr 30. <distance> should be given in planetary-radius-unit.
+    GetoptLong::REQUIRED_ARGUMENT],
   ['--xcoord',  # <xcoord>                    | name of x-coordinate (use for associate coordinates)
     GetoptLong::REQUIRED_ARGUMENT],
   ['--ycoord',  # <ycoord>                    | name of y-coordinate (use for associate coordinates)

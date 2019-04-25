@@ -313,12 +313,21 @@ class GPV
     end
 
     # clipping parameter
-    if ( @OPT_map_radius )
+    if ( @OPT_map_radius ) then
       map_radius=@OPT_map_radius.to_f
     else
       map_radius=90.0
     end
     GGraph.set_fig('map_radius'=>map_radius)
+
+    # simulate satelite view
+    if (@OPT_sateliteview) then
+      distance = @OPT_sateliteview.to_f
+      clip_deg = acos(1.0/distance)*R2D
+      GGraph.set_fig('map_rsat'=>distance,'map_radius'=>clip_deg)
+    end
+
+
 
     # map
     if ( @OPT_m || @OPT_map)
