@@ -963,7 +963,7 @@ class GPV
           ymin = __split_range(ranges[1])[0]
           ymax = __split_range(ranges[1])[1]
         end
-        nb = -(@OPT_int).to_i if ((@OPT_int).to_i < 0)
+        nb = -(@OPT_interval).to_i if ((@OPT_interval).to_i < 0)
         gph = gp.histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
         if (@OPT_histogram != "")
           gph = gph/gph.sum*100
@@ -990,7 +990,7 @@ class GPV
           ymax = __split_range(ranges[1])[1]
         end
 
-        nb = -(@OPT_int).to_i if ((@OPT_int).to_i < 0)
+        nb = -(@OPT_interval).to_i if ((@OPT_interval).to_i < 0)
         gph = gp.histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
         if (@OPT_histogram != "")
           gph = gph/gph.sum*100
@@ -1221,10 +1221,10 @@ class GPV
 
         # --color_scatterのときに、2つのgturlしかないときは、最初のgturlの
         # ２つ目の軸(緯度を想定), なければ１つめの軸（時間を想定）の値で色付けする。
-        if (true) then
+        if (false) then
           gp << (gp[0]*0.0 + NArray.float(gp[0].length).indgen! + 2021)
         elsif (gp[2]==nil && gp[0].rank > 1) then
-          gp << gp[0]*0.0 + gp[0].axis(1).to_gphys
+          gp << gp[0]*0.0 + gp[0].axis(2).to_gphys
         elsif (gp[2]==nil)
           gp << gp[0]*0.0 + gp[0].axis(0).to_gphys
         end
@@ -1347,9 +1347,10 @@ class GPV
           DCL.sgsvpt(vxmin, vxmax, vymin, vymax)
         end
 
+        GGraph::color_bar("left"=> true,"landscape" => true) unless @OPT_nocolorbar
+
         maskshading(gp) if @OPT_maskshading
 
-        GGraph::color_bar("left"=> true,"landscape" => true) unless @OPT_nocolorbar
   #      GGraph::color_bar("left"=> false,"landscape" => false)
         # test for counter
   #      counter("t = ", 0.0, 1.00, " Earth days")
@@ -1365,7 +1366,7 @@ class GPV
 
     #-------------------------------------------------------------------------------------------------
       when "histogram2D"
-        nb = -(@OPT_int).to_i if ((@OPT_int).to_i < 0)
+        nb = -(@OPT_interval).to_i if ((@OPT_interval).to_i < 0)
         gph = GAnalysis.histogram2D(gp[0],gp[1],"nbins0"=>nb,"nbins1"=>nb,
                                                "min0"=>xmin,"max0"=>xmax,
                                                "min1"=>ymin,"max1"=>ymax)

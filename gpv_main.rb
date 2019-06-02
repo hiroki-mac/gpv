@@ -69,8 +69,10 @@ def __set_options(opts=nil)
     GetoptLong::NO_ARGUMENT],
   ['--parallel',#                             | use parallel anyway.
     GetoptLong::OPTIONAL_ARGUMENT],
-  ['--help',    #
+  ['--help',    #                             | show help.
     GetoptLong::NO_ARGUMENT],
+  ['--edit_ncatt',#                           | edit netcdf's attribute by ncatted commands.
+    GetoptLong::REQUIRED_ARGUMENT],
 
 
 
@@ -313,6 +315,8 @@ def __set_options(opts=nil)
     GetoptLong::REQUIRED_ARGUMENT],
   ['--panelfit', # [margin]                   | force the figure to fit into the panel. margin can be given by ratio [0-1].
     GetoptLong::OPTIONAL_ARGUMENT],
+  ['--zoomin', # <xaxis=xmin:xmax,yaxis=ymin:ymax>] |
+    GetoptLong::REQUIRED_ARGUMENT],
 ###
 ### analysis options ###
 ###
@@ -351,10 +355,19 @@ def __set_options(opts=nil)
   ['--lowpass','--lp',      # <dim>,<wn>      | apply lowpass filter to <dim>-th dimension with wavenumber <wn> using fft.
                             #                 | i.e., this cut off the wavenumbers greater than <wn>.
                             #                 | <dim> must be integer. dimname is not supported yet.
+                            #                 |
+                            #                 | when use with --sht option, spherical harmonic trasnformation is applied.
+                            #                 | in that case, ARGUMENT should be only <wn>, which is total wavenumber.
+                            #                 | 1st and 2nd dimension must be lon and lat.
     GetoptLong::REQUIRED_ARGUMENT],
   ['--highpass','--hp',     # <dim>,<wn>      | apply highpass filter to <dim>-th dimension with wavenumber <wn> using fft.
                             #                 | i.e., this cut off the wavenumbers less than <wn>.
                             #                 | <dim> must be integer 0, 1, 2, or 3. dimnames and dim > 3 are not supported yet.
+                            #                 | 
+                            #                 | when use with --sht option, spherical harmonic trasnformation is applied.
+                            #                 | in that case, ARGUMENT should be only <wn>, which is total wavenumber.
+                            #                 | 1st and 2nd dimension must be lon and lat.
+
     GetoptLong::REQUIRED_ARGUMENT],
   ['--power_spectra','--ps',# <dim>[,any]     | calculate power spectra using fft along <dim>-th dimension.
                             #                 | by default, wavenumber is used for axis.
@@ -611,10 +624,39 @@ if (@OPT_list) then
   exit
 end
 
+## exec ncatted
+if (@OPT_edit_ncatt) then
+  var, att, val = @OPT_edit_ncatt.split(":")
+  flag_delete = false
+  if (val == nil) then
+    flag_delete = true
+  elsif (val == val.to_i.to_s) then
+    type = "l" # long
+  elsif (val == val.to_f.to_s) then
+    type = "f" # float
+  else
+    type = "c" # character
+  end
+
+  ARGV.each{|v|
+    file = v.split("@")[0]
+    if (flag_delete == false) then
+      system ("ncatted -a #{att},#{var},c,#{type},#{val} #{file}") # create att if there is not
+      system ("ncatted -a #{att},#{var},m,#{type},#{val} #{file}") # modify att
+      print "att:#{att} of var:#{var} in #{file} was created/modified to #{val}.\n"
+    else
+      system ("ncatted -a #{att},#{var},d,, #{file}")                # delete att
+      print "att:#{att} of var:#{var} in #{file} was deleted.\n"
+
+    end
+  }
+  exit
+end
+
 
 
 ## alias options
-if (@OPT_wm)
+if (@OPT_wm) then
   @OPT_itr = 10 unless @OPT_itr
   @OPT_map = "coast_world"  unless @OPT_map
   @OPT_nocont = true unless (@OPT_cint or @OPT_crange)
@@ -789,7 +831,7 @@ gary = Array.new
 
 
 ## set Land/Ocean mask
-if (@OPT_land or @OPT_ocean or @OPT_color_scatter)
+if (@OPT_land or @OPT_ocean)# or @OPT_color_scatter)
   landsea = GPhys::IO.open("/Users/hiroki/Dropbox/RubyScripts/landsea.nc","LSMASK").copy #海陸マスクを読み込む 0=Ocean, 1=Land, 2=Lake, 3=Small Island, 4=Ice Shelf
   lsgrid = landsea.grid.copy
 
@@ -1282,11 +1324,18 @@ while ARGV[0] do
   ## apply split axis
   gp = split_axis(gp) if (@OPT_split_axis)
 
-  ## apply lowpass filter
-  gp = lowpass(gp) if (@OPT_lowpass)
+  ## apply lowpass filter (FFT)
+  gp = lowpass(gp) if (@OPT_lowpass && !@OPT_sht)
+  ## apply highpass filter (FFT)
+  gp = highpass(gp) if (@OPT_highpass && !@OPT_sht)
 
-  ## apply highpass filter
-  gp = highpass(gp) if (@OPT_highpass)
+  ## apply lowpass filter (SphericalHarmonics)
+  gp = lowpass_sht(gp) if (@OPT_lowpass && !@OPT_highpass && @OPT_sht)
+  ## apply lowpass filter (SphericalHarmonics)
+  gp = highpass_sht(gp) if (@OPT_highpass && !@OPT_lowpass && @OPT_sht)
+  ## apply bandpass (highpass and lowpass) filter (SphericalHarmonics)
+  gp = bandpass_sht(gp) if (@OPT_highpass && @OPT_lowpass && @OPT_sht)
+
 
   ## interpolate to gausian latitude and correspond longitude
   ## --regrid requires number of latitude grid poins.
@@ -1786,6 +1835,38 @@ while ARGV[0] do
       gp_subset = proc.call(gp_subset, 0)
       gary << visualize_and_output(gp_subset)
     }
+  elsif (@OPT_zoomin) then
+    x_dist, y_dist, zoom_type = @OPT_zoomin.split(",")
+    x_axis, x_distrange = x_dist.split("="); y_axis, y_distrange = y_dist.split("=")
+    # ズーム先の範囲
+    x_min,  x_max = x_distrange.split(":") ; y_min,  y_max = y_distrange.split(":")
+    x_min = x_min.to_f; x_max = x_max.to_f ; y_min = y_min.to_f; y_max = y_max.to_f
+    # 初期範囲
+    ix_min = gp.coord(x_axis).min.to_f     ; ix_max = gp.coord(x_axis).max.to_f
+    iy_min = gp.coord(y_axis).val.min      ; iy_max = gp.coord(y_axis).val.max
+    divnum = 300 - 1 # 分割数
+    if (zoom_type == "linear") then
+      # 線形にズームイン
+      dx_min = (ix_min - x_min)/divnum ; dx_max = (ix_max - x_max)/divnum
+      dy_min = (iy_min - y_min)/divnum ; dy_max = (iy_max - y_max)/divnum
+      (divnum+1).times{ |n|
+        @OPT_xrange = (ix_min - dx_min*n).to_s + ":" + (ix_max - dx_max*n).to_s
+        @OPT_yrange = (iy_min - dy_min*n).to_s + ":" + (iy_max - dy_max*n).to_s
+        visualize_and_output(gp)
+      }
+    else
+      # 比でズームイン
+      x_center = (x_min + x_max)*0.5 ; y_center = (y_min + y_max)*0.5
+      r_xmax = ((x_max - x_center)/(ix_max - x_center))**(1.0/divnum)
+      r_ymax = ((y_max - y_center)/(iy_max - y_center))**(1.0/divnum)
+      r_xmin = ((x_min - x_center)/(ix_min - x_center))**(1.0/divnum)
+      r_ymin = ((y_min - y_center)/(iy_min - y_center))**(1.0/divnum)
+      (divnum+1).times{ |n|
+        @OPT_xrange = (x_center-(x_center-ix_min)*r_xmin**n).to_s + ":" + (x_center+(ix_max-x_center)*r_xmax**n  ).to_s
+        @OPT_yrange = (y_center-(y_center-iy_min)*r_ymin**n).to_s + ":" + (y_center+(iy_max-y_center)*r_ymax**n  ).to_s
+        visualize_and_output(gp)
+      }
+    end
   else
     gp = proc.call(gp, 0)
     gary << visualize_and_output(gp)
@@ -2042,11 +2123,19 @@ end
   * 要：温度 T, 気圧 p
   gpv T.nc@T p.nc@p  --mvo "GAnalysis::Met::temp2theta(x,y)" --nc4 Theta.nc --rename Theta --nodraw --unit "K"
 
+* 地表温位 theta_s
+  * 要：地表温度 Ts, 地表気圧 ps
+  gpv Ts.nc@Ts ps.nc@ps  --mvo "GAnalysis::Met::temp2theta(x,y)" --nc4 Theta_s.nc --rename Theta_s --nodraw --unit "K"
+
 * 温位面上の PV
   * 要：温位座標での 東西風速 U, 南北風速 V, 気圧 p
   gpv U.nc@U V.nc@V --mvo "GAnalysis::Planet.absvor_s(x,y)" --nc AbsVor.nc --nodraw --rename AbsVor --unit "s-1" --long_name "absolute vorticity
   gpv p.nc --derivative theta --nc dp_dtheta.nc --nodraw
   gpv AbsVor.nc@AbsVor dp_dtheta.nc@dp_dtheta --mvo "-x/y*GAnalysis::Met::g" --nc PV.nc --mvo_only --rename "PV" --nodraw
+
+* バルクリチャードソン数 RiB
+  * 要：温位 Theta, 地表温位 Theta_s, 高度 z, 風速 (u, v)
+
 
 
 =NetCDFフォーマット変換

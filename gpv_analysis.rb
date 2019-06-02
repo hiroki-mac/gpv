@@ -36,6 +36,43 @@ class GPV
     return gp
   end
 
+  # Lowpass filter using Spherical harmonics transformation.
+    def lowpass_sht(gp)
+    lp_wn = @OPT_lowpass.to_i + 1
+    sp_mn = SphericalHarmonics.sh_trans(gp) #正変換
+    mask = sp_mn.val.real.fill(1.0)
+    mask[lp_wn..-lp_wn,true,false] = 0.0
+    mask[true,lp_wn..-1,false] = 0.0
+    gp = SphericalHarmonics.sh_invtrans(sp_mn*mask)
+    # rad => deg for lon
+    # gp.axis(0).set_pos(VArray.new(gp.coordinate(0).val*R2D, {"units"=>"deg"}, "lon"))
+    return gp
+  end
+  # Highpass filter using Spherical harmonics transformation.
+  def highpass_sht(gp)
+    hp_wn = @OPT_highpass.to_i
+    sp_mn = SphericalHarmonics.sh_trans(gp) #正変換
+    mask = sp_mn.val.real.fill(0.0)
+    mask[hp_wn..-hp_wn,false] = 1.0
+    mask[true, hp_wn..-1,false] = 1.0
+    gp = SphericalHarmonics.sh_invtrans(sp_mn*mask)
+    return gp
+  end
+  # Bandpass filter using Spherical harmonics transformation.
+  def bandpass_sht(gp)
+    lp_wn = @OPT_lowpass.to_i + 1
+    hp_wn = @OPT_highpass.to_i
+    sp_mn = SphericalHarmonics.sh_trans(gp) #正変換
+    mask = sp_mn.val.real.fill(0.0)
+    mask[hp_wn..-hp_wn,false] = 1.0
+    mask[true, hp_wn..-1,false] = 1.0
+    mask[lp_wn..-lp_wn,true,false] = 0.0
+    mask[true,lp_wn..-1,false] = 0.0
+    gp = SphericalHarmonics.sh_invtrans(sp_mn*mask)
+    return gp
+  end
+
+
   # Composite mean.
   def composite(gp)
     comp_dim, comp_span, comp_skip = (@OPT_composite).split(/\s*,\s*/)
@@ -591,5 +628,53 @@ class GPV
     ngp = gp.copy
     return ngp.replace_val(new_val)
   end
+
+  def bulkRicherdsonNum(theta, theta_s, u, v, z=nil)
+    g = GAnalysis::Met.g
+    if (z.nil?) then
+      theta.lost_axes.each{|la|
+        axname, valunit = la.split("=")
+        if (["lev","level","z","height"].include?(axname.downcase)) then
+          z = UNumeric[valunit.to_f, "m"]
+        end
+      }
+    elsif (z.class == Float)
+      z = UNumeric[z, "m"]
+    end
+    return (theta - theta_s)*g*z/(theta*(u*u+v*v))
+  end
+
+  def surface_stress(theta, theta_s, u, v, rho, z=nil)
+    # constant parameters (Louis, 1979)
+    c_star = 7.4; b = 9.4; k = 0.4; z0 = UNumeric[0.01, "m"]
+
+    if (z.nil?) then
+      theta.lost_axes.each{|la|
+        axname, valunit = la.split("=")
+        if (["lev","level","z","height"].include?(axname.downcase)) then
+          z = UNumeric[valunit.to_f, "m"]
+        end
+      }
+    elsif (z.class == Float)
+      z = UNumeric[z, "m"]
+    end
+
+    a2 = k*k/((z/z0).log)**2
+    c  = c_star*a2*b*((z/z0).sqrt)
+    rib = bulkRicherdsonNum(theta, theta_s, u, v, z) # BulkRicherdsonNum
+
+    f_unstable   = 1.0 - (b*rib)/(1.0 + c*rib.abs.sqrt)
+    f_stable = 1.0/(1.0+0.5*b*rib)**2
+
+    theta_z = (theta - theta_s)/z # 安定度の計算はこれでよいのか？
+
+    tau_s = rho*a2*(u*u+v*v)*( f_stable*(theta_z.gt(0)) + f_unstable*(theta_z.le(0)) )
+
+    return tau_s
+
+
+  end
+
+
 
 end
