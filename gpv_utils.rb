@@ -609,6 +609,44 @@ class GPV
     return dims
   end
 
+  # 粒子群をGPhysオブジェクトで定義する
+  # 軸は粒子IDと時間
+  # x座標、y座標、z座標を変数とする3つのGPhysを出力する
+  # gpは初期時刻（時間軸）を取り出すための流速のGPhys
+  # initlocは初期位置を入れたArray [[x0,y0,z0], [x1,y1,z1], ...]
+  def set_particles(gp,initlocary)
+    if (initlocary[0].size == 3) then flag_3D = true else  flag_3D = false  end
+    x_axis = gp.coordinate(0)
+    y_axis = gp.coordinate(1)
+    z_axis = gp.coordinate(2) if flag_3D
+
+    id_num = initlocary.size
+    init_loc_na = NArray.to_na(initlocary)
+
+    x_va = VArray.new(init_loc_na[0,true].reshape(id_num,1), {"long_name"=>x_axis.long_name , "units"=> x_axis.units.to_s}, x_axis.name)
+    y_va = VArray.new(init_loc_na[1,true].reshape(id_num,1), {"long_name"=>y_axis.long_name , "units"=> y_axis.units.to_s}, y_axis.name)
+    z_va = VArray.new(init_loc_na[2,true].reshape(id_num,1), {"long_name"=>z_axis.long_name , "units"=> z_axis.units.to_s}, z_axis.name) if flag_3D
+
+    id_axis = Axis.new
+    id_axis.pos = VArray.new(NArray.int(id_num).indgen,{"long_name"=>"particle ID", "units"=> ""}, "id")
+
+    t_axis = Axis.new
+    if (gp.rank > 2 && gp.axnames[-1].include?('t') ) then # 時間軸（最後の軸と仮定）があるかどうかの判定
+      t_gp = gp.coord(-1)
+      t_axis.pos = VArray.new(t_gp[0].val, {"long_name"=>t_gp.long_name, "units"=>t_gp.units.to_s}, t_gp.name )
+    else
+      t_axis.pos = VArray.new(NArray.sfloat(1).indgen, {"long_name"=>"time", "units"=>"s"}, "time" )
+    end
+
+    grid = Grid.new(id_axis, t_axis)
+
+    print "#{id_axis.length} particles were set.\n" 
+
+    return GPhys.new(grid,x_va), GPhys.new(grid,y_va), GPhys.new(grid,z_va) if flag_3D
+    return GPhys.new(grid,x_va), GPhys.new(grid,y_va), nil
+
+  end
+
 
   # def fit_rank(gp, gpref)
   #   gprank = gp.rank

@@ -1193,7 +1193,7 @@ class GPV
                       "type" =>(@OPT_type ||@type_array[0]),
                       "annotate"=>@annotate,
                       "correlation"=>@annotate)
-        GGraph.regression_line(gp[0],gp[1],"annot_intercept"=>@annotate, "annot_slope"=> @annotate, "index"=>(@OPT_index||@index_array[0])) # 回帰直線を引く
+#        GGraph.regression_line(gp[0],gp[1],"annot_intercept"=>@annotate, "annot_slope"=> @annotate, "index"=>(@OPT_index||@index_array[0])) # 回帰直線を引く
 
         if (gp.length/2 > 1) then
           (gp.length/2 - 1).times{|i|
@@ -1207,6 +1207,7 @@ class GPV
 
           }
         end
+        DCL.sgplu(gp[0].val,gp[1].val) if @OPT_line
 
     #-------------------------------------------------------------------------------------------------
       when "color_scatter"
@@ -1239,7 +1240,7 @@ class GPV
                       "nlev" => ( @OPT_sint   || @OPT_interval || @OPT_int ),
                       "correlation"=>true
                        )
-        GGraph.regression_line(gp[0],gp[1],"annot_intercept"=>true) # 回帰直線を引く
+#        GGraph.regression_line(gp[0],gp[1],"annot_intercept"=>true) # 回帰直線を引く
 
         GGraph.color_bar( "left"=> false, "landscape" => false)
 
@@ -1255,6 +1256,8 @@ class GPV
                                 "correlation"=>true)
           }
         end
+        DCL.sgplu(gp[0].val,gp[1].val) if @OPT_line
+
 
     #-------------------------------------------------------------------------------------------------
       when "contour_over_tone"
@@ -1533,6 +1536,9 @@ class GPV
           @OPT_title = nil if (title == gp[0].long_name || title == gp[0].name)
         end
         title(@OPT_subtitle, 1) if @OPT_subtitle
+
+        plot_particles(gp[0]) if @OPT_plot_particles
+
       end # end while (for anim loop)
   end
 
@@ -1898,7 +1904,7 @@ class GPV
       ###
 
 
-      if (@OPT_scatter or @OPT_color_scatter or @OPT_histogram2D or @OPT_cot or @OPT_rmap or @OPT_fullcolor == "2" or @OPT_vector)
+      if (@OPT_scatter or @OPT_color_scatter or @OPT_histogram2D or @OPT_cot or @OPT_rmap or @OPT_fullcolor == "2" or @OPT_vector or @OPT_particle_advection)
         return g # do not draw single var plot; store vars in array.
       else
         draw(g, @kind_of_fig) unless (@OPT_scatter or @OPT_color_scatter or @OPT_nodraw)
@@ -1960,6 +1966,58 @@ class GPV
       eval( "DCL.#{pkg}r#{set}(name,value.to_f)" )
     end
 
+  end
+
+  def plot_particles(gp)
+    if @OPT_anim then
+      now = gp.lost_axes.select{|a| a.include?(@OPT_anim)}
+      if (now.empty?) then
+        now = ""
+        flag_cut_by_DateTime = true
+      else
+        now = ","+now[0].split(" ")[0]
+      end
+    else
+      now = ""
+    end
+    x_gturl, y_gturl, z_gturl, zrange = @OPT_plot_particles.split(" ")
+    x_gp = open_gturl(x_gturl+now); y_gp = open_gturl(y_gturl+now)
+    if (z_gturl) then
+      if z_gturl.include?("@id") then z_gp = open_gturl(z_gturl); z_gturl = nil
+      else z_gp = open_gturl(z_gturl+now) end
+    end
+    if zrange then zmin, zmax = (zrange.split("=")[1]).split(":"); zmin=zmin.to_f; zmax=zmax.to_f
+    else zmin = nil; zmax = nil end
+
+    if (flag_cut_by_DateTime) then
+      gp.lost_axes.each{|la|
+        unless la.match(/[a-z]/) then # 日付を探す
+          x_gp = x_gp.cut(@OPT_anim=>DateTime.parse(la))
+          y_gp = y_gp.cut(@OPT_anim=>DateTime.parse(la))
+          z_gp = z_gp.cut(@OPT_anim=>DateTime.parse(la)) if z_gturl
+        end
+      }
+    end
+    index = (@OPT_index || @index_array[0]).to_i
+    index = index + 8 if (index%10==0)
+    if z_gp then
+      GGraph.color_scatter(x_gp,y_gp,z_gp,
+                    false,
+                    "index"=>index,
+                    "type" =>(@OPT_type ||1),
+                    "min" => zmin,
+                    "max" => zmax,
+                    "nlev" => ( @OPT_sint   || @OPT_interval || @OPT_int ),
+                    "correlation"=>false
+                    )
+      GGraph.color_bar
+    else
+      GGraph.scatter(x_gp,y_gp,
+                    false,
+                    "index"=>index,
+                    "type" =>(@OPT_type || 1).to_i
+                    )
+    end
   end
 
 

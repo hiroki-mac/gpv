@@ -31,6 +31,9 @@ require GPV_DIR+"gpv_utils.rb"
 require GPV_DIR+"gpv_visualize.rb"
 require GPV_DIR+"gpv_gphysmod.rb"
 require GPV_DIR+"gpv_spherical_harmonics_next.rb"
+require GPV_DIR+"gpv_lagrange.rb"
+#require "profile"
+
 
 
 class GPV
@@ -138,12 +141,14 @@ def __set_options(opts=nil)
                    #                          | 1st and 2nd gturls will be used for x- and y-axes, respectively.
                    #                          | titles of x- and y- axes can be specified by arguments xtitle,ytitle (optional)
                    #                          | range of each axis can be specified by option --range [xmin:xmax,ymin:ymax] format.
+                   #                          | with "--line" option, lines between marks are drawn.
     GetoptLong::OPTIONAL_ARGUMENT],
   ['--color_scatter', # [xtitle,ytitle]       | make color scatter plot with provided 3 gturls.
                       #                       | 1st and 2nd gturls are used for x- and y-axes, respectively.
                       #                       | 3rd gturl is used for color of marks.
                       #                       | titles of x- and y- axes can be specified by arguments xtitle,ytitle (optional)
                       #                       | range of each axis and color can be specified by option --range [xmin:xmax,ymin:ymax,zmin:zmax] format
+                      #                          | with "--line" option, lines between marks are drawn.
     GetoptLong::OPTIONAL_ARGUMENT],
   ['--cot',           #                       | contour over tone. draw tone with 1st gturl and overplot contour with 2nd gturl.
     GetoptLong::NO_ARGUMENT],
@@ -317,6 +322,8 @@ def __set_options(opts=nil)
     GetoptLong::OPTIONAL_ARGUMENT],
   ['--zoomin', # <xaxis=xmin:xmax,yaxis=ymin:ymax>] |
     GetoptLong::REQUIRED_ARGUMENT],
+  ['--plot_particles', # <gturl of particles>]| overplot particles
+    GetoptLong::REQUIRED_ARGUMENT],
 ###
 ### analysis options ###
 ###
@@ -363,7 +370,7 @@ def __set_options(opts=nil)
   ['--highpass','--hp',     # <dim>,<wn>      | apply highpass filter to <dim>-th dimension with wavenumber <wn> using fft.
                             #                 | i.e., this cut off the wavenumbers less than <wn>.
                             #                 | <dim> must be integer 0, 1, 2, or 3. dimnames and dim > 3 are not supported yet.
-                            #                 | 
+                            #                 |
                             #                 | when use with --sht option, spherical harmonic trasnformation is applied.
                             #                 | in that case, ARGUMENT should be only <wn>, which is total wavenumber.
                             #                 | 1st and 2nd dimension must be lon and lat.
@@ -542,6 +549,18 @@ def __set_options(opts=nil)
   #                   ['--dlon',                     GetoptLong::NO_ARGUMENT],
   #                   ['--dlat',                     GetoptLong::NO_ARGUMENT],
   #                   ['--version',                  GetoptLong::NO_ARGUMENT]  # to be defined
+
+  ['--particle_advection',# <"tdiv=num x0,y0,z0 x1,y1,z1 x2:x3:xn,y2:y3:yn,z2:z3:zn">
+                          #                   | perform particle advection. 1st, 2nd, 3rd gturl must be u, v, w,
+                          #                   | with lon, lat, z, and time axis. tdiv=num is the number
+                          #                   | for time interval to be devided for lagrangian tracing.
+                          #                   | E.g., When u data have 1 day interval, tdiv=24 make the lagrangian
+                          #                   | tracing by 1 hour interval.
+                          #                   | Inital location of a single particle can be given by x1,y1,z1.
+                          #                   | Expression like x2:x3:xn,y2:y3:yn,z2:z3:zn gives particles in a mesh
+                          #                   | begin with x2 and end at x3 and number of division is xn.
+                          #                   | Particle data will be output as "particles.nc"
+     GetoptLong::REQUIRED_ARGUMENT]
 
                      )
   @USED_OPTIONS = []
@@ -1834,6 +1853,7 @@ while ARGV[0] do
     each_along_dims(gp, loopdim){|gp_subset|
       gp_subset = proc.call(gp_subset, 0)
       gary << visualize_and_output(gp_subset)
+      plot_particles(gp_subset) if @OPT_plot_particles
     }
   elsif (@OPT_zoomin) then
     x_dist, y_dist, zoom_type = @OPT_zoomin.split(",")
@@ -1926,6 +1946,111 @@ if (@OPT_pry or @OPT_auto_pry) then
   binding.pry if @OPT_pry
   p @OPT_auto_pry
   eval "#{@OPT_auto_pry}" if @OPT_auto_pry
+end
+
+if (@OPT_particle_advection) then
+  u = gary[0]; v = gary[1]
+  w = gary[2] if gary[2]
+  t_div   = 24 # defaul value
+  initloc = []
+
+  @OPT_particle_advection.split(" ").each{|a|
+    if (a.include?("=")) then
+      t_div = a.split("=")[1].to_i
+    elsif (a.include?("@")) then
+
+    else
+      x_loc, y_loc, z_loc = a.split(",")
+      if (x_loc.include?(":")) then x0, x1, xn = x_loc.split(":"); xn = 10 unless xn
+      else x0 = x_loc; x1 = x_loc; xn = 1 end
+      if (y_loc.include?(":")) then y0, y1, yn = y_loc.split(":"); yn = 10 unless yn
+      else y0 = y_loc; y1 = y_loc; yn = 1 end
+      if (z_loc.include?(":")) then z0, z1, zn = z_loc.split(":"); zn = 10 unless zn
+      else z0 = z_loc; z1 = z_loc; zn = 1 end
+      x0 = x0.to_f; x1 = x1.to_f; xn = xn.to_i ; dx = (x1 - x0)/[xn-1,1].max
+      y0 = y0.to_f; y1 = y1.to_f; yn = yn.to_i ; dy = (y1 - y0)/[yn-1,1].max
+      z0 = z0.to_f; z1 = z1.to_f; zn = zn.to_i ; dz = (z1 - z0)/[zn-1,1].max
+      zn.times{|k| yn.times{|j| xn.times{|i|
+            initloc << [x0+dx*i, y0+dy*j, z0+dz*k]
+      } } }
+    end
+  }
+
+
+  p_lon, p_lat, p_z = set_particles(u,initloc) # 粒子オブジェクト（初期位置）生成
+  print "(#{p_lon.val[0]}, #{p_lat.val[0]}, #{p_z.val[0]}) t = 0\n"
+
+  if (p_z) then # 3次元移流
+    auto_write("particles.nc", [p_lon,p_lat,p_z], 0, false) # 初期位置の記録
+    LagrangeSphere.init_3D(u)
+  else # 水平2次元
+    auto_write("particles.nc", [p_lon,p_lat], 0, false) # 初期位置の記録
+    LagrangeSphere.init(u)
+  end
+
+  if (u.rank > 2 && u.axnames[-1].include?('t') ) then # 時間軸（最後の軸と仮定）があるかどうかの判定
+    t_axis = u.coord(-1)
+    t_len = t_axis.length
+    flag_t_exist = true
+  else
+    t_len = 100 # デフォルト値
+    flag_t_exist = false
+  end
+  # 以下 parallel 用
+  # results = Parallel.map([0..161,162..323,324..485,486..-1], :in_processes=>4){|i| #このブロックが並列処理される
+  #   p_lon_s = p_lon[i,0]  # サブセットを取り出す
+  #   p_lat_s = p_lat[i,0]  # サブセットを取り出す
+  #   p_z_s = p_z[i,0]  # サブセットを取り出す
+
+  (t_len-1).times{|t|
+    if (flag_t_exist) then
+      data_dt = (t_axis[t+1] - t_axis[t]).to_type(5)
+      dt = data_dt/t_div
+    else
+      data_dt = UNumeric[1.0,"day"]
+      dt = data_dt/t_div
+      u_now = u; v_now = v
+    end
+
+    t_div.times{|n|
+      if (p_z) then # 3次元移流
+        if (flag_t_exist) then
+          u_now = (u[true,true,true,t]*(t_div-n) + u[true,true,true,t+1]*n)/t_div
+          v_now = (v[true,true,true,t]*(t_div-n) + v[true,true,true,t+1]*n)/t_div
+          w_now = (w[true,true,true,t]*(t_div-n) + w[true,true,true,t+1]*n)/t_div
+        end
+        if (false) then # parallel用 ← 並列処理にしても速くならなかった
+          p_lon_s, p_lat_s, p_z_s = LagrangeSphere.particle_advection_3D(p_lon_s,p_lat_s,p_z_s,u_now,v_now,w_now,dt)
+        else
+          p_lon, p_lat, p_z = LagrangeSphere.particle_advection_3D(p_lon,p_lat,p_z,u_now,v_now,w_now,dt)
+        end
+      else # 水平2次元移流
+        if (flag_t_exist) then
+          u_now = (u[true,true,t]*(t_div-n) + u[true,true,t+1]*n)/t_div
+          v_now = (v[true,true,t]*(t_div-n) + v[true,true,t+1]*n)/t_div
+        end
+        p_lon, p_lat = LagrangeSphere.particle_advection_2D(p_lon,p_lat,u_now,v_now,dt)
+      end
+      # auto_write("particles.nc", [p_lon,p_lat], t+1, false)
+    }
+    if (p_z) then
+      auto_write("particles.nc", [p_lon,p_lat,p_z], t+1, false)
+      print "(#{p_lon.val[0]}, #{p_lat.val[0]}, #{p_z.val[0]}) t = #{t+1}\n"
+    else
+      auto_write("particles.nc", [p_lon,p_lat], t+1, false)
+      print "(#{p_lon.val[0]}, #{p_lat.val[0]}) t = #{t+1}\n"
+    end
+
+  }
+  # 以下 parallel 用
+  # [p_lon_s,p_lat_s, p_z_s]
+  # }
+  # results = results.transpose
+  # p_lon = GPhys.join(results[0])
+  # p_lat = GPhys.join(results[1])
+  # p_z = GPhys.join(results[2])
+
+
 end
 
 
