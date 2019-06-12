@@ -1,6 +1,14 @@
 #--
-# modification of GPhys and GGraph methods.
+# modification of GPhys and GGraph methods. and NArray
 #++
+
+class NArray
+  def to_na
+    self
+  end
+end
+
+
 class GPV
 
   include GGraph

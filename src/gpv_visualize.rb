@@ -2001,6 +2001,7 @@ class GPV
     index = (@OPT_index || @index_array[0]).to_i
     index = index + 8 if (index%10==0)
     if z_gp then
+      DCL.sgscmn(63)
       GGraph.color_scatter(x_gp,y_gp,z_gp,
                     false,
                     "index"=>index,
@@ -2011,6 +2012,8 @@ class GPV
                     "correlation"=>false
                     )
       GGraph.color_bar
+      DCL.sgscmn(@OPT_clrmap||63)
+
     else
       GGraph.scatter(x_gp,y_gp,
                     false,

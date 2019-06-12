@@ -56,9 +56,9 @@ module LagrangeSphere
     data_ext[0..(shape[0]-1), 0..(shape[1]-1),false] = data
     n.times{|m|
       # 経度方向
-      data_ext[-(m+1), 0..(shape[1]-1),false] = data[-1,true,false]
+      data_ext[-(m+1), 0..(shape[1]-1),false] = data[-(m+1),true,false]
       data_ext[shape[0]+m, 0..(shape[1]-1),false] = data[0+m,true,false]
-      # 緯度方向
+      # 緯度方向 ↓ 以下の拡張は、東西半球が変わることを考慮していないので、不適では？
       data_ext[0..(shape[0]-1), -(m+1),false] = data[true, m+1,false]
       data_ext[0..(shape[0]-1), shape[1]+m,false] = data[true, shape[1]-(m+2),false]
     }
@@ -76,6 +76,47 @@ module LagrangeSphere
       return data_ext_o
     end
   end
+
+  def data_ext_halo_only(gp, n=1, vect_comp=true)
+    shape = gp.shape
+    if (shape[3]) then
+      de_x0 = NArray.sfloat(2*n-1, shape[1], shape[2], shape[3]) # 左端
+      de_x1 = NArray.sfloat(2*n-1, shape[1], shape[2], shape[3]) # 右端
+      de_y0 = NArray.sfloat(shape[0], 2*n-1, shape[2], shape[3]) # 下端
+      de_y1 = NArray.sfloat(shape[0], 2*n-1, shape[2], shape[3]) # 上端
+    elsif (shape[2]) then
+      de_x0 = NArray.sfloat(2*n-1, shape[1], shape[2]) # 左端
+      de_x1 = NArray.sfloat(2*n-1, shape[1], shape[2]) # 右端
+      de_y0 = NArray.sfloat(shape[0], 2*n-1, shape[2]) # 下端
+      de_y1 = NArray.sfloat(shape[0], 2*n-1, shape[2]) # 上端
+    else
+      de_x0 = NArray.sfloat(2*n-1, shape[1]) # 左端
+      de_x1 = NArray.sfloat(2*n-1, shape[1]) # 右端
+      de_y0 = NArray.sfloat(shape[0], 2*n-1) # 下端
+      de_y1 = NArray.sfloat(shape[0], 2*n-1) # 上端
+    end
+    (2*n-1).times{|m|
+      # 経度方向
+      de_x0[m, true,false] = gp[-n+m,true,false].val.to_na
+      de_x1[m, true,false] = gp[(shape[0]-3+m)%shape[0], true,false].val.to_na
+      # 緯度方向
+      if (m < n) then # 東西半球の反転
+        de_y0[true,m,false] = gp[true, n-m, false].val.to_na
+        tmp = de_y0[0..(shape[0]/2-1),m,false]
+        de_y0[0..(shape[0]/2-1),m,false] = -de_y0[(shape[0]/2)..-1,m,false]
+        de_y0[(shape[0]/2)..-1,m,false] = -tmp
+
+        de_y1[true,2*n-2-m,false] = gp[true,shape[1]-1-n+m, false].val.to_na
+        de_y1[0..(shape[0]/2-1),m,false] = -de_y0[(shape[0]/2)..-1,m,false]
+        de_y1[(shape[0]/2)..-1,m,false] = -tmp
+      else
+        de_y0[true,m,false] = gp[true, m-n, false].val.to_na
+        de_y1[true,2*n-2-m,false] = gp[true,shape[1]-1-(m-n),false].val.to_na
+      end
+    }
+    return [de_x0, de_x1, de_y0, de_y1]
+  end
+
 
 
   def lonlat2xyz(lon, lat, r=1.0) # 緯度経度座標からデカルト座標に変換
@@ -383,6 +424,185 @@ module LagrangeSphere
     return [uval, vval]
   end
 
+  def interp4D_gp(gu, gv, plon, plat, pz, i, j, k, t, t_div, n, type="linear") # 3次元補完（１点のみ, 2変数同時）
+    # グリッド、データ、補完座標、補完座標の左と下のインデックス
+    # 内部で方向分離して、1次元補完を呼ぶ。
+    # case type
+    # when "linear", "cspline"
+    sz = @gslv_z[k..(k+1)]
+    # 鉛直内挿の係数
+    c0 = (sz[1]-pz); c1 = (pz-sz[0]); c2 = 1.0/(sz[1] - sz[0])
+
+    if (1 <= i && i <= gu.shape[0]-3 && 1 <= j && j <= gu.shape[1]-3) then # indexがはみ出さない場合
+      # 必要なデータの切り出し、NArray化
+      u = gu[(i-1)..(i+2),(j-1)..(j+2),k..(k+1),t..(t+1)].val
+      v = gv[(i-1)..(i+2),(j-1)..(j+2),k..(k+1),t..(t+1)].val
+      # 時間内挿
+      u = (u[true,true,true,0]*(t_div-n)+u[true,true,true,1]*n)/t_div
+      v = (v[true,true,true,0]*(t_div-n)+v[true,true,true,1]*n)/t_div
+      # 鉛直内挿
+      u = (u[true,true,0]*c0+u[true,true,1]*c1)*c2
+      v = (v[true,true,0]*c0+v[true,true,1]*c1)*c2
+      # 水平補完の準備　
+      slon = @gslv_lon_ext[(i-1)..(i+2)]
+      ua0 =  GSL::Vector[ u[true, 0].to_a]; ua1 =  GSL::Vector[ u[true, 1].to_a]; ua2 =  GSL::Vector[ u[true, 2].to_a]; ua3 =  GSL::Vector[ u[true, 3].to_a]
+      va0 =  GSL::Vector[ v[true, 0].to_a]; va1 =  GSL::Vector[ v[true, 1].to_a]; va2 =  GSL::Vector[ v[true, 2].to_a]; va3 =  GSL::Vector[ v[true, 3].to_a]
+    else # indexがはみ出す場合
+      @u_halo = data_ext_halo_only(gu, 4, true) unless @u_halo
+      @v_halo = data_ext_halo_only(gv, 4, true) unless @v_halo
+      if (i < 1 && 1 <= j && j <= gu.shape[1]-3) then # 左側
+        u = @u_halo[0][(4+i-1)..(4+i+2),(j-1)..(j+2),k..(k+1),t..(t+1)]
+        v = @v_halo[0][(4+i-1)..(4+i+2),(j-1)..(j+2),k..(k+1),t..(t+1)]
+      elsif (gu.shape[0]-3 < i && 1 <= j && j <= gu.shape[1]-3) then # 右側
+        u = @u_halo[1][(i-gu.shape[0]+3-1)..(i-gu.shape[0]+3+2),(j-1)..(j+2),k..(k+1),t..(t+1)]
+        v = @v_halo[1][(i-gu.shape[0]+3-1)..(i-gu.shape[0]+3+2),(j-1)..(j+2),k..(k+1),t..(t+1)]
+      elsif (1 <= i && i <= gu.shape[0]-3 && j < 1 ) then # 下側
+        u = @u_halo[2][(i-1)..(i+2), (4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        v = @v_halo[2][(i-1)..(i+2), (4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+      elsif (1 <= i && i <= gu.shape[0]-3 && gu.shape[1]-3 < j) then # 上側
+        u = @u_halo[3][(i-1)..(i+2),(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2),k..(k+1),t..(t+1)]
+        v = @v_halo[3][(i-1)..(i+2),(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2),k..(k+1),t..(t+1)]
+      elsif (j < 1 ) then# 下の隅
+        u = NArray.sfloat(4,4,2,2)
+        u[0,false] = @u_halo[2][(i-1)%gu.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        u[1,false] = @u_halo[2][(i  )%gu.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        u[2,false] = @u_halo[2][(i+1)%gu.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        u[3,false] = @u_halo[2][(i+2)%gu.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        v = NArray.sfloat(4,4,2,2)
+        v[0,false] = @v_halo[2][(i-1)%gu.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        v[1,false] = @v_halo[2][(i  )%gu.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        v[2,false] = @v_halo[2][(i+1)%gu.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        v[3,false] = @v_halo[2][(i+2)%gu.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+      elsif (gu.shape[1]-3 < j) then # 上の隅
+        u = NArray.sfloat(4,4,2,2)
+        u[0,false] = @u_halo[3][(i-1)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+        u[1,false] = @u_halo[3][(i  )%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+        u[2,false] = @u_halo[3][(i+1)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+        u[3,false] = @u_halo[3][(i+2)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+        v = NArray.sfloat(4,4,2,2)
+        v[0,false] = @v_halo[3][(i-1)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+        v[1,false] = @v_halo[3][(i  )%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+        v[2,false] = @v_halo[3][(i+1)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+        v[3,false] = @v_halo[3][(i+2)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+      else
+        binding.pry # 当てはまらないはず
+      end
+
+      # 時間内挿
+      u = (u[true,true,true,0]*(t_div-n)+u[true,true,true,1]*n)/t_div
+      v = (v[true,true,true,0]*(t_div-n)+v[true,true,true,1]*n)/t_div
+      # 鉛直内挿
+      u = (u[true,true,0]*c0+u[true,true,1]*c1)*c2
+      v = (v[true,true,0]*c0+v[true,true,1]*c1)*c2
+      # 水平補完の準備
+      slon = GSL::Vector[ @gslv_lon_ext[i-1], @gslv_lon_ext[i], @gslv_lon_ext[i+1], @gslv_lon_ext[i+2] ]
+      ua0 =  GSL::Vector[ u[true, 0].to_a]; ua1 =  GSL::Vector[ u[true, 1].to_a]; ua2 =  GSL::Vector[ u[true, 2].to_a]; ua3 =  GSL::Vector[ u[true, 3].to_a]
+      va0 =  GSL::Vector[ v[true, 0].to_a]; va1 =  GSL::Vector[ v[true, 1].to_a]; va2 =  GSL::Vector[ v[true, 2].to_a]; va3 =  GSL::Vector[ v[true, 3].to_a]
+
+
+      #
+      #
+      # p i, j
+      # p "I0"
+      # imax = gu.shape[0] ; ia = [(i-1)%imax, i%imax, (i+1)%imax, (i+2)%imax] # 東西は周期境界
+      # jmax = gu.shape[1]-1; ja = [j-1, j, j+1, j+2]
+      # a = NArray.sfloat(4,4).fill(1.0) # ベクトル成分を反転するかどうかの係数
+      # 4.times{|m|
+      #   if (ja[m] > jmax) then
+      #     ja[m] = 2*jmax-ja[m]; a[true,m] = -1.0; ia[m] = (ia[m]+imax/2)%imax # 東西半球を反転させる
+      #   elsif (ja[m] < 0) then
+      #     ja[m] = -ja[m]      ; a[true,m] = -1.0; ia[m] = (ia[m]+imax/2)%imax # 東西半球を反転させる
+      #   end
+      # }
+      # p "I1"
+      # # 必要なデータの切り出し、NArray化
+      # gu = gu.val
+      # uk0t0 = NArray.to_na(
+      #       [ [gu[ia[0],ja[0],k,t], gu[ia[1],ja[0],k,t], gu[ia[2],ja[0],k,t], gu[ia[3],ja[0],k,t]],
+      #         [gu[ia[0],ja[1],k,t], gu[ia[1],ja[1],k,t], gu[ia[2],ja[1],k,t], gu[ia[3],ja[1],k,t]],
+      #         [gu[ia[0],ja[2],k,t], gu[ia[1],ja[2],k,t], gu[ia[2],ja[2],k,t], gu[ia[3],ja[2],k,t]],
+      #         [gu[ia[0],ja[3],k,t], gu[ia[1],ja[3],k,t], gu[ia[2],ja[3],k,t], gu[ia[3],ja[3],k,t]] ] )
+      # uk1t0 = NArray.to_na(
+      #       [ [gu[ia[0],ja[0],k+1,t], gu[ia[1],ja[0],k+1,t], gu[ia[2],ja[0],k+1,t], gu[ia[3],ja[0],k+1,t]],
+      #         [gu[ia[0],ja[1],k+1,t], gu[ia[1],ja[1],k+1,t], gu[ia[2],ja[1],k+1,t], gu[ia[3],ja[1],k+1,t]],
+      #         [gu[ia[0],ja[2],k+1,t], gu[ia[1],ja[2],k+1,t], gu[ia[2],ja[2],k+1,t], gu[ia[3],ja[2],k+1,t]],
+      #         [gu[ia[0],ja[3],k+1,t], gu[ia[1],ja[3],k+1,t], gu[ia[2],ja[3],k+1,t], gu[ia[3],ja[3],k+1,t]] ] )
+      # uk0t1 = NArray.to_na(
+      #       [ [gu[ia[0],ja[0],k,t+1], gu[ia[1],ja[0],k,t+1], gu[ia[2],ja[0],k,t+1], gu[ia[3],ja[0],k,t+1]],
+      #         [gu[ia[0],ja[1],k,t+1], gu[ia[1],ja[1],k,t+1], gu[ia[2],ja[1],k,t+1], gu[ia[3],ja[1],k,t+1]],
+      #         [gu[ia[0],ja[2],k,t+1], gu[ia[1],ja[2],k,t+1], gu[ia[2],ja[2],k,t+1], gu[ia[3],ja[2],k,t+1]],
+      #         [gu[ia[0],ja[3],k,t+1], gu[ia[1],ja[3],k,t+1], gu[ia[2],ja[3],k,t+1], gu[ia[3],ja[3],k,t+1]] ] )
+      # uk1t1 = NArray.to_na(
+      #       [ [gu[ia[0],ja[0],k+1,t+1], gu[ia[1],ja[0],k+1,t+1], gu[ia[2],ja[0],k+1,t+1], gu[ia[3],ja[0],k+1,t+1]],
+      #         [gu[ia[0],ja[1],k+1,t+1], gu[ia[1],ja[1],k+1,t+1], gu[ia[2],ja[1],k+1,t+1], gu[ia[3],ja[1],k+1,t+1]],
+      #         [gu[ia[0],ja[2],k+1,t+1], gu[ia[1],ja[2],k+1,t+1], gu[ia[2],ja[2],k+1,t+1], gu[ia[3],ja[2],k+1,t+1]],
+      #         [gu[ia[0],ja[3],k+1,t+1], gu[ia[1],ja[3],k+1,t+1], gu[ia[2],ja[3],k+1,t+1], gu[ia[3],ja[3],k+1,t+1]] ] )
+      # uk0t0.map!{|i| i}; uk0t0 = uk0t0.to_type(4)*a
+      # uk1t0.map!{|i| i}; uk1t0 = uk1t0.to_type(4)*a
+      # uk0t1.map!{|i| i}; uk0t1 = uk0t1.to_type(4)*a
+      # uk1t1.map!{|i| i}; uk1t1 = uk1t1.to_type(4)*a
+      # p "I2"
+      # vk0t0 = NArray.to_na(
+      #       [ [gv[ia[0],ja[0],k,t], gv[ia[1],ja[0],k,t], gv[ia[2],ja[0],k,t], gv[ia[3],ja[0],k,t]],
+      #         [gv[ia[0],ja[1],k,t], gv[ia[1],ja[1],k,t], gv[ia[2],ja[1],k,t], gv[ia[3],ja[1],k,t]],
+      #         [gv[ia[0],ja[2],k,t], gv[ia[1],ja[2],k,t], gv[ia[2],ja[2],k,t], gv[ia[3],ja[2],k,t]],
+      #         [gv[ia[0],ja[3],k,t], gv[ia[1],ja[3],k,t], gv[ia[2],ja[3],k,t], gv[ia[3],ja[3],k,t]] ] )
+      # vk1t0 = NArray.to_na(
+      #       [ [gv[ia[0],ja[0],k+1,t], gv[ia[1],ja[0],k+1,t], gv[ia[2],ja[0],k+1,t], gv[ia[3],ja[0],k+1,t]],
+      #         [gv[ia[0],ja[1],k+1,t], gv[ia[1],ja[1],k+1,t], gv[ia[2],ja[1],k+1,t], gv[ia[3],ja[1],k+1,t]],
+      #         [gv[ia[0],ja[2],k+1,t], gv[ia[1],ja[2],k+1,t], gv[ia[2],ja[2],k+1,t], gv[ia[3],ja[2],k+1,t]],
+      #         [gv[ia[0],ja[3],k+1,t], gv[ia[1],ja[3],k+1,t], gv[ia[2],ja[3],k+1,t], gv[ia[3],ja[3],k+1,t]] ] )
+      # vk0t1 = NArray.to_na(
+      #       [ [gv[ia[0],ja[0],k,t+1], gv[ia[1],ja[0],k,t+1], gv[ia[2],ja[0],k,t+1], gv[ia[3],ja[0],k,t+1]],
+      #         [gv[ia[0],ja[1],k,t+1], gv[ia[1],ja[1],k,t+1], gv[ia[2],ja[1],k,t+1], gv[ia[3],ja[1],k,t+1]],
+      #         [gv[ia[0],ja[2],k,t+1], gv[ia[1],ja[2],k,t+1], gv[ia[2],ja[2],k,t+1], gv[ia[3],ja[2],k,t+1]],
+      #         [gv[ia[0],ja[3],k,t+1], gv[ia[1],ja[3],k,t+1], gv[ia[2],ja[3],k,t+1], gv[ia[3],ja[3],k,t+1]] ] )
+      # vk1t1 = NArray.to_na(
+      #       [ [gv[ia[0],ja[0],k+1,t+1], gv[ia[1],ja[0],k+1,t+1], gv[ia[2],ja[0],k+1,t+1], gv[ia[3],ja[0],k+1,t+1]],
+      #         [gv[ia[0],ja[1],k+1,t+1], gv[ia[1],ja[1],k+1,t+1], gv[ia[2],ja[1],k+1,t+1], gv[ia[3],ja[1],k+1,t+1]],
+      #         [gv[ia[0],ja[2],k+1,t+1], gv[ia[1],ja[2],k+1,t+1], gv[ia[2],ja[2],k+1,t+1], gv[ia[3],ja[2],k+1,t+1]],
+      #         [gv[ia[0],ja[3],k+1,t+1], gv[ia[1],ja[3],k+1,t+1], gv[ia[2],ja[3],k+1,t+1], gv[ia[3],ja[3],k+1,t+1]] ] )
+      # vk0t0.map!{|i| i.val[0]}; vk0t0 = vk0t0.to_type(4)*a
+      # vk1t0.map!{|i| i.val[0]}; vk1t0 = vk1t0.to_type(4)*a
+      # vk0t1.map!{|i| i.val[0]}; vk0t1 = vk0t1.to_type(4)*a
+      # vk1t1.map!{|i| i.val[0]}; vk1t1 = vk1t1.to_type(4)*a
+      # p "I3"
+      #
+      # # 時間内挿
+      # uk0 = (uk0t0*(t_div-n)+uk0t1*n)/t_div; uk1 = (uk1t0*(t_div-n)+uk1t1*n)/t_div
+      # vk0 = (vk0t0*(t_div-n)+vk0t1*n)/t_div; vk1 = (vk1t0*(t_div-n)+vk1t1*n)/t_div
+      # # 鉛直内挿
+      # u = (uk0*c0+uk1*c1)*c2
+      # v = (vk0*c0+vk1*c1)*c2
+    end
+
+    if (1 <= j && j <= @gslv_lat_ext.length-3) then
+     slat = @gslv_lat_ext[(j-1)..(j+2)]
+    else
+     slat = GSL::Vector[ @gslv_lat_ext[j-1], @gslv_lat_ext[j], @gslv_lat_ext[j+1], @gslv_lat_ext[j+2] ]
+    end
+
+    #水平補完
+    ip = GSL::Interp.alloc(type, slon, ua0) # 初期化
+    u0 = ip.eval(slon, ua0, plon)
+    u1 = ip.eval(slon, ua1, plon)
+    u2 = ip.eval(slon, ua2, plon)
+    u3 = ip.eval(slon, ua3, plon)
+    v0 = ip.eval(slon, va0, plon)
+    v1 = ip.eval(slon, va1, plon)
+    v2 = ip.eval(slon, va2, plon)
+    v3 = ip.eval(slon, va3, plon)
+
+    uaa = GSL::Vector[u0,u1,u2,u3]
+    vaa = GSL::Vector[v0,v1,v2,v3]
+    ip = GSL::Interp.alloc(type, slat, uaa) # 初期化
+    uval = ip.eval(slat, uaa, plat)
+    vval = ip.eval(slat, vaa, plat)
+    # else
+    # end
+    return [uval, vval]
+  end
+
   def interp3D_1(u, plon, plat, pz, i, j, k, type="linear") # 3次元補完（１点のみ, 1変数）
     # グリッド、データ、補完座標、補完座標の左と下のインデックス
     # 内部で方向分離して、1次元補完を呼ぶ。
@@ -432,6 +652,83 @@ module LagrangeSphere
     # else
     # end
     return uval
+  end
+
+  def interp4D_1_gp(gw, plon, plat, pz, i, j, k, t, t_div, n, type="linear") # 3次元補完（１点のみ, 1変数）
+    # グリッド、データ、補完座標、補完座標の左と下のインデックス
+    # 内部で方向分離して、1次元補完を呼ぶ。
+    # case type
+    # when "linear", "cspline"
+    sz = @gslv_z[k..(k+1)]
+    # 鉛直内挿の係数
+    c0 = (sz[1]-pz); c1 = (pz-sz[0]); c2 = 1.0/(sz[1] - sz[0])
+    if (1 <= i && i <= gw.shape[0]-3 && 1 <= j && j <= gw.shape[1]-3) then # indexがはみ出さない場合
+      # 必要なデータの切り出し、NArray化
+      w = gw[(i-1)..(i+2),(j-1)..(j+2),k..(k+1),t..(t+1)].val
+      # 時間内挿
+      w = (w[true,true,true,0]*(t_div-n)+w[true,true,true,1]*n)/t_div
+      # 鉛直内挿
+      w = (w[true,true,0]*c0+w[true,true,1]*c1)*c2
+      # 水平補完の準備　
+      slon = @gslv_lon_ext[(i-1)..(i+2)]
+      wa0 =  GSL::Vector[ w[true, 0].to_a]; wa1 =  GSL::Vector[ w[true, 1].to_a]; wa2 =  GSL::Vector[ w[true, 2].to_a]; wa3 =  GSL::Vector[ w[true, 3].to_a]
+    else # indexがはみ出す場合
+      @w_halo = data_ext_halo_only(gw,4,false) unless @w_halo
+      if (i < 1 && 1 <= j && j <= gw.shape[1]-3) then # 左側
+        w = @w_halo[0][(4+i-1)..(4+i+2),(j-1)..(j+2),k..(k+1),t..(t+1)]
+      elsif (gw.shape[0]-3 < i && 1 <= j && j <= gw.shape[1]-3) then # 右側
+        w = @w_halo[1][(i-gw.shape[0]+3-1)..(i-gw.shape[0]+3+2),(j-1)..(j+2),k..(k+1),t..(t+1)]
+      elsif (1 <= i && i <= gw.shape[0]-3 && j < 1 ) then # 下側
+        w = @w_halo[2][(i-1)..(i+2), (4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+      elsif (1 <= i && i <= gw.shape[0]-3 && gw.shape[1]-3 < j) then # 上側
+        w = @w_halo[3][(i-1)..(i+2),(j-gw.shape[1]+3-1)..(j-gw.shape[1]+3+2),k..(k+1),t..(t+1)]
+      elsif (j < 1 ) then# 下の隅
+        w = NArray.sfloat(4,4,2,2)
+        w[0,false] = @w_halo[2][(i-1)%gw.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        w[1,false] = @w_halo[2][(i  )%gw.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        w[2,false] = @w_halo[2][(i+1)%gw.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+        w[3,false] = @w_halo[2][(i+2)%gw.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
+      elsif (gw.shape[1]-3 < j) then # 上の隅
+        w = NArray.sfloat(4,4,2,2)
+        w[0,false] = @w_halo[3][(i-1)%gw.shape[0],(j-gw.shape[1]+3-1)..(j-gw.shape[1]+3+2), k..(k+1),t..(t+1)]
+        w[1,false] = @w_halo[3][(i  )%gw.shape[0],(j-gw.shape[1]+3-1)..(j-gw.shape[1]+3+2), k..(k+1),t..(t+1)]
+        w[2,false] = @w_halo[3][(i+1)%gw.shape[0],(j-gw.shape[1]+3-1)..(j-gw.shape[1]+3+2), k..(k+1),t..(t+1)]
+        w[3,false] = @w_halo[3][(i+2)%gw.shape[0],(j-gw.shape[1]+3-1)..(j-gw.shape[1]+3+2), k..(k+1),t..(t+1)]
+      else
+        binding.pry # 当てはまらないはず
+      end
+
+      # 時間内挿
+      w = (w[true,true,true,0]*(t_div-n)+w[true,true,true,1]*n)/t_div
+      # 鉛直内挿
+      w = (w[true,true,0]*c0+w[true,true,1]*c1)*c2
+      # 水平補完の準備
+      slon = GSL::Vector[ @gslv_lon_ext[i-1], @gslv_lon_ext[i], @gslv_lon_ext[i+1], @gslv_lon_ext[i+2] ]
+      wa0 =  GSL::Vector[ w[true, 0].to_a]; wa1 =  GSL::Vector[ w[true, 1].to_a]; wa2 =  GSL::Vector[ w[true, 2].to_a]; wa3 =  GSL::Vector[ w[true, 3].to_a]
+    end
+    if (1 <= j && j <= @gslv_lat_ext.length-3) then
+      slat = @gslv_lat_ext[(j-1)..(j+2)]
+    else
+      slat = GSL::Vector[ @gslv_lat_ext[j-1], @gslv_lat_ext[j], @gslv_lat_ext[j+1], @gslv_lat_ext[j+2] ]
+    end
+
+    #水平補完
+    ip = GSL::Interp.alloc(type, slon, wa0) # 初期化
+    begin
+      w0 = ip.eval(slon, wa0, plon)
+      w1 = ip.eval(slon, wa1, plon)
+      w2 = ip.eval(slon, wa2, plon)
+      w3 = ip.eval(slon, wa3, plon)
+    rescue
+      binding.pry
+    end
+
+    waa = GSL::Vector[w0,w1,w2,w3]
+    ip = GSL::Interp.alloc(type, slat, waa) # 初期化
+    wval = ip.eval(slat, waa, plat)
+    # else
+    # end
+    return wval
   end
 
   def find_midpoint(lon, lat, u, v, dt, r=1.0) #中間点を推定する
@@ -621,7 +918,7 @@ module LagrangeSphere
   #         sz の高度で中間点(mlon, mlat)、終点(elon,elat)をもとめ、
   #         中間点の鉛直流の値で sz → ezの鉛直変位を計算する。
 
-  def particle_advection_3D(p_lon, p_lat, p_z, gu, gv, gw, dt)
+  def particle_advection_3D(p_lon, p_lat, p_z, gu, gv, gw, dt, t, t_div, n)
     vTYPE = "cspline"
     if dt.class == VArray then# dtを負で与えることで、始点探索を終点探索に変える。
       if dt.units.to_s.include?("since") then
@@ -640,15 +937,20 @@ module LagrangeSphere
     # 鉛直位置のNArray化
     sz = p_z.val
     # 流速のNArray化と拡張
-    if (gu.val.class == NArrayMiss) then
-      u_ext = data_ext(gu.val.to_na, 4)
-      v_ext = data_ext(gv.val.to_na, 4)
-      w_ext = data_ext(gw.val.to_na, 4)
-    else
-      u_ext = data_ext(gu.val, 4)
-      v_ext = data_ext(gv.val, 4)
-      w_ext = data_ext(gw.val, 4)
-    end
+    # if (gu.val.class == NArrayMiss) then
+      # u_ext = data_ext(gu.val.to_na, 4)
+      # v_ext = data_ext(gv.val.to_na, 4)
+      # w_ext = data_ext(gw.val.to_na, 4)
+    # else
+      # u_ext = data_ext(gu.val, 4)
+      # v_ext = data_ext(gv.val, 4)
+      # w_ext = data_ext(gw.val, 4)
+    # end
+    # @u_halo = data_ext_halo_only(gu, 4, true)
+    # @v_halo = data_ext_halo_only(gv, 4, true)
+    # @w_halo = data_ext_halo_only(gw, 4, false)
+    @u_halo = nil; @v_halo = nil; @w_halo = nil
+
     # 初期推定値
     mlon = slon; mlat = slat
     if (mlon.class == NArray) then
@@ -656,7 +958,8 @@ module LagrangeSphere
       k_st = find_stencil_1D(sz)
       mu = NArray.sfloat(slon.length); mv = NArray.sfloat(slon.length); mw = NArray.sfloat(slon.length)
       slon.length.times{|n|
-        mu[n], mv[n] = interp3D(u_ext,v_ext,slon[n],slat[n],sz[n],i_st[n],j_st[n],k_st[n],vTYPE)
+#        mu[n], mv[n] = interp3D(u_ext,v_ext,slon[n],slat[n],sz[n],i_st[n],j_st[n],k_st[n],vTYPE)
+        mu[n], mv[n] = interp4D_gp(gu,gv,slon[n],slat[n],sz[n],i_st[n],j_st[n],k_st[n], t, t_div, n, vTYPE)
       }
     else
       mu = gu.cut(slon,slat).val[0]; mv = gv.cut(slon,slat).val[0]
@@ -692,7 +995,8 @@ module LagrangeSphere
         # 中間点の u, v を求める
         if (mlon.class == NArray) then
           mlon.length.times{|n|
-            mu[n], mv[n] = interp3D(u_ext,v_ext,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], vTYPE)
+#            mu[n], mv[n] = interp3D(u_ext,v_ext,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], vTYPE)
+            mu[n], mv[n] = interp4D_gp(gu,gv,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], t, t_div, n, vTYPE)
           }
         else
           mu, mv = interp3D(u_ext,v_ext,mlon,mlat,sz[n],i_st,j_st,k_st,vTYPE)
@@ -717,13 +1021,15 @@ module LagrangeSphere
     i_st, j_st = find_stencil(mlon, mlat)
     if (mlon.class == NArray) then
       mlon.length.times{|n|
-        mw[n] = interp3D_1(w_ext,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], vTYPE)
+#        mw[n] = interp3D_1(w_ext,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], vTYPE)
+        mw[n] = interp4D_1_gp(gw,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], t, t_div, n, vTYPE)
       }
     else
       mw = interp3D_1(w_ext,mlon,mlat,sz[n],i_st,j_st,k_st,vTYPE)
     end
     # 中間点の w の値で鉛直移流させる
     sz.add!(mw*(-dt_in_sec))
+    sz.mul!(sz.gt(0)) # 高度が負になった場合に ゼロ に補正する。
 
 
     ######### Ritchie (1987) ここまで ############
