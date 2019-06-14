@@ -640,7 +640,7 @@ class GPV
 
     grid = Grid.new(id_axis, t_axis)
 
-    print "#{id_axis.length} particles were set.\n" 
+    print "#{id_axis.length} particles were set.\n"
 
     return GPhys.new(grid,x_va), GPhys.new(grid,y_va), GPhys.new(grid,z_va) if flag_3D
     return GPhys.new(grid,x_va), GPhys.new(grid,y_va), nil

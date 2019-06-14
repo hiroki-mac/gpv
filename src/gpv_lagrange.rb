@@ -424,7 +424,7 @@ module LagrangeSphere
     return [uval, vval]
   end
 
-  def interp4D_gp(gu, gv, plon, plat, pz, i, j, k, t, t_div, n, type="linear") # 3次元補完（１点のみ, 2変数同時）
+  def interp4D_gp(gu, gv, plon, plat, pz, i, j, k, t, t_div, tn, type="linear") # 3次元補完（１点のみ, 2変数同時）
     # グリッド、データ、補完座標、補完座標の左と下のインデックス
     # 内部で方向分離して、1次元補完を呼ぶ。
     # case type
@@ -438,8 +438,8 @@ module LagrangeSphere
       u = gu[(i-1)..(i+2),(j-1)..(j+2),k..(k+1),t..(t+1)].val
       v = gv[(i-1)..(i+2),(j-1)..(j+2),k..(k+1),t..(t+1)].val
       # 時間内挿
-      u = (u[true,true,true,0]*(t_div-n)+u[true,true,true,1]*n)/t_div
-      v = (v[true,true,true,0]*(t_div-n)+v[true,true,true,1]*n)/t_div
+      u = (u[true,true,true,0]*(t_div-tn)+u[true,true,true,1]*tn)/t_div
+      v = (v[true,true,true,0]*(t_div-tn)+v[true,true,true,1]*tn)/t_div
       # 鉛直内挿
       u = (u[true,true,0]*c0+u[true,true,1]*c1)*c2
       v = (v[true,true,0]*c0+v[true,true,1]*c1)*c2
@@ -475,30 +475,33 @@ module LagrangeSphere
         v[3,false] = @v_halo[2][(i+2)%gu.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
       elsif (gu.shape[1]-3 < j) then # 上の隅
         u = NArray.sfloat(4,4,2,2)
-        u[0,false] = @u_halo[3][(i-1)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
-        u[1,false] = @u_halo[3][(i  )%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
-        u[2,false] = @u_halo[3][(i+1)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
-        u[3,false] = @u_halo[3][(i+2)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+        u[0,false] = @u_halo[3][(i-1)%gu.shape[0],(j-(gu.shape[1]+3)-1)..(j-(gu.shape[1]+3)+2), k..(k+1),t..(t+1)]
+        u[1,false] = @u_halo[3][(i  )%gu.shape[0],(j-(gu.shape[1]+3)-1)..(j-(gu.shape[1]+3)+2), k..(k+1),t..(t+1)]
+        u[2,false] = @u_halo[3][(i+1)%gu.shape[0],(j-(gu.shape[1]+3)-1)..(j-(gu.shape[1]+3)+2), k..(k+1),t..(t+1)]
+        u[3,false] = @u_halo[3][(i+2)%gu.shape[0],(j-(gu.shape[1]+3)-1)..(j-(gu.shape[1]+3)+2), k..(k+1),t..(t+1)]
         v = NArray.sfloat(4,4,2,2)
-        v[0,false] = @v_halo[3][(i-1)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
-        v[1,false] = @v_halo[3][(i  )%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
-        v[2,false] = @v_halo[3][(i+1)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
-        v[3,false] = @v_halo[3][(i+2)%gu.shape[0],(j-gu.shape[1]+3-1)..(j-gu.shape[1]+3+2), k..(k+1),t..(t+1)]
+        v[0,false] = @v_halo[3][(i-1)%gu.shape[0],(j-(gu.shape[1]+3)-1)..(j-(gu.shape[1]+3)+2), k..(k+1),t..(t+1)]
+        v[1,false] = @v_halo[3][(i  )%gu.shape[0],(j-(gu.shape[1]+3)-1)..(j-(gu.shape[1]+3)+2), k..(k+1),t..(t+1)]
+        v[2,false] = @v_halo[3][(i+1)%gu.shape[0],(j-(gu.shape[1]+3)-1)..(j-(gu.shape[1]+3)+2), k..(k+1),t..(t+1)]
+        v[3,false] = @v_halo[3][(i+2)%gu.shape[0],(j-(gu.shape[1]+3)-1)..(j-(gu.shape[1]+3)+2), k..(k+1),t..(t+1)]
       else
         binding.pry # 当てはまらないはず
       end
 
       # 時間内挿
-      u = (u[true,true,true,0]*(t_div-n)+u[true,true,true,1]*n)/t_div
-      v = (v[true,true,true,0]*(t_div-n)+v[true,true,true,1]*n)/t_div
+      u = (u[true,true,true,0]*(t_div-tn)+u[true,true,true,1]*tn)/t_div
+      v = (v[true,true,true,0]*(t_div-tn)+v[true,true,true,1]*tn)/t_div
       # 鉛直内挿
       u = (u[true,true,0]*c0+u[true,true,1]*c1)*c2
       v = (v[true,true,0]*c0+v[true,true,1]*c1)*c2
       # 水平補完の準備
+      begin
       slon = GSL::Vector[ @gslv_lon_ext[i-1], @gslv_lon_ext[i], @gslv_lon_ext[i+1], @gslv_lon_ext[i+2] ]
       ua0 =  GSL::Vector[ u[true, 0].to_a]; ua1 =  GSL::Vector[ u[true, 1].to_a]; ua2 =  GSL::Vector[ u[true, 2].to_a]; ua3 =  GSL::Vector[ u[true, 3].to_a]
       va0 =  GSL::Vector[ v[true, 0].to_a]; va1 =  GSL::Vector[ v[true, 1].to_a]; va2 =  GSL::Vector[ v[true, 2].to_a]; va3 =  GSL::Vector[ v[true, 3].to_a]
-
+      rescue
+      binding.pry
+      end
 
       #
       #
@@ -654,7 +657,7 @@ module LagrangeSphere
     return uval
   end
 
-  def interp4D_1_gp(gw, plon, plat, pz, i, j, k, t, t_div, n, type="linear") # 3次元補完（１点のみ, 1変数）
+  def interp4D_1_gp(gw, plon, plat, pz, i, j, k, t, t_div, tn, type="linear") # 3次元補完（１点のみ, 1変数）
     # グリッド、データ、補完座標、補完座標の左と下のインデックス
     # 内部で方向分離して、1次元補完を呼ぶ。
     # case type
@@ -666,7 +669,7 @@ module LagrangeSphere
       # 必要なデータの切り出し、NArray化
       w = gw[(i-1)..(i+2),(j-1)..(j+2),k..(k+1),t..(t+1)].val
       # 時間内挿
-      w = (w[true,true,true,0]*(t_div-n)+w[true,true,true,1]*n)/t_div
+      w = (w[true,true,true,0]*(t_div-tn)+w[true,true,true,1]*tn)/t_div
       # 鉛直内挿
       w = (w[true,true,0]*c0+w[true,true,1]*c1)*c2
       # 水平補完の準備　
@@ -690,16 +693,16 @@ module LagrangeSphere
         w[3,false] = @w_halo[2][(i+2)%gw.shape[0],(4+j-1)..(4+j+2), k..(k+1),t..(t+1)]
       elsif (gw.shape[1]-3 < j) then # 上の隅
         w = NArray.sfloat(4,4,2,2)
-        w[0,false] = @w_halo[3][(i-1)%gw.shape[0],(j-gw.shape[1]+3-1)..(j-gw.shape[1]+3+2), k..(k+1),t..(t+1)]
-        w[1,false] = @w_halo[3][(i  )%gw.shape[0],(j-gw.shape[1]+3-1)..(j-gw.shape[1]+3+2), k..(k+1),t..(t+1)]
-        w[2,false] = @w_halo[3][(i+1)%gw.shape[0],(j-gw.shape[1]+3-1)..(j-gw.shape[1]+3+2), k..(k+1),t..(t+1)]
-        w[3,false] = @w_halo[3][(i+2)%gw.shape[0],(j-gw.shape[1]+3-1)..(j-gw.shape[1]+3+2), k..(k+1),t..(t+1)]
+        w[0,false] = @w_halo[3][(i-1)%gw.shape[0],(j-(gw.shape[1]+3)-1)..(j-(gw.shape[1]+3)+2), k..(k+1),t..(t+1)]
+        w[1,false] = @w_halo[3][(i  )%gw.shape[0],(j-(gw.shape[1]+3)-1)..(j-(gw.shape[1]+3)+2), k..(k+1),t..(t+1)]
+        w[2,false] = @w_halo[3][(i+1)%gw.shape[0],(j-(gw.shape[1]+3)-1)..(j-(gw.shape[1]+3)+2), k..(k+1),t..(t+1)]
+        w[3,false] = @w_halo[3][(i+2)%gw.shape[0],(j-(gw.shape[1]+3)-1)..(j-(gw.shape[1]+3)+2), k..(k+1),t..(t+1)]
       else
         binding.pry # 当てはまらないはず
       end
 
       # 時間内挿
-      w = (w[true,true,true,0]*(t_div-n)+w[true,true,true,1]*n)/t_div
+      w = (w[true,true,true,0]*(t_div-tn)+w[true,true,true,1]*tn)/t_div
       # 鉛直内挿
       w = (w[true,true,0]*c0+w[true,true,1]*c1)*c2
       # 水平補完の準備
@@ -918,7 +921,7 @@ module LagrangeSphere
   #         sz の高度で中間点(mlon, mlat)、終点(elon,elat)をもとめ、
   #         中間点の鉛直流の値で sz → ezの鉛直変位を計算する。
 
-  def particle_advection_3D(p_lon, p_lat, p_z, gu, gv, gw, dt, t, t_div, n)
+  def particle_advection_3D(p_lon, p_lat, p_z, gu, gv, gw, dt, t, t_div, tn)
     vTYPE = "cspline"
     if dt.class == VArray then# dtを負で与えることで、始点探索を終点探索に変える。
       if dt.units.to_s.include?("since") then
@@ -959,7 +962,7 @@ module LagrangeSphere
       mu = NArray.sfloat(slon.length); mv = NArray.sfloat(slon.length); mw = NArray.sfloat(slon.length)
       slon.length.times{|n|
 #        mu[n], mv[n] = interp3D(u_ext,v_ext,slon[n],slat[n],sz[n],i_st[n],j_st[n],k_st[n],vTYPE)
-        mu[n], mv[n] = interp4D_gp(gu,gv,slon[n],slat[n],sz[n],i_st[n],j_st[n],k_st[n], t, t_div, n, vTYPE)
+        mu[n], mv[n] = interp4D_gp(gu,gv,slon[n],slat[n],sz[n],i_st[n],j_st[n],k_st[n], t, t_div, tn, vTYPE)
       }
     else
       mu = gu.cut(slon,slat).val[0]; mv = gv.cut(slon,slat).val[0]
@@ -996,7 +999,7 @@ module LagrangeSphere
         if (mlon.class == NArray) then
           mlon.length.times{|n|
 #            mu[n], mv[n] = interp3D(u_ext,v_ext,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], vTYPE)
-            mu[n], mv[n] = interp4D_gp(gu,gv,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], t, t_div, n, vTYPE)
+            mu[n], mv[n] = interp4D_gp(gu,gv,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], t, t_div, tn, vTYPE)
           }
         else
           mu, mv = interp3D(u_ext,v_ext,mlon,mlat,sz[n],i_st,j_st,k_st,vTYPE)
@@ -1022,7 +1025,7 @@ module LagrangeSphere
     if (mlon.class == NArray) then
       mlon.length.times{|n|
 #        mw[n] = interp3D_1(w_ext,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], vTYPE)
-        mw[n] = interp4D_1_gp(gw,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], t, t_div, n, vTYPE)
+        mw[n] = interp4D_1_gp(gw,mlon[n],mlat[n],sz[n],i_st[n],j_st[n],k_st[n], t, t_div, tn, vTYPE)
       }
     else
       mw = interp3D_1(w_ext,mlon,mlat,sz[n],i_st,j_st,k_st,vTYPE)

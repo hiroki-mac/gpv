@@ -1173,13 +1173,29 @@ class GPV
     end
 
     anim_counter = 0
-
+    m = 0
     while (adim[0])
-      if (@OPT_anim) then
+      if (@OPT_anim && !@OPT_anim_div) then
         gp = gp_all.map{|g| g.cut(@OPT_anim=>adim[0]) }
         anim_counter += 1
+        adim.shift
+      elsif (@OPT_anim && @OPT_anim_div && adim[1]) then
+        t_div = @OPT_anim_div.to_i
+        m = m%t_div
+        ld_now = (gp_all[0].cut_rank_conserving(@OPT_anim=>adim[0]).coord(@OPT_anim)*(t_div-m) + gp_all[0].cut_rank_conserving(@OPT_anim=>adim[1]).coord(@OPT_anim)*m )/t_div
+        gp = gp_all.map{|g|
+          g = g.cut_rank_conserving(@OPT_anim=>adim[0])
+          g.axis(@OPT_anim).set_pos(ld_now); g = g.cut(@OPT_anim=>adim[0])
+        }
+        m += 1; anim_counter += 1
+        adim.shift if m == t_div
+      elsif (@OPT_anim && @OPT_anim_div && !adim[1]) then
+        gp = gp_all.map{|g| g.cut(@OPT_anim=>adim[0]) }
+        anim_counter += 1
+        adim.shift
+      else # non-anim
+        adim.shift
       end
-      adim.shift
 
       case draw_flag
     #-------------------------------------------------------------------------------------------------
