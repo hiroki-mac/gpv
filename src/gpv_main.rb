@@ -1207,7 +1207,20 @@ while ARGV[0] do
     # 流速場をメモリ上に展開（2GB制限あり）
     begin
       u = u.copy; v = v.copy; w = w.copy
+      print "u, v, w were copied on memory\n"
     rescue
+      print "Sizes of u, v, w exceed 2GB, so that flow variables were NOT copied on memory\n"
+      filename = u.axis(0).inspect.split("'")[3]
+      if (filename) then
+        if filename.include?(".nc") then
+          dl = `ncdump -sh #{filename} | grep DeflateLevel`
+          if (!dl.empty?) then
+            print dl, "\n"
+            print "CAUTION: Deflated NetCDF4 files require many computational costs.\n"
+            print "         Converting files to NetCDF3 is recomended.\n"
+          end
+        end
+      end
     end
 
 
@@ -1221,7 +1234,6 @@ while ARGV[0] do
     end
     id0 = p_lon_s.coord(0).val[0]
     id1 = p_lon_s.coord(0).val[-1]
-
     # 流速データの時間間隔の時刻ループ
     (t_len-1).times{|t|
       if (flag_t_exist) then
@@ -1232,6 +1244,7 @@ while ARGV[0] do
         dt = data_dt/t_div
         u_now = u; v_now = v
       end
+
       # 流速データの時間間隔を t_div 分割して計算する。
       t_div.times{|tn|
         if (p_z) then # 3次元移流
@@ -1250,10 +1263,12 @@ while ARGV[0] do
         end
         # auto_write("particles.nc", [p_lon,p_lat], t+1, false)
         auto_write("particles_#{proc}.nc", [p_lon_s,p_lat_s,p_z_s], t+1, false) if (tn+1)%(t_div/out_div) == 0
+#        print "(#{p_lon_s.val[0]}, #{p_lat_s.val[0]}, #{p_z_s.val[0]}) t = #{t+1}, p = #{proc} (id:#{id0}-#{id1})\n"
+
       }
       if (p_z) then
 #        auto_write("particles_#{proc}.nc", [p_lon_s,p_lat_s,p_z_s], t+1, false)
-        print "(#{p_lon_s.val[-1]}, #{p_lat_s.val[-1]}, #{p_z_s.val[-1]}) t = #{t+1}, p = #{proc} (id:#{id0}-#{id1})\n"
+        print "(#{p_lon_s.val[0]}, #{p_lat_s.val[0]}, #{p_z_s.val[0]}) t = #{t+1}, p = #{proc} (id:#{id0}-#{id1})\n"
       else
         auto_write("particles.nc", [p_lon,p_lat], t+1, false)
         print "(#{p_lon.val[0]}, #{p_lat.val[0]}) t = #{t+1}\n"
@@ -2029,9 +2044,10 @@ while ARGV[0] do
         visualize_and_output(gp)
       }
     end
-  else
+  else # 1変数、通常時
     gp = proc.call(gp, 0)
     gary << visualize_and_output(gp)
+    plot_particles(gp) if @OPT_plot_particles
   end
 
 

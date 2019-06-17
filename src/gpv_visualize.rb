@@ -1986,7 +1986,7 @@ class GPV
 
   def plot_particles(gp)
     if @OPT_anim then
-      now = gp.lost_axes.select{|a| a.include?(@OPT_anim)}
+      now = gp.lost_axes.select{|a| a.include?(@OPT_anim+"=")}
       if (now.empty?) then
         now = ""
         flag_cut_by_DateTime = true
@@ -2018,7 +2018,7 @@ class GPV
     index = index + 8 if (index%10==0)
     if z_gp then
       DCL.sgscmn(63)
-      GGraph.color_scatter(x_gp,y_gp,z_gp,
+      GGraph.color_scatter(x_gp,y_gp,z_gp.log10,
                     false,
                     "index"=>index,
                     "type" =>(@OPT_type ||1),

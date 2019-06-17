@@ -349,7 +349,7 @@ class GPV
       gary.each{|g|
         outncfile.def_var(g.name, g.ntype, g.axnames) # 変数定義
         outncfile.var(g.name).deflate(1, true) if compress # set commpression level and shuffle.
-        g.att_names.each{|n| outncfile.var(g.name).put_att(n, g.get_att(n), nil) } # 変数属性の設定
+        g.att_names.each{|n| outncfile.var(g.name).put_att(n, (g.get_att(n)||""), nil) } # 変数属性の設定
       }
 
       # set global atts if used in gpv.rb

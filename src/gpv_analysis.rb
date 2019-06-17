@@ -655,7 +655,7 @@ class GPV
           z = UNumeric[valunit.to_f, "m"]
         end
       }
-    elsif (z.class == Float)
+    elsif (z.class == Float) then 
       z = UNumeric[z, "m"]
     end
 
@@ -673,6 +673,23 @@ class GPV
     return tau_s
 
 
+  end
+
+  # ブラントバイサラ振動数を計算する｜N^2= g(∂T/∂z+ g/Cp)/T
+  # temp: 温度
+  def brunt_vaisala_N2(temp)
+    g = GAnalysis::Met.g
+    cp = GAnalysis::Met::Cp
+    n2 = g*(temp.dz(temp) + g/cp)/temp    
+    return n2
+  end
+
+  # 大気安定度 Γ - Γd を計算する
+  def stability(temp)
+    g = GAnalysis::Met.g
+    cp = GAnalysis::Met::Cp
+    s = temp.dz(temp) + g/cp
+    return s
   end
 
 

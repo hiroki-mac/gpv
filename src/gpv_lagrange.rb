@@ -205,12 +205,15 @@ module LagrangeSphere
     if (pz.class == NArray) then # 1次元 NArray
       len = pz.length
       k_na = NArray.int(len).fill(-999999)
-      len.times{|n|
-        k_na[n] = GSL::Interp.bsearch(@gslv_z, pz[n], 0, @gslv_z.length-1)
-      }
+      if (@flag_sigma) then
+        len.times{|n| k_na[n] = GSL::Interp.bsearch(-@gslv_z, -pz[n], 0, @gslv_z.length-1)  }
+      else
+        len.times{|n| k_na[n] = GSL::Interp.bsearch(@gslv_z, pz[n], 0, @gslv_z.length-1)  }
+      end
       return k_na
     else
-      k_na = GSL::Interp.bsearch(@gslv_z, pz, 0, @gslv_z.length-1)
+      k_na = GSL::Interp.bsearch(@gslv_z, pz, 0, @gslv_z.length-1) unless @flag_sigma
+      k_na = GSL::Interp.bsearch(-@gslv_z, -pz, 0, @gslv_z.length-1) if @flag_sigma
       return k_na
     end
   end
@@ -795,6 +798,12 @@ module LagrangeSphere
     @gslv_lon_ext = GSL::Vector[lon_ext.to_a]
     @gslv_lat_ext = GSL::Vector[lat_ext.to_a]
     @gslv_z = GSL::Vector[z.to_a]
+
+    if (gp.coordinate(2).name.downcase.include?("sig"))
+      @flag_sigma = true
+    else
+      @flag_sigma = false
+    end
   end
 
 
@@ -985,7 +994,7 @@ module LagrangeSphere
           dellat = Math.sin(mlat) - Math.sin(pmlat)
           delta = [dellon.abs, dellat.abs].max
         end
-        if (delta < 0.01*D2R) then
+        if (delta < 0.001*D2R) then
           break
         end
       end
@@ -1033,6 +1042,9 @@ module LagrangeSphere
     # 中間点の w の値で鉛直移流させる
     sz.add!(mw*(-dt_in_sec))
     sz.mul!(sz.gt(0)) # 高度が負になった場合に ゼロ に補正する。
+
+#    print "u=#{mu[0]}, v=#{mv[0]}, w=#{mw[0]}\n"
+#    binding.pry
 
 
     ######### Ritchie (1987) ここまで ############
