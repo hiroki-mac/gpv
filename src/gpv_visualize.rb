@@ -1471,7 +1471,7 @@ class GPV
             require 'numru/ggraph_on_merdional_section'
             if (gp.size == 2) then # vectors only
               GGraph.vector_on_merdional_section(gp[0], gp[1], true,
-                                'fact'=>@vfact, 'xintv'=>6, 'yintv'=>1,'unit'=>true, 'annot'=>false, "use_before_scale" => @vkeep)
+                                'fact'=>@vfact, 'xintv'=>5, 'yintv'=>1,'unit'=>true, 'annot'=>false, "use_before_scale" => @vkeep)
             else
               GGraph.tone(gp[0],true,
                                 "title"=>@OPT_title, "annotate"=>@annotate,

@@ -328,7 +328,7 @@ class GPV
 
 
   def auto_write(outfilename, gary, index, compress=false) # 出力ファイル名, Array of GPhys, 時刻のindex, 圧縮の可否
-    NetCDF.creation_format=(NetCDF::NC_NETCDF4 | NetCDF::NC_CLASSIC_MODEL) if compress
+    NetCDF.creation_format=(NetCDF::NC_NETCDF4 | NetCDF::NC_CLASSIC_MODEL) # if compress
 
     gary = [gary] if gary.class == GPhys
     udname = gary[0].axnames[-1] # UNLIMITED次元の名前
@@ -356,7 +356,7 @@ class GPV
       if (@sources) then
         if (@sources.length == 1 && @sources[0].include?(".nc")) then # copy the global atts of the source file.
           old_nc = NetCDF.open(@sources[0], "r")
-          old_nc.each_att{|at| nc.put_att(at.name, at.get) }
+          old_nc.each_att{|at| outncfile.put_att(at.name, at.get) }
         end
         outncfile.put_att("sources", @sources.join(", "))
         outncfile.put_att("command", @commandline )
@@ -404,7 +404,7 @@ class GPV
   # write out gphys object to a single netcdf ver 4 file.
   # gary is an Array of GPhys, ncfilename is name of output netcdf file.
   # All GPhys objects must have same shape.
-  def write_netcdf4(gary, ncfilename, deflate=1, shuffle=true)
+  def write_netcdf4(gary, ncfilename, deflate=0, shuffle=true)
     NetCDF.creation_format=(NetCDF::NC_NETCDF4 | NetCDF::NC_CLASSIC_MODEL)
     nc = NetCDF.create(ncfilename, false, false)
     # define dims and axes
@@ -647,6 +647,20 @@ class GPV
 
   end
 
+  def self.join(ary)
+    if (ary.size <= 110) then 
+      return GPhys.join(ary)
+    else 
+      n = 0; tmp_ary = []
+      while (n*100 < ary.size) 
+        range = (n*100)..([(n+1)*100-1, ary.size-1].min)
+        tmp_ary << ary[range]; n = n + 1
+      end
+      np = (ENV['OMP_NUM_THREADS']|| 4).to_i
+      tmp_ary = Parallel.map(tmp_ary, :in_processes=>np, :progress=>"progress"){|i| GPhys.join(i) }
+      return GPhys.join(tmp_ary)
+    end
+  end
 
   # def fit_rank(gp, gpref)
   #   gprank = gp.rank

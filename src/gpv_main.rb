@@ -32,6 +32,8 @@ require GPV_DIR+"gpv_visualize.rb"
 require GPV_DIR+"gpv_gphysmod.rb"
 require GPV_DIR+"gpv_spherical_harmonics_next.rb"
 require GPV_DIR+"gpv_lagrange.rb"
+require GPV_DIR+"gpv_sequence.rb"
+
 #require "profile"
 
 
@@ -75,6 +77,8 @@ def __set_options(opts=nil)
   ['--help',    #                             | show help.
     GetoptLong::NO_ARGUMENT],
   ['--edit_ncatt',#                           | edit netcdf's attribute by ncatted commands.
+    GetoptLong::REQUIRED_ARGUMENT],
+  ['--sequence', #<sequence name>             | execute sequence scripts defined in gpv_sequence.rb. 
     GetoptLong::REQUIRED_ARGUMENT],
 
 
@@ -390,6 +394,8 @@ def __set_options(opts=nil)
     GetoptLong::NO_ARGUMENT],
   ['--sht',                 #                 | use spherical_harmonics_next module for srot, sdiv.
     GetoptLong::NO_ARGUMENT],
+  ['--uvcomp',              #                 | calculate rot/div components of u/v. Output component should be given by
+    GetoptLong::REQUIRED_ARGUMENT], #         | "u_rot", "u_div", "v_rot", of "v_div".
   ['--HKE',                 #                 | calculate horizontal Kinetic energy with 1st gturl and 2nd gturl.
     GetoptLong::NO_ARGUMENT],
   ['--integrate', # <dims>                    | calculate integration along <dims>.
@@ -673,6 +679,24 @@ if (@OPT_edit_ncatt) then
   }
   exit
 end
+
+## exec sequence scripts 
+if (@OPT_sequence) then 
+  sequence = @OPT_sequence.split(",")
+  sequence.each{|key|
+    print "sequence \"#{key}\" is processed.\n"
+    begin 
+      eval "GPVSequence.#{key}"
+    rescue
+      raise "sequence key:#{key} is wrong...\n"
+    end
+    print "sequence \"#{key}\" has ended.\n"
+  }
+  exit 
+end
+
+
+
 
 
 
@@ -1007,7 +1031,7 @@ while ARGV[0] do
 
 
   # preparation to use spherical_harmonics_next module
-  if (@OPT_sht or @OPT_ES) then
+  if (@OPT_sht or @OPT_ES or @OPT_uvcomp) then
     lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp, true)
     nmax = gp.coordinate(lon_dim).length/3
     gw, pmn, dpmn = SphericalHarmonics::sh_init(gp.coordinate(lon_dim).val, gp.coordinate(lat_dim).val, nmax, gp)
@@ -1024,7 +1048,7 @@ while ARGV[0] do
 
 
   ## for case of calculating difference of two gphys object
-  if (@OPT_diff or @OPT_srot or @OPT_sdiv or @OPT_divide or @OPT_HKE or @OPT_ES)
+  if (@OPT_diff or @OPT_srot or @OPT_sdiv or @OPT_divide or @OPT_HKE or @OPT_ES or @OPT_uvcomp)
     raise "--diff/rot/div option must be used with even numbers (2, 4, 6,...) of gturls" if ARGV[0] == nil
     prev_gturl = gturl; prev_gp = gp
     gturl = ARGV[0]
@@ -1061,6 +1085,15 @@ while ARGV[0] do
       gp = (prev_gp*prev_gp + gp*gp)*0.5
       gp.rename("HKE")
       gp.set_att("long_name","Horizontal Kinetic Energy")
+    elsif (@OPT_uvcomp) 
+      print "  Calculating #{@OPT_uvcomp}."
+      comp_ary = @OPT_uvcomp.split(",")
+      gpa = SphericalHarmonics::sh_uvcomps(prev_gp, gp, @Radius, comp_ary)
+      if (gpa.length > 1) then 
+        ARGV << gpa[1..-1]; ARGV.flatten!
+      end 
+      gp = gpa[0]
+      @OPT_uvcomp = nil
 
     elsif (@OPT_ES)
       comp_ary = @OPT_ES.split(",")
@@ -1071,8 +1104,6 @@ while ARGV[0] do
         flag_vor_div_given = false
       end
       comp_ary << "total" if comp_ary.size == 0
-
-
       print "  Calculating Energy Spectra \n" unless @OPT_silent
       gturl = "Energy spectra from " +prev_gturl + " and " + gturl
       if (gp.rank > 2) then # use parallel
@@ -1389,7 +1420,7 @@ while ARGV[0] do
         @flag_mvo_gpa = true; @OPT_parallel = true
       else
         print "combining #{gpa.size} gphys objects... this may take very long time."
-        gp = GPhys.join(gpa)
+        gp = GPV.join(gpa)
       end
 
 
@@ -1937,7 +1968,7 @@ while ARGV[0] do
     begin
       unless (@OPT_nc4a) then
         print "Joining #{gpa.length} GPhys objects to create a single GPhys object of #{gpa[0].length*gpa.length*nb/1.0E9} GB...\n"
-        gp = GPhys.join(gpa)
+        gp = GPV.join(gpa)
         gary << visualize_and_output(gp)
       end
     rescue

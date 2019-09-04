@@ -283,9 +283,22 @@ class GPV
     GPhys::fft_ignore_missing(true)
     nt = gp.shape[-1]-1 # 時間方向のデータ数
     t = 0
-    span = 30 # 1解析期間 (days)
-    ndpd = 8  # 1 day あたりのデータ数
-    while (((t+1)*span)-1 < nt/ndpd)
+    unit = gp.coord(-1).units.to_s
+    unit, since = unit.split("since") if unit.include?("since")
+    if (unit.downcase.include?("min")) then 
+      day_in_unit = 1440
+    elsif (unit.downcase.include?("sec")) then 
+      day_in_unit = 86400
+    elsif (unit.downcase.include?("day")) then
+      day_in_unit = 1
+    else
+      raise "unit: #{gp.coord(-1).units.to_s} is unsupported. "
+    end
+    t_val = gp.coord(-1).val
+#    span = ((t_val[-1]-t_val[0])/day_in_unit).to_i # 1解析期間 (days)
+    span = 1 # 1解析期間 (days)
+    ndpd = day_in_unit/(t_val[1]-t_val[0]) # 1 day あたりのデータ数
+    while (((t+1)*span*ndpd)-1 < nt)
       trange = (t*span*ndpd)..[((t+1)*span*ndpd - 1), nt].min
       gp_sym_sp  = gp_sym[true,true,trange].detrend(-1).cos_taper(-1).fft(false,0,2)
       gp_asym_sp = gp_asym[true,true,trange].detrend(-1).cos_taper(-1).fft(false,0,2)
@@ -690,6 +703,35 @@ class GPV
     cp = GAnalysis::Met::Cp
     s = temp.dz(temp) + g/cp
     return s
+  end
+
+  # 密度と気圧から静力学的な気圧を求める。z座標。
+  def static_pressure(rho,prs)
+    g = GAnalysis::Met.g
+    zd, type = GPhys.vertical_axis_kind?(rho)
+    if (type == "height") then 
+      z = rho.coord(zd); kmax = z.length - 1  
+      rho = rho.bring_axis_to_first(zd)
+      pre = rho.copy
+      pre.set_att("units","Pa"); pre.set_att("long_name", "static pressure"); pre.rename("pre")
+      prs = prs.bring_axis_to_first(zd)
+      # pre[kmax, false] = 0.0 
+      pre[kmax, false] = prs[kmax,false].val.mean # 平均値を使うのがよい？
+      (0..(kmax-1)).reverse_each{|k|
+        pre[k,false] = pre[k+1,false] + (rho[k+1,false]+rho[k,false])*0.5*g*(z[k+1]-z[k])     
+      }
+      return pre.bring_firstaxis_to(zd)
+      # ps を使って、下から計算
+      # ps = ps.bring_axis_to_first(zd) 
+      # pre[0,false] = ps[0,false] - rho[0,false]*g*z[0] 
+      # # pre[0,false] = ps[0,false] - (rho[0,false]*z[1] - rho[1,false]*z[0])/(z[1]-z[0])*g*z[0] # rhoを外挿する場合
+      # (1..kmax).each{|k|
+      #   pre[k,false] = pre[k-1,false] - (rho[k,false]+rho[k-1,false])*0.5*g*(z[k]-z[k-1])     
+      # }
+      # return pre.bring_firstaxis_to(zd)
+    else 
+      raise "vertical axis must be z (height)."
+    end
   end
 
 

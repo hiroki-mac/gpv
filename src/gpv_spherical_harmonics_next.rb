@@ -1216,8 +1216,43 @@ def sp_divergence(u, v, a=1.0, only=false)
 end
 
 
+# 水平風(u,v)の回転成分・発散成分を求める
+def sh_uvcomps(u, v, a=1.0, comp_ary=["u_rot"])
+	nmax = @pmn[0,0,true].size - 2
 
+  # 渦度・発散のスペクトル → 逆ラプラシアン（渦度→流線関数、発散→速度ポテンシャル）
+  if (comp_ary.include?("u_rot") or comp_ary.include?("v_rot")) then 
+    psi_s = sp_invlaplacian( sp_vorticity(u,v,a) )
+  end
+  if (comp_ary.include?("u_div") or comp_ary.include?("v_div")) then 
+    chi_s = sp_invlaplacian( sp_divergence(u,v,a) )
+  end
 
+  # 水平風の回転成分・発散成分
+  gphys_es_ary = []
+  comp_ary.each{|comp|
+    case comp
+    when "u_rot"
+      gp = -sh_invtrans(sp_cos2_dmu(psi_s))/(@coslat)*a
+      gp.rename("u_rot")
+      gp.set_att("long_name","u (rot. comp.)")
+    when "u_div"
+      gp = sh_invtrans(sp_dlon(chi_s))/(@coslat)*a
+      gp.rename("u_div")
+      gp.set_att("long_name","u (div. comp.)")
+    when "v_rot"
+      gp = sh_invtrans(sp_dlon(psi_s))/(@coslat)*a
+      gp.rename("v_rot")
+      gp.set_att("long_name","v (rot. comp.)")
+    when "v_div"
+      gp = sh_invtrans(sp_cos2_dmu(chi_s))/(@coslat)*a
+      gp.rename("v_div")
+      gp.set_att("long_name","v (div. comp.)")
+    end
+    gphys_es_ary << gp
+  }
+  return gphys_es_ary
+end 
 
 
 # NOTE
