@@ -965,11 +965,32 @@ class GPV
         end
         nb = -(@OPT_interval).to_i if ((@OPT_interval).to_i < 0)
         gph = gp.histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
-        if (@OPT_histogram != "")
+
+        if (@OPT_histogram == "sphere") then # 球面上の緯度経度格子に面積重みをつける
+          # binの範囲、数を記憶
+          xmin = gph.coord(0).val[0]*1.5  - gph.coord(0).val[1]*0.5  if xmin == nil
+          xmax = gph.coord(0).val[-1]*1.5 - gph.coord(0).val[-2]*0.5 if xmax == nil
+          nb   = gph.coord(0).length if nb == nil
+          lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp, true)
+          lat = gp.coord(lat_dim); lat_name = lat.name 
+          if (lat.units.to_s.include?("rad")) then fact = 1.0 else fact = D2R end
+          gph = gph*0 
+          # 緯度軸で回す。緯度毎に重みをつけて足し合わせる。
+          lat.val.each{|y|
+            gph_subset = gp.cut(lat_name => y).histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
+            gph = gph + gph_subset*cos(y*fact)
+          }
+          # 面積%にする
+          gph = gph/gph.sum*100
+          gph.set_att("long_name","ratio (%) of area")
+          gph.units="%"
+
+        elsif (@OPT_histogram != "") then
           gph = gph/gph.sum*100
           gph.set_att("long_name","ratio (%) of bins")
           gph.units="%"
         end
+        
         DCL.uusfri(@OPT_index||1) #index of box
         DCL.uusfrt(@OPT_type||1) #type of box
         ci = (@OPT_index||1.0)/10; wi = (@OPT_index||1.0)%10; pi = (@Overplot+1)%7
