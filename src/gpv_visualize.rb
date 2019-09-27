@@ -994,7 +994,7 @@ class GPV
         gph = gph/dx
         gph = gph/gph.sum
         gph.units="1"
-        gph.set_att("long_name","prbability density function")
+        gph.set_att("long_name","probability density function")
       end
 
 
