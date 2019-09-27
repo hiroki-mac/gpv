@@ -78,7 +78,7 @@ def __set_options(opts=nil)
     GetoptLong::NO_ARGUMENT],
   ['--edit_ncatt',#                           | edit netcdf's attribute by ncatted commands.
     GetoptLong::REQUIRED_ARGUMENT],
-  ['--sequence', #<sequence name>             | execute sequence scripts defined in gpv_sequence.rb. 
+  ['--sequence', #<sequence name>             | execute sequence scripts defined in gpv_sequence.rb.
     GetoptLong::REQUIRED_ARGUMENT],
 
 
@@ -161,7 +161,11 @@ def __set_options(opts=nil)
   ['--histogram',     # [any]                 | draw 1D histogram.
                       #                       | options "--int -n" and "--range xmin:xmax[,ymin:ymax]" can be used to set bins number and range.
                       #                       | options "--exch", "--title", and "--overplot n" also can be used.
-                      #                       | if any argument is given, histogram are shown in percentage (%) not in numbers.
+                      #                       | option "--line" can be used with to plot in line.
+                      #                       | when argument "ratio" is given, histogram are shown in percentage (%) AMONG THE DISPLAYED RANGE.
+                      #                       | when argument "sphere" is given, histogram are shown in area percentage (%) consdiring spherical area weight for lat-lon grid data.
+                      #                       | when argument "pdf" is given, values are converted to prbability density function.
+                      #                       | this can be used together with "sphere" or "ratio" by comma separation such as "sphere,pdf".
     GetoptLong::OPTIONAL_ARGUMENT],
   ['--histogram2D',   # [any]                 | draw 2D histogram with two gtulrs.
                       #                       | if any argument is given, histogram are shown in percentage (%) not in numbers.
@@ -680,19 +684,19 @@ if (@OPT_edit_ncatt) then
   exit
 end
 
-## exec sequence scripts 
-if (@OPT_sequence) then 
+## exec sequence scripts
+if (@OPT_sequence) then
   sequence = @OPT_sequence.split(",")
   sequence.each{|key|
     print "sequence \"#{key}\" is processed.\n"
-    begin 
+    begin
       eval "GPVSequence.#{key}"
     rescue
       raise "sequence key:#{key} is wrong...\n"
     end
     print "sequence \"#{key}\" has ended.\n"
   }
-  exit 
+  exit
 end
 
 
@@ -1085,13 +1089,13 @@ while ARGV[0] do
       gp = (prev_gp*prev_gp + gp*gp)*0.5
       gp.rename("HKE")
       gp.set_att("long_name","Horizontal Kinetic Energy")
-    elsif (@OPT_uvcomp) 
+    elsif (@OPT_uvcomp)
       print "  Calculating #{@OPT_uvcomp}."
       comp_ary = @OPT_uvcomp.split(",")
       gpa = SphericalHarmonics::sh_uvcomps(prev_gp, gp, @Radius, comp_ary)
-      if (gpa.length > 1) then 
+      if (gpa.length > 1) then
         ARGV << gpa[1..-1]; ARGV.flatten!
-      end 
+      end
       gp = gpa[0]
       @OPT_uvcomp = nil
 

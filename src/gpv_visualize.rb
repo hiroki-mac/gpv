@@ -955,78 +955,88 @@ class GPV
 
   #-------------------------------------------------------------------------------------------------
     when "histogram1D"
+      if (@OPT_range)
+        ranges = (@OPT_range).split(/\s*,\s*/)
+        xmin = __split_range(ranges[0])[0]
+        xmax = __split_range(ranges[0])[1]
+        ymin = __split_range(ranges[1])[0]
+        ymax = __split_range(ranges[1])[1]
+      end
+      nb = -(@OPT_interval).to_i if ((@OPT_interval).to_i < 0)
+      gph = gp.histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
+
+      if ( @OPT_histogram.split(",").include?("sphere") ) then # 球面上の緯度経度格子に面積重みをつける
+        # binの範囲、数を記憶
+        xmin = gph.coord(0).val[0]*1.5  - gph.coord(0).val[1]*0.5  if xmin == nil
+        xmax = gph.coord(0).val[-1]*1.5 - gph.coord(0).val[-2]*0.5 if xmax == nil
+        nb   = gph.coord(0).length if nb == nil
+        lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp, true)
+        lat = gp.coord(lat_dim); lat_name = lat.name
+        if (lat.units.to_s.include?("rad")) then fact = 1.0 else fact = D2R end
+        gph = gph*0
+        # 緯度軸で回す。緯度毎に重みをつけて足し合わせる。
+        lat.val.each{|y|
+          gph_subset = gp.cut(lat_name => y).histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
+          gph = gph + gph_subset*cos(y*fact)
+        }
+        # 面積%にする
+        gph = gph/gph.sum*100
+        gph.set_att("long_name","ratio (%) of area")
+        gph.units="%"
+      end
+      if ( @OPT_histogram.split(",").include?("ratio") ) then
+        gph = gph/gph.sum*100
+        gph.set_att("long_name","ratio (%) of bins")
+        gph.units="%"
+      end
+      if ( @OPT_histogram.split(",").include?("pdf")) then
+        dx = gph.coord(0).val[1] - gph.coord(0).val[0]
+        gph = gph/dx
+        gph = gph/gph.sum
+        gph.units="1"
+        gph.set_att("long_name","prbability density function")
+      end
+
+
       if (@Overplot == 1) then
-        if (@OPT_range)
-          ranges = (@OPT_range).split(/\s*,\s*/)
-          xmin = __split_range(ranges[0])[0]
-          xmax = __split_range(ranges[0])[1]
-          ymin = __split_range(ranges[1])[0]
-          ymax = __split_range(ranges[1])[1]
+        if (@OPT_line) then
+          dx = gph.coord(0).val[1] - gph.coord(0).val[0]
+          gph = gph/dx
+          # draw(gph,"line")
+          GGraph.line(gph,true,"title"=>@OPT_title,"exchange"=>@OPT_exch,"max"=>ymax,"min"=>ymin,
+                      "index"=>(@OPT_index||1), "type"=>(@OPT_type||1))
+          line_fill(gph) if @OPT_fill
+        else
+          DCL.uusfri(@OPT_index||1) #index of box
+          DCL.uusfrt(@OPT_type||1) #type of box
+          ci = (@OPT_index||1.0)/10; wi = (@OPT_index||1.0)%10; pi = (@Overplot+1)%7
+          fi = ci*1000+pi*100+wi*10+2
+          GGraph.histogram(gph,
+                           true,
+                           "title"=>@OPT_title,
+                           "exchange"=>@OPT_exch,
+                           "window"=>[xmin,xmax,ymin,ymax],
+                           "fill"=>@OPT_fill,
+                           "fill_pattern"=>fi)
         end
-        nb = -(@OPT_interval).to_i if ((@OPT_interval).to_i < 0)
-        gph = gp.histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
-
-        if (@OPT_histogram == "sphere") then # 球面上の緯度経度格子に面積重みをつける
-          # binの範囲、数を記憶
-          xmin = gph.coord(0).val[0]*1.5  - gph.coord(0).val[1]*0.5  if xmin == nil
-          xmax = gph.coord(0).val[-1]*1.5 - gph.coord(0).val[-2]*0.5 if xmax == nil
-          nb   = gph.coord(0).length if nb == nil
-          lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp, true)
-          lat = gp.coord(lat_dim); lat_name = lat.name 
-          if (lat.units.to_s.include?("rad")) then fact = 1.0 else fact = D2R end
-          gph = gph*0 
-          # 緯度軸で回す。緯度毎に重みをつけて足し合わせる。
-          lat.val.each{|y|
-            gph_subset = gp.cut(lat_name => y).histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
-            gph = gph + gph_subset*cos(y*fact)
-          }
-          # 面積%にする
-          gph = gph/gph.sum*100
-          gph.set_att("long_name","ratio (%) of area")
-          gph.units="%"
-
-        elsif (@OPT_histogram != "") then
-          gph = gph/gph.sum*100
-          gph.set_att("long_name","ratio (%) of bins")
-          gph.units="%"
-        end
-        
-        DCL.uusfri(@OPT_index||1) #index of box
-        DCL.uusfrt(@OPT_type||1) #type of box
-        ci = (@OPT_index||1.0)/10; wi = (@OPT_index||1.0)%10; pi = (@Overplot+1)%7
-        fi = ci*1000+pi*100+wi*10+2
-        GGraph.histogram(gph,
-                         true,
-                         "title"=>@OPT_title,
-                         "exchange"=>@OPT_exch,
-                         "window"=>[xmin,xmax,ymin,ymax],
-                         "fill"=>@OPT_fill,
-                         "fill_pattern"=>fi)
       else
-        if (@OPT_range)
-          ranges = (@OPT_range).split(/\s*,\s*/)
-          xmin = __split_range(ranges[0])[0]
-          xmax = __split_range(ranges[0])[1]
-          ymin = __split_range(ranges[1])[0]
-          ymax = __split_range(ranges[1])[1]
+        if (@OPT_line) then
+          dx = gph.coord(0).val[1] - gph.coord(0).val[0]
+          gph = gph/dx
+          GGraph.line(gph,false,"title"=>@OPT_title,"exchange"=>@OPT_exch,"max"=>ymax,"min"=>ymin,
+                      "index"=>(@OPT_index||1), "type"=>(@OPT_type||1))
+          line_fill(gph) if @OPT_fill
+        else
+          DCL.uusfri((@OPT_index || 1.0)) #index of box
+          DCL.uusfrt(@OPT_type||1) #type of box
+          ci = (@OPT_index || 1.0)/10; wi = (@OPT_index || 1.0)%10; pi = (@Overplot+1)%7
+          fi = ci*1000+pi*100+wi*10+2
+          GGraph.histogram(gph,false,
+                           "exchange"=>@OPT_exch,
+                           "fill"=>@OPT_fill,
+                           "fill_pattern"=>fi
+                           )
         end
-
-        nb = -(@OPT_interval).to_i if ((@OPT_interval).to_i < 0)
-        gph = gp.histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
-        if (@OPT_histogram != "")
-          gph = gph/gph.sum*100
-          gph.set_att("long_name","ratio (%) of bins")
-          gph.units="%"
-        end
-        DCL.uusfri((@OPT_index || 1.0)) #index of box
-        DCL.uusfrt(@OPT_type||1) #type of box
-        ci = (@OPT_index || 1.0)/10; wi = (@OPT_index || 1.0)%10; pi = (@Overplot+1)%7
-        fi = ci*1000+pi*100+wi*10+2
-        GGraph.histogram(gph,false,
-                         "exchange"=>@OPT_exch,
-                         "fill"=>@OPT_fill,
-                         "fill_pattern"=>fi
-                         )
       end
 
       if ( @Overplot < @Overplot_max )
@@ -1034,7 +1044,6 @@ class GPV
       else
         @Overplot = 1
       end
-
     end #end case
 
   #-------------------------------------------------------------------------------------------------
