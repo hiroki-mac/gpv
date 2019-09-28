@@ -158,14 +158,16 @@ def __set_options(opts=nil)
     GetoptLong::OPTIONAL_ARGUMENT],
   ['--cot',           #                       | contour over tone. draw tone with 1st gturl and overplot contour with 2nd gturl.
     GetoptLong::NO_ARGUMENT],
-  ['--histogram',     # [any]                 | draw 1D histogram.
+  ['--histogram',     # [arg]                 | draw 1D histogram, probability density function, or their cumulative plots.
+                      #                       | when argument "ratio" is given, histogram are shown in %.
+                      #                       | when argument "sphere" is given, histogram are shown in area % consdiring spherical area weight for lat-lon grid data.
+                      #                       | when argument "pdf" is given, values are converted to prbability density function.
+                      #                       | when commulative_up is given, cumulative plot towords higher direction is drawn.
+                      #                       | when commulative_down is given, cumulative plot towords lower direction is drawn.
+                      #                       | these args can be used at the same time by comma separation such as "sphere,pdf".
                       #                       | options "--int -n" and "--range xmin:xmax[,ymin:ymax]" can be used to set bins number and range.
                       #                       | options "--exch", "--title", and "--overplot n" also can be used.
                       #                       | option "--line" can be used with to plot in line.
-                      #                       | when argument "ratio" is given, histogram are shown in percentage (%) AMONG THE DISPLAYED RANGE.
-                      #                       | when argument "sphere" is given, histogram are shown in area percentage (%) consdiring spherical area weight for lat-lon grid data.
-                      #                       | when argument "pdf" is given, values are converted to prbability density function.
-                      #                       | this can be used together with "sphere" or "ratio" by comma separation such as "sphere,pdf".
     GetoptLong::OPTIONAL_ARGUMENT],
   ['--histogram2D',   # [any]                 | draw 2D histogram with two gtulrs.
                       #                       | if any argument is given, histogram are shown in percentage (%) not in numbers.

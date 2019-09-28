@@ -964,6 +964,8 @@ class GPV
       end
       nb = -(@OPT_interval).to_i if ((@OPT_interval).to_i < 0)
       gph = gp.histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
+      flag_ratio = false; flag_pdf = false
+      dx = gph.coord(0).val[1] - gph.coord(0).val[0]
 
       if ( @OPT_histogram.split(",").include?("sphere") ) then # 球面上の緯度経度格子に面積重みをつける
         # binの範囲、数を記憶
@@ -973,36 +975,58 @@ class GPV
         lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp, true)
         lat = gp.coord(lat_dim); lat_name = lat.name
         if (lat.units.to_s.include?("rad")) then fact = 1.0 else fact = D2R end
-        gph = gph*0
+        gph = gph*0; area_total = 0.0
         # 緯度軸で回す。緯度毎に重みをつけて足し合わせる。
         lat.val.each{|y|
           gph_subset = gp.cut(lat_name => y).histogram("nbins"=>nb,"min"=>xmin,"max"=>xmax)
           gph = gph + gph_subset*cos(y*fact)
+          area_total = area_total + gp.cut(lat_name=>y).length*cos(y*fact)
         }
         # 面積%にする
-        gph = gph/gph.sum*100
+        gph = gph/area_total*100
         gph.set_att("long_name","ratio (%) of area")
         gph.units="%"
+        flag_ratio = true
       end
       if ( @OPT_histogram.split(",").include?("ratio") ) then
-        gph = gph/gph.sum*100
-        gph.set_att("long_name","ratio (%) of bins")
+        gph = gph/gp.length*100
+        gph.set_att("long_name","ratio (%)")
         gph.units="%"
+        flag_ratio = true
       end
       if ( @OPT_histogram.split(",").include?("pdf")) then
-        dx = gph.coord(0).val[1] - gph.coord(0).val[0]
-        gph = gph/dx
-        gph = gph/gph.sum
+        gph = gph/(gp.length*dx) if flag_ratio == false
+        gph = gph/(100*dx)       if flag_ratio == true
         gph.units="1"
         gph.set_att("long_name","probability density function")
+        flag_pdf = true
       end
+
+
+      if ( @OPT_histogram.split(",").include?("cumulative_up") ) then
+        len = gph.coord(0).length; cum_val = NArray.float(len)
+        len.times{|i|
+          cum_val[i] = gph.val[0..i].sum    if flag_pdf == false
+          cum_val[i] = gph.val[0..i].sum*dx if flag_pdf == true
+        }
+        gph.replace_val(cum_val)
+        gph.set_att("long_name","cumulative "+ gph.get_att("long_name"))
+      elsif ( @OPT_histogram.split(",").include?("cumulative_down") ) then
+        len = gph.coord(0).length; cum_val = NArray.float(len)
+        len.times{|i|
+          cum_val[i] = gph.val[i..-1].sum    if flag_pdf == false
+          cum_val[i] = gph.val[i..-1].sum*dx if flag_pdf == true
+        }
+        gph.replace_val(cum_val)
+        gph.set_att("long_name","cumulative "+ gph.get_att("long_name"))
+      end
+
 
 
       if (@Overplot == 1) then
         if (@OPT_line) then
-          dx = gph.coord(0).val[1] - gph.coord(0).val[0]
-          gph = gph/dx
-          # draw(gph,"line")
+          GGraph.next_fig("window"=>[xmin,xmax,ymin,ymax])
+          gph.replace_val(NArrayMiss.to_nam(gph.val,gph.val.ne(0.0))) if (@OPT_itr.to_i == 2)
           GGraph.line(gph,true,"title"=>@OPT_title,"exchange"=>@OPT_exch,"max"=>ymax,"min"=>ymin,
                       "index"=>(@OPT_index||1), "type"=>(@OPT_type||1))
           line_fill(gph) if @OPT_fill
@@ -1021,8 +1045,7 @@ class GPV
         end
       else
         if (@OPT_line) then
-          dx = gph.coord(0).val[1] - gph.coord(0).val[0]
-          gph = gph/dx
+          gph.replace_val(NArrayMiss.to_nam(gph.val,gph.val.ne(0.0))) if (@OPT_itr.to_i == 2)
           GGraph.line(gph,false,"title"=>@OPT_title,"exchange"=>@OPT_exch,"max"=>ymax,"min"=>ymin,
                       "index"=>(@OPT_index||1), "type"=>(@OPT_type||1))
           line_fill(gph) if @OPT_fill
