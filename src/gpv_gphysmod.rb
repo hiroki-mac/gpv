@@ -135,7 +135,9 @@ def open_gturl(gturl)
   gp = GPhys::IO.open(file,var)
   gp = gp[slice] if slice
   gp = gp.cut(cut_slice) if cut_slice
-  gp = gp[thinning] if thinning
+  if (thinning &&  @sources.to_s.include?(".ctl")) then
+    gp = gp.copy ; gp = gp[thinning]
+  end
   gp
 end   # def open_gturl
 
@@ -231,29 +233,29 @@ end
 class GPhys
   # 鉛直軸の種類と軸番号を判別する。
   def self.vertical_axis_kind?(gp)
-    if (GAnalysis::Met.find_prs_d(gp)) then 
+    if (GAnalysis::Met.find_prs_d(gp)) then
       zd = GAnalysis::Met.find_prs_d(gp)
       type = "pressure"
-    elsif (GAnalysis::SigmaCoord.find_sigma_d(gp)) then 
+    elsif (GAnalysis::SigmaCoord.find_sigma_d(gp)) then
       zd = GAnalysis::SigmaCoord.find_sigma_d(gp)
       type = "sigma"
     else
       zd_name = gp.axnames.select{|name| ["lev","level","altitude","z","height"].include?(name.downcase)}
-      if (zd_name.empty?) then 
+      if (zd_name.empty?) then
         zd = nil; type = nil
-      else 
+      else
         zd = gp.axnames.find_index(zd_name[0])
         type = "height"
-      end 
+      end
     end
     return [zd, type]
   end
 
-  # dn軸を最初の軸にする。 
+  # dn軸を最初の軸にする。
   def bring_axis_to_first(dn)
-    dn = self.axnames.find_index(dn) if (dn.class == String) 
-    return self if (dn == 0)    
-    dims = [] 
+    dn = self.axnames.find_index(dn) if (dn.class == String)
+    return self if (dn == 0)
+    dims = []
     self.rank.times{|n| dims << n} # [0,1,2,3,..]
     dims.delete(dn)
     return self.transpose(dn,*dims)
@@ -262,7 +264,7 @@ class GPhys
   # 最初の軸を dn番目にする。
   def bring_firstaxis_to(dn)
     return self if dn == 0
-    dims = [] 
+    dims = []
     self.rank.times{|n|
       if (n < dn) then dims << n+1 elsif (n == dn) then dims << 0 else dims << n end
     }
@@ -281,13 +283,13 @@ class GPhys
       raise "Temperature is required for conversion; give as .dz(temp)." if (temp == nil)
       prs = self.coord(zd)
       return ((-g)/(r*temp.bring_axis_to_first(zd))*prs).bring_firstaxis_to(zd) * self.threepoint_O2nd_deriv(zd)
-    when "sigma" # dA/dz = - g*sig/(R*temp)*dA/dsig 
+    when "sigma" # dA/dz = - g*sig/(R*temp)*dA/dsig
       sig = self.coord(zd)
       raise "temperature is required for conversion; give as .dz(temp)." if (temp == nil)
       return ((-g)/(r*temp.bring_axis_to_first(zd))*sig).bring_firstaxis_to(zd) * self.threepoint_O2nd_deriv(zd)
     when nil
       raise "vertical axis was not found."
-    end 
+    end
   end
 
 
