@@ -1869,6 +1869,8 @@ while ARGV[0] do
                   max = tmp; ax_dim = i
                 end
               }
+              print "NOTE: interpolation with #{cutaxis} is performed along #{axes[i]}.\n"
+              print "IF this is not correct, please specify the correct dim by assoc_coord[dim] (ex. p[z])\n"
             end
             if (val == "auto") then
               tmp = NArray.int(va.rank).indgen.to_a if NArrayType == "standard"
