@@ -2,6 +2,16 @@
 # modification of GPhys and GGraph methods. and NArray
 #++
 
+class Float 
+  def floor # Infinity にも floor メソッドを追加する。
+    if (self.abs == Float::INFINITY) then 
+      return self
+    else
+      return super()
+    end
+  end
+end
+
 class NArray
   def to_na
     self

@@ -654,7 +654,7 @@ class GPV
     elsif (z.class == Float)
       z = UNumeric[z, "m"]
     end
-    return (theta - theta_s)*g*z/(theta*(u*u+v*v))
+    return (theta - theta_s)*g*z/(theta_s*(u*u+v*v))
   end
 
   def surface_stress(theta, theta_s, u, v, rho, z=nil)
@@ -684,8 +684,34 @@ class GPV
     tau_s = rho*a2*(u*u+v*v)*( f_stable*(theta_z.gt(0)) + f_unstable*(theta_z.le(0)) )
 
     return tau_s
+  end
 
+  def surface_stress_L82(theta, theta_s, u, v, rho, z=nil)
+    # constant parameters (Louis, 1982)
+    k = 0.4; z0 = UNumeric[0.01, "m"] # 粗度長（本当は計算で求める）
 
+    if (z.nil?) then
+      theta.lost_axes.each{|la|
+        axname, valunit = la.split("=")
+        if (["lev","level","z","height"].include?(axname.downcase)) then
+          z = UNumeric[valunit.to_f, "m"]
+        end
+      }
+    elsif (z.class == Float) then 
+      z = UNumeric[z, "m"]
+    end
+
+    a2 = k*k/((z/z0).log)**2
+    rib = bulkRicherdsonNum(theta, theta_s, u, v, z) # BulkRicherdsonNum
+
+    f_unstable   = 1.0 - (10.0*rib)/(1.0 + 75.0*a2*(((rib.abs)*(z/z0)).sqrt))
+    f_stable = 1.0/(1.0+10.0*rib/((1.0+5.0*rib).sqrt) )
+
+    theta_z = (theta - theta_s)/z # 安定度の計算はこれでよいのか？
+
+    tau_s = rho*a2*(u*u+v*v)*( f_stable*(rib.gt(0)) + f_unstable*(rib.le(0)) )
+
+    return tau_s
   end
 
   # ブラントバイサラ振動数を計算する｜N^2= g(∂T/∂z+ g/Cp)/T

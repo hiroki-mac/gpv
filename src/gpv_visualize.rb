@@ -230,6 +230,13 @@ class GPV
       DCL.uepset("icolor1", min_clr); DCL.uepset("icolor2",max_clr)
     end
 
+    if (min_range && @OPT_interval && (@OPT_interval.to_i < 0)) then 
+      @OPT_interval = (max_range - min_range)/(@OPT_interval.to_i.abs)
+    elsif (min_irange && @OPT_interval && (@OPT_interval.to_i < 0)) then 
+      @OPT_interval = (max_irange - min_irange)/(@OPT_interval.to_i.abs)
+    end
+
+
 
     GGraph.set_linear_contour_options(
                                       'int' => ( @OPT_cint   || @OPT_interval || @OPT_int ).to_f,

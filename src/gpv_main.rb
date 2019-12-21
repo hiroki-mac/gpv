@@ -294,7 +294,7 @@ def __set_options(opts=nil)
                    #                          | When 3 or 4 gturls are given, 2nd one and 3rd one are used for x- and y-components of the vectors,
                    #                          | and tone of 1st one and counter of 4th one are overlaid.
                    #                          | If the 1st dim is lon or lat and the 2nd dim is not lon or lat, vectors are scaled by the geometry aspect ratio.
-    GetoptLong::OPTIONAL_ARGUMENT],
+    GetoptLong::NO_ARGUMENT],
   ['--vfact',      # <factor>                 | use with "--vector" to change the size of the vector by <factor>.
     GetoptLong::REQUIRED_ARGUMENT],
   ['--vint',       # <int>                    | use with "--vector" to change the gird-interval to draw vectors.
@@ -495,6 +495,8 @@ def __set_options(opts=nil)
                     #                         | 2) axis_name=[0,90,180,270] style gives interpolation for multiple location and use then as an axis.
                     #                         | 3) axis_name=0:360:4 style similar to (2) but 0:360:4 means from 0 to 360 with separation of (360-0)/4.
                     #                         | multiple interpolation is not supported yet.
+                    #                         | if axis_name is associate_coord, you can indicate the original dim by 
+                    #                         | adding [dim] after axis_name, such as p[z].
     GetoptLong::REQUIRED_ARGUMENT],
   ['--extrapolation',   #                     | enable extrapolation, when using --interpolate option.
     GetoptLong::NO_ARGUMENT],
@@ -1844,6 +1846,9 @@ while ARGV[0] do
             end
           end
 
+          cutaxis, targetaxis = cutaxis.split("[")
+          targetaxis.sub!("]","") if (targetaxis)
+
           if axes.include?(cutaxis) then
             va = g.coordinate(cutaxis)
             va = VArray.new(nval,{"units"=>va.units.to_s},cutaxis)
@@ -1852,7 +1857,9 @@ while ARGV[0] do
           elsif assoc_coords.include?(cutaxis) then
             va = g.assoc_coords.coord(cutaxis) # assoc_coordsをVArray化
             ax_dim = 0
-            if (va.rank >= 2) then # va[true, 0, 0].stddev.valが最大となる軸が対応する軸だと判断する。
+            if (targetaxis) then
+              axes.size.times{|i| ax_dim = i if axes[i] == targetaxis }
+            elsif (va.rank >= 2) then # va[true, 0, 0].stddev.valが最大となる軸が対応する軸だと判断する。
               max = 0
               va.rank.times{|i|
                 cut_array = va.shape_current.clone.fill(0) ; cut_array[i]=true
@@ -2453,8 +2460,13 @@ end
   gpv p.nc --derivative theta --nc dp_dtheta.nc --nodraw
   gpv AbsVor.nc@AbsVor dp_dtheta.nc@dp_dtheta --mvo "-x/y*GAnalysis::Met::g" --nc PV.nc --mvo_only --rename "PV" --nodraw
 
-* バルクリチャードソン数 RiB
-  * 要：温位 Theta, 地表温位 Theta_s, 高度 z, 風速 (u, v)
+* 地表面応力 tau_s
+  * 要：温度 t、気圧 prs、地表面温度 ts、東西風 u 、南北風 v in z-座標
+  gpv {t.nc@t,prs.nc@prs} --mvo "GAnalysis::Met::temp2theta(x,y)" --nc Theta.nc --rename Theta --nodraw --unit "K" --ntype sfloat --nodraw
+
+  gpv ts.nc@ts,time=^-1 ps.nc@ps,time=^-1 --mvo "GAnalysis::Met::temp2theta(x,y)" --nc Theta_s.nc --rename Theta_s --nodraw --unit K --ntype sfloat --nodraw
+
+  gpv Theta.nc@Theta,lev=0 Theta_s.nc@Theta_s,lev=0 u.nc@u,lev=0,time=^-1 v.nc@v,lev=0,time=^-1 rho.nc@rho,lev=0,time=^-1 --mvo "surface_stress(x,y,z,u,v)" --rename tau_s --nc tau_s.nc --nodraw
 
 
 
@@ -2469,8 +2481,6 @@ gpv prs.ctl --nc4a nc/p.nc --long_name "pressure" --rename p --axis_units_name a
 gpv t.ctl --nc4a nc/T.nc --long_name "temperature" --rename T --axis_units_name ax2:m:z --unit "K"
 gpv ps.ctl --nc nc/ps.nc --long_name "surface pressure" --rename ps --axis_units_name ax2:m:z --unit "Pa" --nodraw
 
-
-=シークエンス
 
 
 
