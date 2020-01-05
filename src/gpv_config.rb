@@ -67,7 +67,8 @@ end
 ## set nil if the coomand is unavailable.
 CMD_SSED    = EXT_PATH_DIR + "ssed"
 CMD_CONVERT = EXT_PATH_DIR + "convert"
-CMD_FFMPEG  = EXT_PATH_DIR + "ffmpeg"
+#CMD_FFMPEG  = EXT_PATH_DIR + "ffmpeg"
+CMD_FFMPEG  = "ffmpeg"
 CMD_MOGRIFY = EXT_PATH_DIR + "mogrify"
 CMD_EXIFTOOL= EXT_PATH_DIR + "exiftool"
 CMD_CPDF    = "/Users/hiroki/local/bin/cpdf"

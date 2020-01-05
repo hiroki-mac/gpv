@@ -128,15 +128,15 @@ class GPV
   end
 
   # Convert sigma coordinate ot pressure coordinate.
-  def sig2p(gp)
+  def sig2p(gp,ps=@PS)
     dim = (GAnalysis::SigmaCoord::find_sigma_d(gp) || 2) # if cannot find sigma axis, assume 3rd axis.
     sig = gp.axis(dim).to_gphys
-    if (sig.length*@PS.length*8>2.2E9 && NArrayType == "standard") then # 2GB超のオブジェクト生成を避ける
+    if (sig.length*ps.length*8>2.2E9 && NArrayType == "standard") then # 2GB超のオブジェクト生成を避ける
       @OPT_parallel = true; @OPT_sig2p = true
       return gp
     else
-      @OPT_sig2p = false
-      press = GAnalysis::SigmaCoord::sig_ps2p(@PS, sig, dim)
+      @OPT_sig2p = false unless @OPT_nc4a
+      press = GAnalysis::SigmaCoord::sig_ps2p(ps, sig, dim)
       press.units=("Pa"); press.set_att("positive","down")
       gp.set_assoc_coords([press])
   #    gp = gp.assoc_coord_gphys("p")

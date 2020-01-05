@@ -1869,8 +1869,7 @@ while ARGV[0] do
                   max = tmp; ax_dim = i
                 end
               }
-              print "NOTE: interpolation with #{cutaxis} is performed along #{axes[i]}.\n"
-              print "IF this is not correct, please specify the correct dim by assoc_coord[dim] (ex. p[z])\n"
+              print "NOTE: interpolation with #{cutaxis} is performed along #{axes[i]}. if this is NOT correct, please specify the correct dim by assoc_coord[dim] (ex. p[z])\n"
             end
             if (val == "auto") then
               tmp = NArray.int(va.rank).indgen.to_a if NArrayType == "standard"
@@ -2026,9 +2025,25 @@ while ARGV[0] do
           }
         end
 
-
-
-        auto_write(outfilename, gpa[t].to_type("sfloat"), t, false) # 第４引数は圧縮の有無（圧縮すると読み込みが遅い）
+        if (@OPT_output_assoc_coords) then 
+          if (@OPT_sig2p) then 
+            a = gpa[t].axnames.map{|ax|
+              if (@PS.axnames.include?(ax))
+                if (gpa[t].coord(ax).length == @PS.coord(ax).length); true; else; t; end
+              else 
+                nil
+              end
+            }
+            a.delete(nil)
+            g = sig2p(gpa[t],@PS.cut_rank_conserving(*a))
+            g = g.assoc_coord_gphys(g.assoccoordnames[0])
+          else
+            g = gpa[t].assoc_coord_gphys(gpa[t].assoccoordnames[0])
+          end
+          auto_write(outfilename, g.to_type("sfloat"), t, false) # 第４引数は圧縮の有無（圧縮すると読み込みが遅い）
+        else
+          auto_write(outfilename, gpa[t].to_type("sfloat"), t, false) # 第４引数は圧縮の有無（圧縮すると読み込みが遅い）
+        end
       }
       print " finished\n"
       exit
