@@ -2,9 +2,9 @@
 # modification of GPhys and GGraph methods. and NArray
 #++
 
-class Float 
+class Float
   def floor # Infinity にも floor メソッドを追加する。
-    if (self.abs == Float::INFINITY) then 
+    if (self.abs == Float::INFINITY) then
       return self
     else
       return super()
@@ -143,8 +143,14 @@ def open_gturl(gturl)
     "Use open_multi_gturl to treat a gturl of multiple objects."
   end
   gp = GPhys::IO.open(file,var)
-  gp = gp[slice] if slice
-  gp = gp.cut(cut_slice) if cut_slice
+  if @OPT_rank_conserving then
+    slice = slice.map{|k, v| [k, gp.coord(k).val[v]] }.to_h if slice
+    gp = gp.cut_rank_conserving(slice) if slice
+    gp = gp.cut_rank_conserving(cut_slice) if cut_slice
+  else
+    gp = gp[slice] if slice
+    gp = gp.cut(cut_slice) if cut_slice
+  end
   if (thinning &&  @sources.to_s.include?(".ctl")) then
     gp = gp.copy ; gp = gp[thinning]
   end

@@ -441,6 +441,8 @@ def __set_options(opts=nil)
 ###
   ['--cut',# dimname=pos1[:pos2[:thinning_intv]][,dimname=...]: | apply cut, slice, and/or thinning after mathmatical operation.
     GetoptLong::REQUIRED_ARGUMENT],
+  ['--rank_conserving',#                      | conserve all ranks when cut/slice
+      GetoptLong::NO_ARGUMENT],
   ['--radius',  # <raidus>                    | set planetary radius.
     GetoptLong::REQUIRED_ARGUMENT],
   ['--Omega',   # <Omega>                     | set planetary rotation rate [s-1].
@@ -495,7 +497,7 @@ def __set_options(opts=nil)
                     #                         | 2) axis_name=[0,90,180,270] style gives interpolation for multiple location and use then as an axis.
                     #                         | 3) axis_name=0:360:4 style similar to (2) but 0:360:4 means from 0 to 360 with separation of (360-0)/4.
                     #                         | multiple interpolation is not supported yet.
-                    #                         | if axis_name is associate_coord, you can indicate the original dim by 
+                    #                         | if axis_name is associate_coord, you can indicate the original dim by
                     #                         | adding [dim] after axis_name, such as p[z].
     GetoptLong::REQUIRED_ARGUMENT],
   ['--extrapolation',   #                     | enable extrapolation, when using --interpolate option.
@@ -1429,6 +1431,7 @@ while ARGV[0] do
       else
         print "combining #{gpa.size} gphys objects... this may take very long time."
         gp = GPV.join(gpa)
+        @OPT_parallel = nil
       end
 
 
@@ -1932,7 +1935,7 @@ while ARGV[0] do
                  dims_max, dims_mean, dims_min, dims_stddev, dims_sum].flatten.compact
     dims_remained = gp.axnames - dims_used
     dims_remained.delete_at(-1) if (dims_remained.length > 1 && gp.coordinate(dims_remained[-1]).length > 100) # 分割数が超えると結合に時間が掛かるので。
-    if (@OPT_parallel && dims_remained.include?(@OPT_parallel)) # 陽に指定する
+    if (@OPT_parallel && @OPT_parallel != "") # 陽に指定する
       dims_remained = [@OPT_parallel]
     end
     # multi-proccesses, many memory use.
@@ -2025,12 +2028,12 @@ while ARGV[0] do
           }
         end
 
-        if (@OPT_output_assoc_coords) then 
-          if (@OPT_sig2p) then 
+        if (@OPT_output_assoc_coords) then
+          if (@OPT_sig2p) then
             a = gpa[t].axnames.map{|ax|
               if (@PS.axnames.include?(ax))
                 if (gpa[t].coord(ax).length == @PS.coord(ax).length); true; else; t; end
-              else 
+              else
                 nil
               end
             }
