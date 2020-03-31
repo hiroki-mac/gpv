@@ -143,6 +143,17 @@ gpvという名前は、コマンド入力を簡単にするために gpview か
 * 惑星半径などの諸定数は、デフォルトで地球の値である。これらは、$PLANET という環境変数の値を Venus や Mars とすることで、
   諸定数を各惑星（を念頭においたGCM）の値に設定する。ただし変更されないものもある。
   $PLANET を設定した場合は、gpv 実行時に、使われている定数一覧が表示される。
+  
+* shell_completions/ 以下の適当な補完ファイルを参照することで、オプションのタブ補完が可能になる。
+  * fish シェルの場合
+  
+    <tt> ln -s インストール先/shell_completions/gpv.fish ~/.config/fish/completions/gpv.fish
+  
+    補完ファイルは make_fish.rb で生成している。
+  
+  * その他のシェルについては未対応。
+  
+  
 　
 
 ==GPV CLASS
