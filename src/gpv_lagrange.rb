@@ -1,7 +1,11 @@
 #--
-# lagrangian methods for gpv.
+# =DESCRIPTION
+#  Lagrangian methods for gpv.
+# =AUTHOR
+#  Hiroki Kashimura
+# =REFERENCE
+#  https://github.com/tenomoto/advection made by Dr. Takeshi Enomoto
 #++
-# reference: https://github.com/tenomoto/advection made by Dr. Takeshi Enomoto
 
 require "narray"
 require "gsl"

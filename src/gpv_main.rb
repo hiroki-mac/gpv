@@ -4,7 +4,7 @@
 = NAME
 gpv - quick viewer and manipulater for the values of a variable specified by a gtool4-type URL.
 
-gpv is based on and inspired by gpview, which is developed by Dr Shin-ichi Takehiro and other dcmodel developers.
+gpv is based on and inspired by gpview, which is developed by Dr. Shin-ichi Takehiro and other dcmodel developers.
 
 = AUTHOR
 Hiroki Kashimura (hiroki@gfd-dennou.org)
@@ -12,7 +12,7 @@ Hiroki Kashimura (hiroki@gfd-dennou.org)
 = USAGE
   gpv hoge.nc@hoge
 
-  see http://www.gfd-dennou.org/member/hiroki/homepage/main007.html#gpv for details.
+  see https://github.com/hiroki-mac/gpv 
 =end
 
 #################################################
@@ -25,6 +25,7 @@ end
 GPV_DIR = File.dirname(path) + "/"
 
 require GPV_DIR+"gpv_config.rb"
+require GPV_DIR+"gpv_options.rb"
 require GPV_DIR+"gpv_analysis.rb"
 require GPV_DIR+"gpv_arrange.rb"
 require GPV_DIR+"gpv_utils.rb"
@@ -33,6 +34,7 @@ require GPV_DIR+"gpv_gphysmod.rb"
 require GPV_DIR+"gpv_spherical_harmonics_next.rb"
 require GPV_DIR+"gpv_lagrange.rb"
 require GPV_DIR+"gpv_sequence.rb"
+  
 
 #require "profile"
 
@@ -52,535 +54,7 @@ def __set_options(opts=nil)
   check_dclopts
   ## parse options
   parser = GetoptLong.new
-  parser.set_options(
-
-
-
-
-###
-### global options ###
-###
-  ['--var',     #                             | set the variable name and slicing parameters.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--vf',      #                             | use variable whose name is included in the filename.
-    GetoptLong::NO_ARGUMENT],
-  ['--pry',     #                             | start pry after drawing the first figure
-    GetoptLong::NO_ARGUMENT],
-  ['--auto_pry',# <args>                      | automatically execute the given scripts like as in pry after drawing the first figure.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--list',    #                             | execute gplist instead of any other options.
-    GetoptLong::NO_ARGUMENT],
-  ['--silent',  #                             | show only calculated values. do not show any messages.
-    GetoptLong::NO_ARGUMENT],
-  ['--parallel',#                             | use parallel anyway.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--help',    #                             | show help.
-    GetoptLong::NO_ARGUMENT],
-  ['--edit_ncatt',#                           | edit netcdf's attribute by ncatted commands.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--sequence', #<sequence name>             | execute sequence scripts defined in gpv_sequence.rb.
-    GetoptLong::REQUIRED_ARGUMENT],
-
-
-
-###
-### visualize options ###
-###
-  ['--clrmap',  # <1- or filename>            | set colormap to draw tone/contour. filename of DCL colormap is acceptable.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--itr',     # <1-4,5-7,10-15,20-23,30-33> | set axis scale. default is 1.
-                #                             | 1 : linear scale for x/y axis
-                #                             | 2 : linear scale for x , log scale for y axis
-                #                             | 3 : log scale for x , linear scale for y axis
-                #                             | 4 : log scale for x/y axis
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--similar', # <simfac,vxoff,vyoff>        | (for 5<=itr<=7) set similarity parameters which are fed in DCL.grssim.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--map_axis',# <uxc,uyc,rot>               | (for 10<=itr<=33) set mapping parameters which are fed in DCL.umpcnt.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--map_radius', # <radius>                 | (for itr>=20) set clipping radius (degree) around the tangential point. Deafault=90.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--sateliteview', #<distance>              | simulate satelite view. use with --itr 30. <distance> should be given in planetary-radius-unit.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--xcoord',  # <xcoord>                    | name of x-coordinate (use for associate coordinates)
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--ycoord',  # <ycoord>                    | name of y-coordinate (use for associate coordinates)
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--title',   # <title>                     | set title of figure
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--notitle', #                             | do not print title. equivalent to --title ""
-    GetoptLong::NO_ARGUMENT],
-  ['--aspect',  # <aspect>                    | set aspect ratio of Viewport. default is 2.0.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--anim', '--animate', # <dim>             | plot animation along <dim>. <dim> must be name of dimension.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--anim_div',# <num>                       | use with --anim to divide anim interval into <num>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--noannotate', #                          | not draw annotations.
-    GetoptLong::NO_ARGUMENT],
-  ['--alternate', '--Ga', #                   | enable to backing store.
-    GetoptLong::NO_ARGUMENT],
-  ['--nowait', '--Gw', #                      | not wait for any actions if animate
-    GetoptLong::NO_ARGUMENT],
-  ['--smooth', '--Gaw', #                     | equal to --anlternate && --nowait
-    GetoptLong::NO_ARGUMENT],
-  ['--reverse', '--Gr', #                     | plot animation reversible if animate
-    GetoptLong::NO_ARGUMENT],
-  ['--exch', #                                | exchange(transpose) x/y axis.
-    GetoptLong::NO_ARGUMENT],
-  ['--map', '--m', # <map_type>               | plot map. itr number must be set. this option is neglect if itr number is 1-4.
-                   #                          | abailable map type is coast_world, border_world, plate_world, state_usa, coast_japan, pref_japan
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--time_ax',    # <nil|false|h|ymd>        | specify type of calendar-type time axis:
-                   #                          |  nil   (=> auto slection)
-                   #                          | false (=> do not use the time axis even if
-                   #                          |           the units of the axis is a time one with since field)
-                   #                          | "h"   (=> like nil, but always use the hour-resolving datetime_ax method
-                   #                          |           in dclext_datetime_ax.rb)
-                   #                          | "ymd" (=> like "h" but for y-m-d type using DCL.uc[xy]acl)
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--sldiv',      # <<y|t>,m,n>              | split the drawing window into multiple panel.
-                   #                          | argument should be provied in DCL.sldiv form.
-                   #                          | e.g., --sldiv y,2,2 make 2x2 window.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--scatter',    # [xtitle,ytitle]          | make scatter plot with provided 2 gturls.
-                   #                          | 1st and 2nd gturls will be used for x- and y-axes, respectively.
-                   #                          | titles of x- and y- axes can be specified by arguments xtitle,ytitle (optional)
-                   #                          | range of each axis can be specified by option --range [xmin:xmax,ymin:ymax] format.
-                   #                          | with "--line" option, lines between marks are drawn.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--color_scatter', # [xtitle,ytitle]       | make color scatter plot with provided 3 gturls.
-                      #                       | 1st and 2nd gturls are used for x- and y-axes, respectively.
-                      #                       | 3rd gturl is used for color of marks.
-                      #                       | titles of x- and y- axes can be specified by arguments xtitle,ytitle (optional)
-                      #                       | range of each axis and color can be specified by option --range [xmin:xmax,ymin:ymax,zmin:zmax] format
-                      #                          | with "--line" option, lines between marks are drawn.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--cot',           #                       | contour over tone. draw tone with 1st gturl and overplot contour with 2nd gturl.
-    GetoptLong::NO_ARGUMENT],
-  ['--histogram',     # [arg]                 | draw 1D histogram, probability density function, or their cumulative plots.
-                      #                       | when argument "ratio" is given, histogram are shown in %.
-                      #                       | when argument "sphere" is given, histogram are shown in area % consdiring spherical area weight for lat-lon grid data.
-                      #                       | when argument "pdf" is given, values are converted to prbability density function.
-                      #                       | when commulative_up is given, cumulative plot towords higher direction is drawn.
-                      #                       | when commulative_down is given, cumulative plot towords lower direction is drawn.
-                      #                       | these args can be used at the same time by comma separation such as "sphere,pdf".
-                      #                       | options "--int -n" and "--range xmin:xmax[,ymin:ymax]" can be used to set bins number and range.
-                      #                       | options "--exch", "--title", and "--overplot n" also can be used.
-                      #                       | option "--line" can be used with to plot in line.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--histogram2D',   # [any]                 | draw 2D histogram with two gtulrs.
-                      #                       | if any argument is given, histogram are shown in percentage (%) not in numbers.
-                      #                       | options "--int -n" and "--range xmin:xmax[,ymin:ymax]" can be used to set bins number and range.
-                      #                       | options "--sint [-]n" and "--srange xmin:xmax" can be used to set tone interval[number] and range.
-                      #                       | options "--exch" and "--title" also can be used.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--rmap',          # <dim>                 | draw 2D map of correaltion between 1st and 2nd gturls along <dim> axis.
-                      #                       | <dim> can be axis name (string) or dimension number (integer), but only one
-                      #                       | axis is acceptable.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--linearline',    # <arg>                 | draw linear line expressed bay <arg>.
-                      #                       | <arg> should be "x=<value>", "y=<value>", "x=y", or "y=x", where <value> is integer or float.
-                      #                       | multiple lines can be drawn by setting multiple args separated by comma, such as "x=0,y=0".
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--land',          #                       | mask data with land info, https://www.ncl.ucar.edu/Applications/Data/cdf/landsea.nc.
-                      #                       | you need to download landsea.nc and place it on correct dir.
-    GetoptLong::NO_ARGUMENT],
-  ['--ocean',         #                       | mask data with ocean info, https://www.ncl.ucar.edu/Applications/Data/cdf/landsea.nc.
-                      #                       | you need to download landsea.nc and place it on correct dir.
-    GetoptLong::NO_ARGUMENT],
-  ['--line',          #                       | make line plot forced. (about first 1D)
-    GetoptLong::NO_ARGUMENT],
-  ['--mark',          #                       | make mark plot forced. (about first 1D)
-    GetoptLong::NO_ARGUMENT],
-  ['--index',         # <index_num>           | set DCL line index, which set the color/thickness of the line primitive. please see DCL documents.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--type',          # <type_num>            | set line type.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--overplot',      # <num>                 | set number of lines on each figure with color.
-                      #                       | use with --nocolor if you want to distinguish by line type.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--nocolor',       #                       | draw without using color.
-    GetoptLong::NO_ARGUMENT],
-  ['--right_axis',    #                       | use with "--overplot 2" and draw 2nd y-axis in right side for 2nd gturl.
-                      #                       | range of 2nd y-axis can be specified by --range left_min1:left_max,right_min:right_max.
-    GetoptLong::NO_ARGUMENT],
-  ['--top_axis',      #                       | 使い方を忘れた...
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--overplot_rm',   # <span>                | overplot the running mean with thick line. running mean span is required.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--overplot_stddev',#                      | overplot the mean +/- stddev (like errorbars). this must be used with "--mean" option.
-    GetoptLong::NO_ARGUMENT],
-  ### tone or cont option ###
-  ['--nocont',        #                       | make tone plot, without contour.
-    GetoptLong::NO_ARGUMENT],
-  ['--noshade',       #                       | make contour plot, without tone.
-    GetoptLong::NO_ARGUMENT],
-  ['--log_int',       #                       | use log interval in contour/tone.
-    GetoptLong::NO_ARGUMENT],
-  ['--range',         # <min:max>             | set min/max value for contour/tone/line/mark plot. min or max must be set.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--crange',        # <min:max>             | set min/max value for contour plot. this is more dominant than --range
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--srange',        # <min:max>             | set min/max value for tone plot. this is more dominant than --interval/int
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--interval', '--int',  # <num>            | set interval value for contour/tone plot. set the number of lines if you set negative value.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--cint',          # <num>                 | set interval value for contour plot. this is more dominant than --interval/int
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--sint',          # <num>                 | set interval value for tone plot. this is more dominant than --interval/int.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--levels',        # <val1,val2,val3,...>  | set values of contour/tone levels.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--clevels',       # <val1,val2,val3,...>  | set values of contour levels.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--slevels',       # <val1,val2,val3,...>  | set values of tone levels.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--patterns',      # <pattern1,pattern2,..>| set each patterns for tone plot.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--tone',          # <a|e|f|b|c>           | set tone subroutine:
-                      #                       | a (=> tone routine is selected automatically depending on the datasize)
-                      #                       | e (=> DCL.uetone is used)
-                      #                       | f (=> DCL.uetonf is used)
-                      #                       | b (=> DCL.uetonb is used)
-                      #                       | c (=> DCL.uetonc is used)
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--udsfmt',        # <strings>             | change contour label format. see UDCNTR/DCL manual for the format.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--nocolorbar',    #                       | do not draw color bar.
-    GetoptLong::NO_ARGUMENT],
-  ['--nozero',        #                       | do not draw zero contour.
-    GetoptLong::NO_ARGUMENT],
-  ['--nodraw',        #                       | do not draw any figures.
-    GetoptLong::NO_ARGUMENT],
-  ['--file',       # <png|eps|pdf>[,filename] | raw in file with given format. available formats are png, eps, and pdf.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--crop',       #                          | crop (trim) output png or pdf.
-    GetoptLong::NO_ARGUMENT],
-  ['--title_array',# <string,string,...>      | set multiple titles given as --title_array hoge,foo,bar; this gives the title "hoge" to
-                   #                          | the 1st figure, "foo" to the 2nd one, and "bar" to the 3rd one.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--miscindex',  # <num>                    | set line index (color and width) of title, label, frame, etc.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--index_array',# <index1,index2,...>      | set array of index used for 1st, 2nd,... lines/mark.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--type_array', # <index1,index2,...>      | set array of type index used for 1st, 2nd,... lines/mark.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--subtitle',   # <string>                 | set subtitle, which locates just below the title and is common for multple figures.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--irange',     # <min:max>                | same as --range but with +/- infinity for both boundaries. use with --int is recomended.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--xrange',     # <min:max>                | set the range of x-axis for line plot and 2D plot.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--yrange',     # <min:max>                | set the range of y-axis for line plot and 2D plot.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--clr_range',  # <min:max>                | set color range. maximum range is 10:99. default is 15:94.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--wm',         #                          | alias for --itr 10 --map coast_world --nocont.
-    GetoptLong::NO_ARGUMENT],
-  ['--size',       # <num>                    | set the size factor of x-window (default: 1.25)
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--fullcolor',  # <1|2>                    | draw fullcolor fig. --fullcolor 1 draws with 1 var.
-                   #                          | --fullcolor 2 draws with 2 vars; 1st gturl is used for color (hue) and
-                   #                          | 2nd one is used for brightness (value).
-                   #                          | option of --range xmin:xmax,ymin:ymax can be used.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--step',       #                          | make 1D line plot to step shape.
-    GetoptLong::NO_ARGUMENT],
-  ['--zerocenter', # [max]                    | set y-axis center in line plot figure to zero.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--vector',     #                          | draw a vector plot.
-                   #                          | When 2 gturls are given, 1st one and 2nd one are used for x- and y-components of the vectors.
-                   #                          | When 3 or 4 gturls are given, 2nd one and 3rd one are used for x- and y-components of the vectors,
-                   #                          | and tone of 1st one and counter of 4th one are overlaid.
-                   #                          | If the 1st dim is lon or lat and the 2nd dim is not lon or lat, vectors are scaled by the geometry aspect ratio.
-    GetoptLong::NO_ARGUMENT],
-  ['--vfact',      # <factor>                 | use with "--vector" to change the size of the vector by <factor>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--vint',       # <int>                    | use with "--vector" to change the gird-interval to draw vectors.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--vkeep',      #                          | use with "--vector" to keep the size of unit vector as that of the first plot.
-    GetoptLong::NO_ARGUMENT],
-  ['--nolegend',   #                          | do not draw legend of line plot.
-    GetoptLong::NO_ARGUMENT],
-  ['--textbox',    # <text>,<num>,[l|c]       | draw textbox, legends, and/or color bar in frame #<num>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--fact',       # <fact>                   | factor for charcter size
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--xmean',      #                          | draw line plot of mean along x-axis on the right hand side of the tone/contour plot.
-    GetoptLong::NO_ARGUMENT],
-  ['--ymean',      #                          | draw line plot of mean along y-axis below the tone/contour plot.
-    GetoptLong::NO_ARGUMENT],
-  ['--maskshading',# <gturl,maskval,ipat>     | draw a mask for values less than or equal to maskval (optional; defalult is 0)
-                   #                          | with given gturl (optional; default is same as previously drawn GPhys)
-                   #                          | by ipat pattern number (optional; defalult is 1515).
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--nolabels',   #                          | do not draw labels.
-    GetoptLong::NO_ARGUMENT],
-  ['--fill',       #                          | fill regions between plotted line and zero (or min or max) line. if histogram, fill the boxes.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--lwf',        # <float>                  | set line with factor for pdf drawing. defalut is 999, which looks like DISP drawing.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--axis_options',# <var1=val1,var2=val2>,..| set some axis options of USPACK (i.e., xoff/yoff, xfac/yfac, dxt/dyt, dxl,dyl)
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--bothsides',   #                         | draw bothsides of the planet when itr = 30
-    GetoptLong::NO_ARGUMENT],
-  ['--xint',  # <xlabelint[:division]>        | set x-axis' label-tickmark interval and number of number of division between two label-tickmarks
-              #                               | e.g., --xint 10:5 draws label interval with 10 and sub-tickmark interval of 2 (=10/5).
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--yint',  # <ylabelint[:division]>        | same as --xint but for y-axis.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--panelfit', # [margin]                   | force the figure to fit into the panel. margin can be given by ratio [0-1].
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--zoomin', # <xaxis=xmin:xmax,yaxis=ymin:ymax>] |
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--plot_particles', # <gturl of particles>]| overplot particles
-    GetoptLong::REQUIRED_ARGUMENT],
-###
-### analysis options ###
-###
-  ['--mean',   # <dim>                        | mean along axis <dim>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--stddev', # <dim>                        | standard deviation along axis <dim>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--eddy',   # <dim>                        | deviation from mean along axis <dim>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--diff',   #                              | calculate 1st gturl - 2nd gturl
-    GetoptLong::NO_ARGUMENT],
-  ['--divide', #                              | calculate 1st gturl / 2nd gturl
-    GetoptLong::NO_ARGUMENT],
-  ['--add',    #                              | calculate the sum of multiple variables.
-    GetoptLong::NO_ARGUMENT],
-  ['--operation',  # <math_func>              | operation of the specified math function on the data.
-                   #                          | <math_func> should be a math function with one argument such as log10, sqrt, sin, etc.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--running_mean','--rm', # <dim>:<span>[:<skip>][,<dim>:<span>[:<skip>]]
-                            #                 | calculate the running mean along <dim> with a window of <span>.
-                            #                 | multiple dims are not supported.
-                            #                 | if integer <skip> is given, the date thinning is performed to the running mean.
-                            #                 | for example, --rm t,12,12 to monthly data gives annual mean series (one value per year).
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--global_mean','--gm',  #                 | calculate the global mean considering the weight along latitude.
-                            #                 | dims of longitude and latitude must be the 1st and 2nd dims, respectivly.
-    GetoptLong::NO_ARGUMENT],
-  ['--ensemble_mean','--em', # [num]          | calculate the ensemble mean.
-                             #                | you must provide two or more gturls whose size and dimension are same.
-                             #                | if <num> is given, ensemble mean will be calculated for each <num> gturls.
-                             #                | if "concat" is given for <num>, provided gturls are concatenated along new dimension "member".
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--normalize',           # [ |mean|float]  | normalize data by initial (when no arg.) or mean or given value when data is one-dimension.
-                            #                 | normalization for other data is not implemented yet.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--lowpass','--lp',      # <dim>,<wn>      | apply lowpass filter to <dim>-th dimension with wavenumber <wn> using fft.
-                            #                 | i.e., this cut off the wavenumbers greater than <wn>.
-                            #                 | <dim> must be integer. dimname is not supported yet.
-                            #                 |
-                            #                 | when use with --sht option, spherical harmonic trasnformation is applied.
-                            #                 | in that case, ARGUMENT should be only <wn>, which is total wavenumber.
-                            #                 | 1st and 2nd dimension must be lon and lat.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--highpass','--hp',     # <dim>,<wn>      | apply highpass filter to <dim>-th dimension with wavenumber <wn> using fft.
-                            #                 | i.e., this cut off the wavenumbers less than <wn>.
-                            #                 | <dim> must be integer 0, 1, 2, or 3. dimnames and dim > 3 are not supported yet.
-                            #                 |
-                            #                 | when use with --sht option, spherical harmonic trasnformation is applied.
-                            #                 | in that case, ARGUMENT should be only <wn>, which is total wavenumber.
-                            #                 | 1st and 2nd dimension must be lon and lat.
-
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--power_spectra','--ps',# <dim>[,any]     | calculate power spectra using fft along <dim>-th dimension.
-                            #                 | by default, wavenumber is used for axis.
-                            #                 | if any argument is given after comma, wavelength or period is used for axis.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--derivative',          # <dim>           | calculate the derivative alog axis <dim>. GPhys.threepoint_O2nd_deriv is used.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--srot',                #                 | calculate rotation on sphere with 1st gturl and 2nd gturl. radius can be set by --radius.
-    GetoptLong::NO_ARGUMENT],
-  ['--sdiv',                #                 | calculate divergence on sphere with 1st gturl and 2nd gturl. radius can be set by --radius.
-    GetoptLong::NO_ARGUMENT],
-  ['--sht',                 #                 | use spherical_harmonics_next module for srot, sdiv.
-    GetoptLong::NO_ARGUMENT],
-  ['--uvcomp',              #                 | calculate rot/div components of u/v. Output component should be given by
-    GetoptLong::REQUIRED_ARGUMENT], #         | "u_rot", "u_div", "v_rot", of "v_div".
-  ['--HKE',                 #                 | calculate horizontal Kinetic energy with 1st gturl and 2nd gturl.
-    GetoptLong::NO_ARGUMENT],
-  ['--integrate', # <dims>                    | calculate integration along <dims>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--sum',       # <dims>                    | calculate sum along <dims>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--addingup',  # <dim>[,<dim>,...]         | adding up values along <dim>; i.e., val[i] =  val[0..i].sum
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--max',       # <dims>                    | max values along axis <dims>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--min',       # <dims>                    | min values along axis <dims>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--ES',        # [total|rot|div][,vor_div_given]
-                  #                           | calculate Horizontal Kinetic Energy Spectra from U given as 1st gturl
-                  #                           | and V given as 2nd gturl. output total, rot, and/or div component.
-                  #                           | if "vor_div_given" is given, 1st and 2nd gturls must be Vor and Div, respectivly,
-                  #                           | and they will be used for calculation (faster).
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--wnf_analysis',# <sym|asym|bg|sym/bg|asym/bg|log_sym/bg|log_asym/bg>
-                    #                         | calculate time-space spectra following Wheeler and Kiladis (1999)
-                    #                         | name of component to be output has to be given.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--mvo',  # <mathematical operation>       | mathematical operation for multiple gturls. For mathematical operation,
-             #                                | 1st gturl must be indicated by "x", 2nd by "y", 3rd by "z", 4th by "u",
-             #                                | 5th by "v", 6th by "w". This cannot treat vars more than 6.
-             #                                | Also, this cannot be used repeatedly.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--mvo_only',   #                          | use with "--mvo" to execute "multi variable operation" only.
-    GetoptLong::NO_ARGUMENT],
-
-
-
-
-
-###
-### data/constants arrange options ###
-###
-  ['--cut',# dimname=pos1[:pos2[:thinning_intv]][,dimname=...]: | apply cut, slice, and/or thinning after mathmatical operation.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--rank_conserving',#                      | conserve all ranks when cut/slice
-      GetoptLong::NO_ARGUMENT],
-  ['--radius',  # <raidus>                    | set planetary radius.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--Omega',   # <Omega>                     | set planetary rotation rate [s-1].
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--rename',  # <varname>                   | rename the output variable name by <varname>. if --long_name is not used, "long_name" is also renamed.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--long_name', # <long_name>               | rename the output variable "long_name" by <long_name>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--regrid',  # <latgrid_num>               | interpolate to the Gausian latitude and cooresponding longitude.
-                #                             | number of lat-grid points is required and available numbers are
-                #                             | 8, 16, 32, 64, 94, 96, 120, 128, 160, 240, 256, 320, 480, 640. gglat.rb required [TODO: 自前計算にする]
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--GLAT',
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--read_csv',  # <num>                     | read csv file. the first column is used for the axis and the other columns are used for data values.
-                  #                           | <num> specifies how many data columns you want to read.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--composite',  # <dim>,<span>,<skip>      | if <skip> is not given or zero, calculate mean with interval <span>.
-                   #                          | i.e., --composite time,12 calculates mean of each month from monthly mean data.
-                   #                          | if <skip> is given, calculate composite mean for dimension <dim>
-                   #                          | with length <span> with interval of <skip>.
-                   #                          | i.e., --composite time,3,9 calculates mean for time=0,1,2,12,13,14,24,...
-                   #                          | this can be used to calculate seasonal mean such as DJF from mounthly mean data.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--split_axis',# <dim>,<span>,[newaxisname]| split the <dim> axis with <span>.
-                  #                           | for example, --split_axis time,12 applied to monthly data splits the time axis
-                  #                           | to year and month axis. name of the new axis can be given by [newnaxisname]
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--calendar360',  #                        | set the calendar type to "360_day calendar". normally, this will be set automatically.
-    GetoptLong::NO_ARGUMENT],
-  ['--calendar365',  #                        | set the calendar type to "365_day calendar". normally, this will be set automatically.
-    GetoptLong::NO_ARGUMENT],
-  ['--flip_data',    # <dim[,dim,..]>         | flip (turn over) the data and axis of <dim>th dimension. <dim> must by given by integer(s).
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--interpolate_pole', #                    | extend the latitude axis to have grid points on each pole (-90/+90 deg), and
-                         #                    | interpolate the pole values by mean of values on surrounding grid points.
-                         #                    | this assumes the data has lon and lat in its first and second dimension, respectivly.
-    GetoptLong::NO_ARGUMENT],
-  ['--set_missing_value',# [float]            | replace the missing values to given value and validate then. default: 0.0.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--ignoreunit',       #                    | ignore unit
-    GetoptLong::NO_ARGUMENT],
-  ['--set_assoc_coords', # <gturl>            | set <gturl> as an associate coordinate.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--sig2p', # <gturl of surface pressure>   | transform sigma coordinate to pressure coordinate. gturl of surface pressure must be given.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--sig2z', # <gturl of Temperature>        | transform sigma coordinate to z (not log_p) coordinate. gturl of Temperature must be given.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--interpolate', # <args>                  |   interpolate after operations.
-                    #                         | <args> can be axis_name=90 or axis_name=[0,90,180,270] or axis_name=0:360:4 for example.
-                    #                         | 1) axis_name=90 style gives interpolation at the location and rank shrinks.
-                    #                         | 2) axis_name=[0,90,180,270] style gives interpolation for multiple location and use then as an axis.
-                    #                         | 3) axis_name=0:360:4 style similar to (2) but 0:360:4 means from 0 to 360 with separation of (360-0)/4.
-                    #                         | multiple interpolation is not supported yet.
-                    #                         | if axis_name is associate_coord, you can indicate the original dim by
-                    #                         | adding [dim] after axis_name, such as p[z].
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--extrapolation',   #                     | enable extrapolation, when using --interpolate option.
-    GetoptLong::NO_ARGUMENT],
-  ['--unit',        # <unit>                  | set the operated variable's unit.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--invalidation',# <num or range>          | invalidate the given value or range.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--join',        #                         | join muliple gturls along with an axis whose values are continual across the gturls and are not duplicate.
-    GetoptLong::NO_ARGUMENT],
-  ['--extend_backward_along', # <dim>,<len>[,<value>] | extend backward the object along <dim>-axis for <len> numbers with <value>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--thinning', # <num>                      | data thinning by picking up data with <num> interval
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--nothinning', #                          | prevent auto data thinning.
-    GetoptLong::NO_ARGUMENT],
-  ['--read_fits',  #                          | read fits format image. automatically added if file extension is .fits. (RubyFits required)
-    GetoptLong::NO_ARGUMENT],
-  ['--offset',     # <float>                  | offset the data by <float>.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--cyclic_extension',# <dim:num[,dim:num]> | extend the data along <dim> with <num> number cyclically. e.g., --cyclic_extension x:4,y:4.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--axis_units_name', # <axdim:unit[:axname:operation]>[,axdim:unit:axname:operation]
-                        #                     | change unit (and name) of axis. multiple axes can be given as
-                        #                     | --axis_units_name ax0:deg:lon,ax2:km:height:/1000  for example.
-                        #                     | mathematical operation can be applied to the axis values.
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--replace_axis',#<axN:val1,val2,val3,...> | replace the value of the axis <axN> (N is 0, 1, 2,...) with given Array [val1, val2, val3, val4,...]
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--zonal_shift', #<speed at equator in m/s>| shift entire field zonally as it is advected by the solid body rotation of <speed at equator in m/s>.
-    GetoptLong::REQUIRED_ARGUMENT],
-
-
-
-
-
-
-
-###
-### output options ###
-###
-  ['--nc',    # [outfilename]                 | output operated GPhys object as NetCDF file. output file name can be specified.
-              #                               | Default name is "out.nc".
-              #                               | if used with "--anim", GPhys object for last shown figure is outputtedd.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--nc4',   # [outfilename]                 | output operated GPhys object as NetCDF ver 4 with compression.
-              #                               | may take longer time to write out.
-              #                               | output file name can be specified. Default name is "out.nc".
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--nc4a',  # [outfilename]                 | output operated gphys continually with along time dim.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--csv',   # [outfilename]                 | output operated GPhys object (1 dim only) as CSV file. output file name can be specified.
-              #                               | Default name is "out.csv".
-              #                               | if used with "--anim", GPhys object for last shown figure is outputtedd.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--produce', # <something>                 | produce <something>. <something> can be "solar_zenith_angle"
-    GetoptLong::REQUIRED_ARGUMENT],
-  ['--output_assoc_coords',  #                | use with --nc4 or --nc to output associate coordinate as netcdf file.
-    GetoptLong::NO_ARGUMENT],
-  ['--gif',   #                               | output gif animation. this must be used with --anim and --file png options.
-    GetoptLong::NO_ARGUMENT],
-  ['--mp4',   # [number of frames per second] | output mp4 animation. frame rate can be given. this must be used with --anim and --file png options.
-    GetoptLong::OPTIONAL_ARGUMENT],
-  ['--ntype', # <type>                        | convert type of values. <type> should be "sfloat", "float", etc.
-    GetoptLong::REQUIRED_ARGUMENT],
-
-  #                   ['--dlon',                     GetoptLong::NO_ARGUMENT],
-  #                   ['--dlat',                     GetoptLong::NO_ARGUMENT],
-  #                   ['--version',                  GetoptLong::NO_ARGUMENT]  # to be defined
-
-  ['--particle_advection',# <"tdiv=num x0,y0,z0 x1,y1,z1 x2:x3:xn,y2:y3:yn,z2:z3:zn">
-                          #                   | perform particle advection. 1st, 2nd, 3rd gturl must be u, v, w,
-                          #                   | with lon, lat, z, and time axis. tdiv=num is the number
-                          #                   | for time interval to be devided for lagrangian tracing.
-                          #                   | E.g., When u data have 1 day interval, tdiv=24 make the lagrangian
-                          #                   | tracing by 1 hour interval.
-                          #                   | Inital location of a single particle can be given by x1,y1,z1.
-                          #                   | Expression like x2:x3:xn,y2:y3:yn,z2:z3:zn gives particles in a mesh
-                          #                   | begin with x2 and end at x3 and number of division is xn.
-                          #                   | Particle data will be output as "particles.nc"
-     GetoptLong::REQUIRED_ARGUMENT]
-
-                     )
+  parser.set_options(*OPTIONS_for_GetoptLong)
   @USED_OPTIONS = []
   begin
     parser.each_option do |name, arg|
@@ -593,12 +67,6 @@ def __set_options(opts=nil)
   end
   ARGV.concat(prev_argv) if prev_argv
 end
-
-
-
-
-
-
 
 
 # gp: input GPhys or GPhps Array, argv: string of gpv optiones,
@@ -1539,9 +1007,6 @@ while ARGV[0] do
 
 
   ## interpolate to gausian latitude and correspond longitude
-  ## --regrid requires number of latitude grid poins.
-  ## --GLAT can automatically set the number of grid points.
-  gp = gglat(gp) if (@OPT_GLAT)
   gp = regrid(gp) if (@OPT_regrid)
 
 
@@ -2494,12 +1959,12 @@ end
   gpv hoge.ctl --nc4a hoge.nc --long_name "hogehoge" --axis_units_name ax2:m:height --unit "hoge"
 
   * SCALE-GM出力の変換
-gpv u.ctl --nc4a nc/u.nc --long_name "zonal velocity" --axis_units_name ax2:m:z --unit "m.s-1"
-gpv v.ctl --nc4a nc/v.nc --long_name "meridional velocity" --axis_units_name ax2:m:z --unit "m.s-1"
-gpv w.ctl --nc4a nc/w.nc --long_name "vertical velocity" --axis_units_name ax2:m:z --unit "m.s-1"
-gpv prs.ctl --nc4a nc/p.nc --long_name "pressure" --rename p --axis_units_name ax2:m:z --unit "Pa"
-gpv t.ctl --nc4a nc/T.nc --long_name "temperature" --rename T --axis_units_name ax2:m:z --unit "K"
-gpv ps.ctl --nc nc/ps.nc --long_name "surface pressure" --rename ps --axis_units_name ax2:m:z --unit "Pa" --nodraw
+  gpv u.ctl --nc4a nc/u.nc --long_name "zonal velocity" --axis_units_name ax2:m:z --unit "m.s-1"
+  gpv v.ctl --nc4a nc/v.nc --long_name "meridional velocity" --axis_units_name ax2:m:z --unit "m.s-1"
+  gpv w.ctl --nc4a nc/w.nc --long_name "vertical velocity" --axis_units_name ax2:m:z --unit "m.s-1"
+  gpv prs.ctl --nc4a nc/p.nc --long_name "pressure" --rename p --axis_units_name ax2:m:z --unit "Pa"
+  gpv t.ctl --nc4a nc/T.nc --long_name "temperature" --rename T --axis_units_name ax2:m:z --unit "K"
+  gpv ps.ctl --nc nc/ps.nc --long_name "surface pressure" --rename ps --axis_units_name ax2:m:z --unit "Pa" --nodraw
 
 
 

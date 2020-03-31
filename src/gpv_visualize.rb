@@ -1,5 +1,8 @@
 #--
-# visulization methods for gpv.
+# =DESCRIPTION
+#  Visulization methods for gpv.
+# =AUTHOR
+#  Hiroki Kashimura
 #++
 class GPV
   def tone_full(gphys, newframe=true, options=nil)
@@ -230,9 +233,9 @@ class GPV
       DCL.uepset("icolor1", min_clr); DCL.uepset("icolor2",max_clr)
     end
 
-    if (min_range && @OPT_interval && (@OPT_interval.to_i < 0)) then 
+    if (min_range && @OPT_interval && (@OPT_interval.to_i < 0) && !@OPT_histogram && !@OPT_histogram2D) then
       @OPT_interval = (max_range - min_range)/(@OPT_interval.to_i.abs)
-    elsif (min_irange && @OPT_interval && (@OPT_interval.to_i < 0)) then 
+    elsif (min_irange && @OPT_interval && (@OPT_interval.to_i < 0)) then
       @OPT_interval = (max_irange - min_irange)/(@OPT_interval.to_i.abs)
     end
 

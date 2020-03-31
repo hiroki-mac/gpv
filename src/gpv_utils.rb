@@ -1,5 +1,8 @@
 #--
-# utility methods for gpv.
+# =DESCRIPTION
+#  Utility methods for gpv.
+# =AUTHOR
+#  Hiroki Kashimura
 #++
 class GPV
   def each_along_dims(gphys, loopdim)
@@ -107,8 +110,6 @@ class GPV
       # binding.pry
       day = (now/24).floor; hour = now%24
       string = string1 + sprintf("%2.0f",day).to_s + " Eday " + sprintf("%2.0f",hour).to_s + " h"
-
-
 
     title(string, 0.5)
     @counter += 1

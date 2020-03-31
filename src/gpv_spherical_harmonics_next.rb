@@ -1,6 +1,9 @@
 =begin
-ノルムを２に正規化した 球面調和関数ライブラリ
-依存ライブラリ: NArray, ruby-gsl
+=DESCRIPTION
+ ノルムを２に正規化した 球面調和関数ライブラリ
+ 依存ライブラリ: NArray, ruby-gsl
+=AUTHOR
+ Hiroki Kashimura
 
 提供モジュール関数:
 p_m_nT
@@ -136,7 +139,7 @@ module SphericalHarmonics
   end
 
   # サインガウス緯度（sin(θ_k)）とガウス重み（w_k）を求める
-  # mu: 1D NArray
+  # lat: Integer or 1D NArray
   def gauss_w(lat)
     if (lat.class == Integer) then
       jmax = lat
@@ -818,6 +821,14 @@ end
 def sinlat()
   return @sinlat
 end
+      
+# 任意の点数のガウス緯度を求める。これは初期化を呼ばなくても使える。
+# lat: Integer or NArray
+def gauss_lat(lat) 
+  mu, wg = gauss_w(lat)
+  return mu2deg(mu)
+end
+      
 
 def sh_trans_multi(gijarray, dlon=false, only=false)
   #p ObjectSpace.memsize_of(gparray)

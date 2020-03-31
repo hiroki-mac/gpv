@@ -1,5 +1,8 @@
 #--
-# config part of gpv.
+# =DESCRIPTION
+#  Config part of gpv.
+# =AUTHOR 
+#  Hiroki Kashimura
 #++
 
 HOMEDIR = File.expand_path('~')
@@ -71,7 +74,7 @@ CMD_CONVERT = EXT_PATH_DIR + "convert"
 CMD_FFMPEG  = "ffmpeg"
 CMD_MOGRIFY = EXT_PATH_DIR + "mogrify"
 CMD_EXIFTOOL= EXT_PATH_DIR + "exiftool"
-CMD_CPDF    = "/Users/hiroki/local/bin/cpdf"
+CMD_CPDF    = "cpdf"
 CMD_PDFCROP = "/Library/TeX/texbin/pdfcrop"
 CMD_RM      = "/bin/rm"
 CMD_MV      = "/bin/mv"

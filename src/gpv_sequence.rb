@@ -1,5 +1,8 @@
 #--
-# scripts to gpv sequentially 
+# =DESCRIPTION
+#  Scripts to execute gpv sequentially.
+# =AUTHOR
+#  Hiroki Kashimura
 #++
 
 module GPVSequence

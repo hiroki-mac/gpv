@@ -120,6 +120,8 @@
     
     <li ><a href="#method-i-sh_trans_multi">#sh_trans_multi</a>
     
+    <li ><a href="#method-i-sh_uvcomps">#sh_uvcomps</a>
+    
     <li ><a href="#method-i-sh_vor_and_div">#sh_vor_and_div</a>
     
     <li ><a href="#method-i-sh_vorticity">#sh_vorticity</a>
@@ -153,7 +155,7 @@
 
   <section class="description">
     
-<p>class NArray</p>
+<p>class <a href="NArray.html"><code>NArray</code></a></p>
 
 <pre class="ruby"><span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">round</span>(<span class="ruby-identifier">n</span>)
   <span class="ruby-keyword">return</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">collect</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-identifier">v</span>.<span class="ruby-identifier">round</span>(<span class="ruby-identifier">n</span>)}
@@ -214,7 +216,7 @@
 
           
           <div class="method-source-code" id="coslat-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 814</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 817</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">coslat</span>()
   <span class="ruby-keyword">return</span> <span class="ruby-ivar">@coslat</span>
 <span class="ruby-keyword">end</span></pre>
@@ -241,13 +243,13 @@
 
         <div class="method-description">
           
-          <p>緯度（Deg）をサイン緯度（μ）に変換 lat : 1D NArray</p>
+          <p>緯度（Deg）をサイン緯度（μ）に変換 lat : 1D <a href="NArray.html"><code>NArray</code></a></p>
           
           
 
           
           <div class="method-source-code" id="deg2mu-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 51</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 54</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">deg2mu</span>(<span class="ruby-identifier">lat</span>)
       <span class="ruby-identifier">mu</span> = <span class="ruby-constant">NMath</span>.<span class="ruby-identifier">sin</span>(<span class="ruby-identifier">lat</span><span class="ruby-operator">*</span><span class="ruby-constant">PI</span><span class="ruby-operator">/</span><span class="ruby-value">180.0</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -274,13 +276,13 @@
 
         <div class="method-description">
           
-          <p>サインガウス緯度（sin(θ_k)）とガウス重み（w_k）を求める mu: 1D NArray</p>
+          <p>サインガウス緯度（sin(θ_k)）とガウス重み（w_k）を求める mu: 1D <a href="NArray.html"><code>NArray</code></a></p>
           
           
 
           
           <div class="method-source-code" id="gauss_w-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 140</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 143</span>
   <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">gauss_w</span>(<span class="ruby-identifier">lat</span>)
     <span class="ruby-keyword">if</span> (<span class="ruby-identifier">lat</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">Integer</span>) <span class="ruby-keyword">then</span>
       <span class="ruby-identifier">jmax</span> = <span class="ruby-identifier">lat</span>
@@ -379,7 +381,7 @@
 
           
           <div class="method-source-code" id="lg_dlat-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1026</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1029</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">lg_dlat</span>(<span class="ruby-identifier">gphys</span>)
         <span class="ruby-comment">#グリッド→スペクトル</span>
         <span class="ruby-identifier">sn</span> = <span class="ruby-identifier">lg_trans</span>( <span class="ruby-identifier">gphys</span>)
@@ -416,7 +418,7 @@
 
           
           <div class="method-source-code" id="lg_invtrans-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 525</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 528</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">lg_invtrans</span>(<span class="ruby-identifier">sn</span>, <span class="ruby-identifier">dlat</span>=<span class="ruby-keyword">false</span>, <span class="ruby-identifier">nmax</span>=<span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span>)
 <span class="ruby-identifier">jmax</span> = <span class="ruby-ivar">@lat</span>.<span class="ruby-identifier">size</span>
 <span class="ruby-identifier">pn</span> = <span class="ruby-ivar">@pmn</span>[<span class="ruby-keyword">true</span>, <span class="ruby-value">0</span>, <span class="ruby-keyword">true</span>]
@@ -521,7 +523,7 @@
 
           
           <div class="method-source-code" id="lg_trans-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 461</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 464</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">lg_trans</span>(<span class="ruby-identifier">gj</span>, <span class="ruby-identifier">nmax</span>=<span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span>)
 <span class="ruby-identifier">shapes</span> = <span class="ruby-identifier">gj</span>.<span class="ruby-identifier">shape</span>
 <span class="ruby-identifier">jmax</span> = <span class="ruby-identifier">shapes</span>[<span class="ruby-value">0</span>]
@@ -611,7 +613,7 @@
 
           
           <div class="method-source-code" id="mu2deg-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 55</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 58</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">mu2deg</span>(<span class="ruby-identifier">mu</span>)
   <span class="ruby-identifier">lat</span> = <span class="ruby-constant">NMath</span>.<span class="ruby-identifier">asin</span>(<span class="ruby-identifier">mu</span>)<span class="ruby-operator">*</span><span class="ruby-value">180.0</span><span class="ruby-operator">/</span><span class="ruby-constant">PI</span>
 <span class="ruby-keyword">end</span></pre>
@@ -644,7 +646,7 @@
 
           
           <div class="method-source-code" id="multiply_cos-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 603</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 606</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">multiply_cos</span>(<span class="ruby-identifier">gphys</span>, <span class="ruby-identifier">num</span>=<span class="ruby-value">1</span>)
   <span class="ruby-comment"># モジュール変数を利用する方法（高速）</span>
   <span class="ruby-keyword">if</span> (<span class="ruby-ivar">@coslat</span>) <span class="ruby-keyword">then</span>
@@ -741,7 +743,7 @@
 
           
           <div class="method-source-code" id="multiply_sin-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 679</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 682</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">multiply_sin</span>(<span class="ruby-identifier">gphys</span>, <span class="ruby-identifier">num</span>=<span class="ruby-value">1</span>)
   <span class="ruby-comment"># モジュール変数を利用する方法（高速）</span>
   <span class="ruby-keyword">if</span> (<span class="ruby-ivar">@sinlat</span>) <span class="ruby-keyword">then</span>
@@ -842,7 +844,7 @@
 
           
           <div class="method-source-code" id="p_m_nT-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 61</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 64</span>
   <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">p_m_nT</span>(<span class="ruby-identifier">x</span>, <span class="ruby-identifier">mmax</span>)
     <span class="ruby-identifier">mmax</span> = <span class="ruby-identifier">mmax</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>
     <span class="ruby-identifier">len</span> = <span class="ruby-identifier">x</span>.<span class="ruby-identifier">length</span>
@@ -948,7 +950,7 @@
 
           
           <div class="method-source-code" id="sh_divergence-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1120</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1123</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_divergence</span>(<span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">a</span>=<span class="ruby-value">1.0</span>, <span class="ruby-identifier">only</span>=<span class="ruby-keyword">false</span>)
         <span class="ruby-comment"># v にcoslatをかける</span>
         <span class="ruby-identifier">vcoslat</span> = <span class="ruby-identifier">multiply_cos</span>(<span class="ruby-identifier">v</span>, <span class="ruby-value">1</span>)
@@ -1001,7 +1003,7 @@
 
           
           <div class="method-source-code" id="sh_dlat-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 868</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 871</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_dlat</span>(<span class="ruby-identifier">gphys</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">gphys</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">GPhys</span>) <span class="ruby-keyword">then</span>
         <span class="ruby-comment">#グリッド→スペクトル</span>
@@ -1058,7 +1060,7 @@
 
           
           <div class="method-source-code" id="sh_dlon-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 850</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 853</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_dlon</span>(<span class="ruby-identifier">gphys</span>, <span class="ruby-identifier">dn</span>=<span class="ruby-value">1</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">gphys</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">GPhys</span>) <span class="ruby-keyword">then</span>
         <span class="ruby-comment">#グリッド→スペクトル</span>
@@ -1102,7 +1104,7 @@
 
           
           <div class="method-source-code" id="sh_dlon_and_dlat-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1007</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1010</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_dlon_and_dlat</span>(<span class="ruby-identifier">gphys</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">gphys</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">GPhys</span>) <span class="ruby-keyword">then</span>
         <span class="ruby-comment">#グリッド→スペクトル</span>
@@ -1146,7 +1148,7 @@
 
           
           <div class="method-source-code" id="sh_energyspectrum-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1226</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1264</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_energyspectrum</span>(<span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">a</span>=<span class="ruby-value">1.0</span>, <span class="ruby-identifier">comp_ary</span>=[<span class="ruby-string">&quot;total&quot;</span>], <span class="ruby-identifier">vor_div_given</span>=<span class="ruby-keyword">false</span>)
 <span class="ruby-comment"># 参照：Burgess, Erler, and Shepherd (2013) The Troposphere-to-Stratosphere Transition in Kinetic Energy Spectra and Nonlinear Spectral Fluxes as Seen in ECMWF Analyses, JAS, vol. 70, pp. 669-687</span>
         <span class="ruby-identifier">nmax</span> = <span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span> <span class="ruby-operator">-</span> <span class="ruby-value">2</span>
@@ -1363,7 +1365,7 @@
 
           
           <div class="method-source-code" id="sh_init-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 762</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 765</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_init</span>(<span class="ruby-identifier">lon</span>, <span class="ruby-identifier">lat</span> = <span class="ruby-identifier">lon</span>.<span class="ruby-identifier">size</span><span class="ruby-operator">/</span><span class="ruby-value">2</span>, <span class="ruby-identifier">mmax</span> = ((<span class="ruby-identifier">lat</span>.<span class="ruby-identifier">size</span><span class="ruby-operator">*</span><span class="ruby-value">2</span><span class="ruby-value">-1</span>)<span class="ruby-operator">/</span><span class="ruby-value">3</span>), <span class="ruby-identifier">gp</span>=<span class="ruby-keyword">nil</span>, <span class="ruby-identifier">precision</span>=<span class="ruby-keyword">nil</span>)
   <span class="ruby-identifier">print</span> <span class="ruby-node">&quot;Truncation wavenumber is #{mmax}.\n&quot;</span>
 
@@ -1444,7 +1446,7 @@
 
           
           <div class="method-source-code" id="sh_invlaplacian-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1066</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1069</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_invlaplacian</span>(<span class="ruby-identifier">gphys</span>)
   <span class="ruby-identifier">nmax</span> = <span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span>
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">gphys</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">GPhys</span>) <span class="ruby-keyword">then</span>
@@ -1494,7 +1496,7 @@
 
           
           <div class="method-source-code" id="sh_invtrans-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 323</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 326</span>
   <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_invtrans</span>(<span class="ruby-identifier">smn</span>, <span class="ruby-identifier">dlon</span>=<span class="ruby-keyword">false</span>, <span class="ruby-identifier">dlat</span>=<span class="ruby-keyword">false</span>, <span class="ruby-identifier">only</span>=<span class="ruby-keyword">false</span>, <span class="ruby-identifier">nmax</span>=<span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span>)
   <span class="ruby-identifier">jmax</span> = <span class="ruby-ivar">@lat</span>.<span class="ruby-identifier">size</span>
   <span class="ruby-identifier">imax</span> = <span class="ruby-ivar">@lon</span>.<span class="ruby-identifier">size</span>
@@ -1654,7 +1656,7 @@
 
           
           <div class="method-source-code" id="sh_invtrans_multi-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 833</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 836</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_invtrans_multi</span>(<span class="ruby-identifier">smnarray</span>, <span class="ruby-identifier">dlon</span>=<span class="ruby-keyword">false</span>, <span class="ruby-identifier">dlat</span>=<span class="ruby-keyword">false</span>, <span class="ruby-identifier">only</span>=<span class="ruby-keyword">false</span>)
   <span class="ruby-comment">#p ObjectSpace.memsize_of(gparray)</span>
   <span class="ruby-identifier">num</span> = <span class="ruby-identifier">smnarray</span>.<span class="ruby-identifier">length</span>
@@ -1694,7 +1696,7 @@
 
           
           <div class="method-source-code" id="sh_laplacian-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1035</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1038</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_laplacian</span>(<span class="ruby-identifier">gphys</span>)
   <span class="ruby-identifier">nmax</span> = <span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span>
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">gphys</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">GPhys</span>) <span class="ruby-keyword">then</span>
@@ -1745,7 +1747,7 @@
 
           
           <div class="method-source-code" id="sh_trans-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 219</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 222</span>
   <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_trans</span>(<span class="ruby-identifier">gij</span>, <span class="ruby-identifier">dlon</span>=<span class="ruby-keyword">false</span>, <span class="ruby-identifier">only</span>=<span class="ruby-keyword">false</span>, <span class="ruby-identifier">nmax</span>=<span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span> )
   <span class="ruby-identifier">shapes</span> = <span class="ruby-identifier">gij</span>.<span class="ruby-identifier">shape</span>
   <span class="ruby-identifier">imax</span> = <span class="ruby-identifier">shapes</span>[<span class="ruby-value">0</span>]
@@ -1875,7 +1877,7 @@
 
           
           <div class="method-source-code" id="sh_trans_multi-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 822</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 825</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_trans_multi</span>(<span class="ruby-identifier">gijarray</span>, <span class="ruby-identifier">dlon</span>=<span class="ruby-keyword">false</span>, <span class="ruby-identifier">only</span>=<span class="ruby-keyword">false</span>)
   <span class="ruby-comment">#p ObjectSpace.memsize_of(gparray)</span>
   <span class="ruby-identifier">num</span> = <span class="ruby-identifier">gijarray</span>.<span class="ruby-identifier">length</span>
@@ -1885,6 +1887,72 @@
     <span class="ruby-identifier">smnarray</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">smn</span>.<span class="ruby-identifier">cut</span>(<span class="ruby-string">&quot;tmp_axis&quot;</span><span class="ruby-operator">=&gt;</span><span class="ruby-identifier">n</span>)
   }
   <span class="ruby-keyword">return</span> <span class="ruby-identifier">smnarray</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-sh_uvcomps" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">sh_uvcomps</span><span
+            class="method-args">(u, v, a=1.0, comp_ary=[&quot;u_rot&quot;])</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>水平風(u,v)の回転成分・発散成分を求める</p>
+          
+          
+
+          
+          <div class="method-source-code" id="sh_uvcomps-source">
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1223</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_uvcomps</span>(<span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">a</span>=<span class="ruby-value">1.0</span>, <span class="ruby-identifier">comp_ary</span>=[<span class="ruby-string">&quot;u_rot&quot;</span>])
+        <span class="ruby-identifier">nmax</span> = <span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span> <span class="ruby-operator">-</span> <span class="ruby-value">2</span>
+
+  <span class="ruby-comment"># 渦度・発散のスペクトル → 逆ラプラシアン（渦度→流線関数、発散→速度ポテンシャル）</span>
+  <span class="ruby-keyword">if</span> (<span class="ruby-identifier">comp_ary</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-string">&quot;u_rot&quot;</span>) <span class="ruby-keyword">or</span> <span class="ruby-identifier">comp_ary</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-string">&quot;v_rot&quot;</span>)) <span class="ruby-keyword">then</span> 
+    <span class="ruby-identifier">psi_s</span> = <span class="ruby-identifier">sp_invlaplacian</span>( <span class="ruby-identifier">sp_vorticity</span>(<span class="ruby-identifier">u</span>,<span class="ruby-identifier">v</span>,<span class="ruby-identifier">a</span>) )
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">if</span> (<span class="ruby-identifier">comp_ary</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-string">&quot;u_div&quot;</span>) <span class="ruby-keyword">or</span> <span class="ruby-identifier">comp_ary</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-string">&quot;v_div&quot;</span>)) <span class="ruby-keyword">then</span> 
+    <span class="ruby-identifier">chi_s</span> = <span class="ruby-identifier">sp_invlaplacian</span>( <span class="ruby-identifier">sp_divergence</span>(<span class="ruby-identifier">u</span>,<span class="ruby-identifier">v</span>,<span class="ruby-identifier">a</span>) )
+  <span class="ruby-keyword">end</span>
+
+  <span class="ruby-comment"># 水平風の回転成分・発散成分</span>
+  <span class="ruby-identifier">gphys_es_ary</span> = []
+  <span class="ruby-identifier">comp_ary</span>.<span class="ruby-identifier">each</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">comp</span><span class="ruby-operator">|</span>
+    <span class="ruby-keyword">case</span> <span class="ruby-identifier">comp</span>
+    <span class="ruby-keyword">when</span> <span class="ruby-string">&quot;u_rot&quot;</span>
+      <span class="ruby-identifier">gp</span> = <span class="ruby-operator">-</span><span class="ruby-identifier">sh_invtrans</span>(<span class="ruby-identifier">sp_cos2_dmu</span>(<span class="ruby-identifier">psi_s</span>))<span class="ruby-operator">/</span>(<span class="ruby-ivar">@coslat</span>)<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>
+      <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">rename</span>(<span class="ruby-string">&quot;u_rot&quot;</span>)
+      <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">set_att</span>(<span class="ruby-string">&quot;long_name&quot;</span>,<span class="ruby-string">&quot;u (rot. comp.)&quot;</span>)
+    <span class="ruby-keyword">when</span> <span class="ruby-string">&quot;u_div&quot;</span>
+      <span class="ruby-identifier">gp</span> = <span class="ruby-identifier">sh_invtrans</span>(<span class="ruby-identifier">sp_dlon</span>(<span class="ruby-identifier">chi_s</span>))<span class="ruby-operator">/</span>(<span class="ruby-ivar">@coslat</span>)<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>
+      <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">rename</span>(<span class="ruby-string">&quot;u_div&quot;</span>)
+      <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">set_att</span>(<span class="ruby-string">&quot;long_name&quot;</span>,<span class="ruby-string">&quot;u (div. comp.)&quot;</span>)
+    <span class="ruby-keyword">when</span> <span class="ruby-string">&quot;v_rot&quot;</span>
+      <span class="ruby-identifier">gp</span> = <span class="ruby-identifier">sh_invtrans</span>(<span class="ruby-identifier">sp_dlon</span>(<span class="ruby-identifier">psi_s</span>))<span class="ruby-operator">/</span>(<span class="ruby-ivar">@coslat</span>)<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>
+      <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">rename</span>(<span class="ruby-string">&quot;v_rot&quot;</span>)
+      <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">set_att</span>(<span class="ruby-string">&quot;long_name&quot;</span>,<span class="ruby-string">&quot;v (rot. comp.)&quot;</span>)
+    <span class="ruby-keyword">when</span> <span class="ruby-string">&quot;v_div&quot;</span>
+      <span class="ruby-identifier">gp</span> = <span class="ruby-identifier">sh_invtrans</span>(<span class="ruby-identifier">sp_cos2_dmu</span>(<span class="ruby-identifier">chi_s</span>))<span class="ruby-operator">/</span>(<span class="ruby-ivar">@coslat</span>)<span class="ruby-operator">*</span><span class="ruby-identifier">a</span>
+      <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">rename</span>(<span class="ruby-string">&quot;v_div&quot;</span>)
+      <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">set_att</span>(<span class="ruby-string">&quot;long_name&quot;</span>,<span class="ruby-string">&quot;v (div. comp.)&quot;</span>)
+    <span class="ruby-keyword">end</span>
+    <span class="ruby-identifier">gphys_es_ary</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-identifier">gp</span>
+  }
+  <span class="ruby-keyword">return</span> <span class="ruby-identifier">gphys_es_ary</span>
 <span class="ruby-keyword">end</span></pre>
           </div>
           
@@ -1915,7 +1983,7 @@
 
           
           <div class="method-source-code" id="sh_vor_and_div-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1144</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1147</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_vor_and_div</span>(<span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">a</span>=<span class="ruby-value">1.0</span>, <span class="ruby-identifier">only</span>=<span class="ruby-keyword">false</span>)
         <span class="ruby-comment"># u にcoslatをかける</span>
         <span class="ruby-identifier">ucoslat</span> = <span class="ruby-identifier">multiply_cos</span>(<span class="ruby-identifier">u</span>)
@@ -1970,7 +2038,7 @@
 
           
           <div class="method-source-code" id="sh_vorticity-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1099</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1102</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sh_vorticity</span>(<span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">a</span>=<span class="ruby-value">1.0</span>, <span class="ruby-identifier">only</span>=<span class="ruby-keyword">false</span>)
         <span class="ruby-comment"># u にcoslatをかける</span>
         <span class="ruby-identifier">ucoslat</span> = <span class="ruby-identifier">multiply_cos</span>(<span class="ruby-identifier">u</span>)
@@ -2019,7 +2087,7 @@
 
           
           <div class="method-source-code" id="sinlat-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 818</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 821</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sinlat</span>()
   <span class="ruby-keyword">return</span> <span class="ruby-ivar">@sinlat</span>
 <span class="ruby-keyword">end</span></pre>
@@ -2052,7 +2120,7 @@
 
           
           <div class="method-source-code" id="sp_cos2_dmu-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 908</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 911</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sp_cos2_dmu</span>(<span class="ruby-identifier">gphys_smn</span>)
   <span class="ruby-identifier">smn</span> = <span class="ruby-identifier">gphys_smn</span>.<span class="ruby-identifier">val</span>
 
@@ -2130,7 +2198,7 @@
 
           
           <div class="method-source-code" id="sp_divergence-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1195</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1198</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sp_divergence</span>(<span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">a</span>=<span class="ruby-value">1.0</span>, <span class="ruby-identifier">only</span>=<span class="ruby-keyword">false</span>)
   <span class="ruby-comment"># 切断波数</span>
   <span class="ruby-identifier">nmax</span>=<span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span>
@@ -2182,7 +2250,7 @@
 
           
           <div class="method-source-code" id="sp_dlon-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 897</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 900</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sp_dlon</span>(<span class="ruby-identifier">gphys_smn</span>)
   <span class="ruby-identifier">d_gphys_smn</span> = <span class="ruby-identifier">gphys_smn</span>.<span class="ruby-identifier">copy</span>
   <span class="ruby-identifier">nmax</span> = <span class="ruby-ivar">@complex_im</span>.<span class="ruby-identifier">shape</span>[<span class="ruby-value">0</span>] <span class="ruby-operator">-</span> <span class="ruby-value">1</span>
@@ -2221,7 +2289,7 @@
 
           
           <div class="method-source-code" id="sp_dmu_cos2-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 958</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 961</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sp_dmu_cos2</span>(<span class="ruby-identifier">gphys_smn</span>)
   <span class="ruby-identifier">smn</span> = <span class="ruby-identifier">gphys_smn</span>.<span class="ruby-identifier">val</span>
 
@@ -2295,7 +2363,7 @@
 
           
           <div class="method-source-code" id="sp_invlaplacian-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1087</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1090</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sp_invlaplacian</span>(<span class="ruby-identifier">s</span>)
   <span class="ruby-identifier">nmax</span> = <span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span>
   <span class="ruby-identifier">sout</span> = <span class="ruby-identifier">s</span>.<span class="ruby-identifier">copy</span>
@@ -2333,7 +2401,7 @@
 
           
           <div class="method-source-code" id="sp_laplacian-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1057</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1060</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sp_laplacian</span>(<span class="ruby-identifier">s</span>)
   <span class="ruby-identifier">sout</span> = <span class="ruby-identifier">s</span>.<span class="ruby-identifier">copy</span>
   <span class="ruby-identifier">nmax</span> = <span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span>
@@ -2371,7 +2439,7 @@
 
           
           <div class="method-source-code" id="sp_vorticity-source">
-            <pre><span class="ruby-comment"># File gpv_spherical_harmonics_next.rb, line 1171</span>
+            <pre><span class="ruby-comment"># File src/gpv_spherical_harmonics_next.rb, line 1174</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">sp_vorticity</span>(<span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">a</span>=<span class="ruby-value">1.0</span>, <span class="ruby-identifier">only</span>=<span class="ruby-keyword">false</span>)
   <span class="ruby-comment"># 切断波数</span>
   <span class="ruby-identifier">nmax</span>=<span class="ruby-ivar">@pmn</span>[<span class="ruby-value">0</span>,<span class="ruby-value">0</span>,<span class="ruby-keyword">true</span>].<span class="ruby-identifier">size</span><span class="ruby-value">-2</span>

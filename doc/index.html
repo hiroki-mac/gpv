@@ -73,6 +73,8 @@
   
     <li><a href="./Complex.html">Complex</a>
   
+    <li><a href="./Float.html">Float</a>
+  
     <li><a href="./GAnalysis.html">GAnalysis</a>
   
     <li><a href="./GAnalysis/Met.html">GAnalysis::Met</a>
@@ -82,6 +84,14 @@
     <li><a href="./GPV.html">GPV</a>
   
     <li><a href="./GPV/GGraph.html">GPV::GGraph</a>
+  
+    <li><a href="./GPVSequence.html">GPVSequence</a>
+  
+    <li><a href="./GPhys.html">GPhys</a>
+  
+    <li><a href="./LagrangeSphere.html">LagrangeSphere</a>
+  
+    <li><a href="./NArray.html">NArray</a>
   
     <li><a href="./Object.html">Object</a>
   
@@ -98,9 +108,7 @@
 
 <h1 id="label-gpv">gpv<span><a href="#label-gpv">&para;</a> <a href="#top">&uarr;</a></span></h1>
 
-<p><strong>NOTE: See <a href="GPV.html"><code>GPV</code></a> #__set_options source code for available options. </strong></p>
-
-<p>gpvは、GPhysライブラリに付属のコマンドラインツール gpview を私的に建て増し改造したものである。今のところ非公開。</p>
+<p>gpvは、GPhysライブラリに付属のコマンドラインツール gpview を私的に建て増し改造したものである。</p>
 
 <p>独自に追加した機能が多くなってきたので、自分用備忘録として、ここにまとめる。</p>
 
@@ -108,10 +116,30 @@
 
 <p>気象庁のデータ形式GPVと同じ名前だが、無関係である。# 名前がかぶってしまった…</p>
 
+<p><strong>オプション一覧は src/gpv_main.rb を参照のこと。 </strong></p>
+
+<p><strong>更新ごとに全てのオプションの動作をテストしている訳ではないので、恐らく正しく動作しないものあります。</strong></p>
+
 <h2 id="label-Required+libraries">Required libraries<span><a href="#label-Required+libraries">&para;</a> <a href="#top">&uarr;</a></span></h2>
 <ul><li>
+<p><a href="http://www.gfd-dennou.org/library/dcl/">C版DCL</a></p>
+</li><li>
+<p>FFTW3</p>
+</li><li>
+<p>GSL</p>
+</li><li>
+<p>NetCDF</p>
+</li><li>
 <p>RubyGems</p>
 <ul><li>
+<p>ruby-dcl</p>
+</li><li>
+<p>ruby-fftw3</p>
+</li><li>
+<p>gsl</p>
+</li><li>
+<p>gphys</p>
+</li><li>
 <p>pry</p>
 </li><li>
 <p>ruby-progressbar</p>
@@ -135,27 +163,41 @@
 </li></ul>
 </li></ul>
 
+<h2 id="label-Install">Install<span><a href="#label-Install">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>(1) 適当なディレクトリにクローンする。</p>
+
+<p><code> git clone https://github.com/hiroki-mac/gpv.git </code></p>
+
+<p>(2) $PATHが通った適当なディレクトリに gpv_main.rb のシンボリックリンクを張る。</p>
+
+<p><code> ln -s gpv/src/gpv_main.rbへのフルパス $PATHが通ったディレクトリ/gpv </code></p>
+
+<p>(3) もし実行権限が付与されていなければ、実行権限を与える。</p>
+
 <h2 id="label-Settings">Settings<span><a href="#label-Settings">&para;</a> <a href="#top">&uarr;</a></span></h2>
 
-<p>Edit gpv_config.rb </p>
+<p>環境に合わせて gpv_config.rb を編集する。</p>
 
 <h2 id="label-Usage">Usage<span><a href="#label-Usage">&para;</a> <a href="#top">&uarr;</a></span></h2>
 
-<p>The first command form is</p>
+<p>基本的な使い方は</p>
 
 <p><code>gpv gturl1 gturl2 gturl3 ... (options)</code></p>
 
-<p>where the format of the gturl is</p>
+<p>である。ここで gturl は以下の形式で与える。</p>
 
 <p><code>filepath@varname(,dimname=pos1(:pos2(:thinning_intv))(,dimname=...))</code></p>
 
-<p>The second command form is</p>
+<p>変数を以下のように指定することもできる。</p>
 
 <p><code>gpv gtfile1 gtfile2 ... --var url (options)</code></p>
 
-<p>where the format of the url is</p>
+<p>ここで、urlの形式は</p>
 
 <p><code>varname(,dimname=pos1(:pos2(:thinning_intv))(,dimname=...))</code></p>
+
+<p>である。</p>
 
 <h3 id="label-Tips+-28gpview-E3-81-A7-E3-82-82-E4-BD-BF-E3-81-88-E3-82-8B-E5-B0-8F-E6-8A-80-29">Tips (gpviewでも使える小技)<span><a href="#label-Tips+-28gpview-E3-81-A7-E3-82-82-E4-BD-BF-E3-81-88-E3-82-8B-E5-B0-8F-E6-8A-80-29">&para;</a> <a href="#top">&uarr;</a></span></h3>
 <ul><li>
@@ -229,13 +271,17 @@
 <p>以下のオプションで指示する演算は、オプションを並べた順に実行する。</p>
 
 <p><code>mean, running_mean (rm), global_mean (gm), stddev, derivative, max, min, eddy, integrate, sum, addingup</code></p>
+</li><li>
+<p>惑星半径などの諸定数は、デフォルトで地球の値である。これらは、$PLANET という環境変数の値を Venus や Mars とすることで、 諸定数を各惑星（を念頭においたGCM）の値に設定する。ただし変更されないものもある。 $PLANET を設定した場合は、gpv 実行時に、使われている定数一覧が表示される。</p>
 </li></ul>
+
+<p>　</p>
 
 <h2 id="label-GPV+CLASS"><a href="GPV.html"><code>GPV</code></a> CLASS<span><a href="#label-GPV+CLASS">&para;</a> <a href="#top">&uarr;</a></span></h2>
 
 <p>新たにクラスGPVを定義し、コマンドラインから実行できるgpvの機能を、rubyスクリプトのなかで使用できるようにした。 任意のrubyスクリプト内で</p>
 
-<p><code>require &quot;/Users/hiroki/RubyScripts/gpv&quot; </code></p>
+<p><code>require &quot;インストール先/gpv/src/gpv/main.rb&quot; </code></p>
 
 <p>などとすることで、使用可能となる。</p>
 

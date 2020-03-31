@@ -6,17 +6,8 @@ class GPV
 
   # Interpolate to Gaussian latitudes.
   def gglat(gp)
-    require "gglat"
     lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp)
-    lat_n = gp.axis(lat_dim).length
-    nlat = nil
-    GGLA.length.times{|n|
-      if (lat_n <= GGLA[n].length )
-        nlat = NArray.to_na(GGLA[n-1].sort)
-        break
-      end
-    }
-    eval "nlat = NArray.to_na(GGLA#{@OPT_GLAT}.sort)" unless (@OPT_GLAT == "")
+    nlat = SphericalHarmonics.gauss_lat(@OPT_GLAT.to_i)
     vlat = VArray.new(nlat,{"units"=>"degree_north"},gp.axnames[lat_dim])
     gp = gp.interpolate(lat_dim=> vlat)
     if (lon_dim) then
@@ -30,17 +21,8 @@ class GPV
 
   # Regrid to given horizontal resolition with Gaussian latitudes
   def regrid(gp)
-    require "gglat"
     lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp)
-    lat_n = gp.axis(lat_dim).length
-    nlat = nil
-    GGLA.length.times{|n|
-      if (lat_n <= GGLA[n].length )
-        nlat = NArray.to_na(GGLA[n-1].sort)
-        break
-      end
-    }
-    eval "nlat = NArray.to_na(GGLA#{@OPT_regrid}.sort)"
+    nlat = SphericalHarmonics.gauss_lat(@OPT_regrid.to_i)
     vlat = VArray.new(nlat,{"units"=>"degree_north"},gp.axnames[lat_dim])
     nlon = NArray.float(vlat.length*2)
     (vlat.length*2).times{|i| nlon[i] = 360.0/(vlat.length*2)*i }
@@ -103,7 +85,7 @@ class GPV
     return new_gp
   end
 
-  # 緯度座標軸に極の上 -/+90 deg の格子点を付け加える。データの値は元々の最南/最北点の経度平均値とする。
+  # 緯度座標軸に極の上 -/+90 deg の格子点を付け加える。データの値は元々の最南/最北点の経度平均値とする。
   ### これだとベクトル量には使ってはいけない。スカラー量にのみ使える。
   def interpolate_pole(gp)
     lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp)

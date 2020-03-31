@@ -46,13 +46,31 @@ options =
 '--sldiv y,2,2',      # <<y|t>,m,n>              | split the drawing window into multiple panel.
                    #                          | argument should be provied in DCL.sldiv form.
                    #                          | e.g., --sldiv y,2,2 make 2x2 window.
+]
+=begin
+'--scatter',    # [xtitle,ytitle]          | make scatter plot with provided 2 gturls.
+                   #                          | 1st and 2nd gturls will be used for x- and y-axes, respectively.
+                   #                          | titles of x- and y- axes can be specified by arguments xtitle,ytitle (optional)
+                   #                          | range of each axis can be specified by option --range [xmin:xmax,ymin:ymax] format.
+'--color_scatter', # [xtitle,ytitle]       | make color scatter plot with provided 3 gturls.
+                      #                       | 1st and 2nd gturls are used for x- and y-axes, respectively.
+                      #                       | 3rd gturl is used for color of marks.
+                      #                       | titles of x- and y- axes can be specified by arguments xtitle,ytitle (optional)
+                      #                       | range of each axis and color can be specified by option --range [xmin:xmax,ymin:ymax,zmin:zmax] format
+'--cot',           #                       | contour over tone. draw tone with 1st gturl and overplot contour with 2nd gturl.
 '--histogram',     # [any]                 | draw 1D histogram.
                       #                       | options "--int -n" and "--range xmin:xmax[,ymin:ymax]" can be used to set bins number and range.
                       #                       | options "--exch", "--title", and "--overplot n" also can be used.
                       #                       | if any argument is given, histogram are shown in percentage (%) not in numbers.
-]
-=begin
-'--linearline',    # <arg>                 | draw linear line expressed by <arg>.
+'--histogram2D',   # [any]                 | draw 2D histogram with two gtulrs.
+                      #                       | if any argument is given, histogram are shown in percentage (%) not in numbers.
+                      #                       | options "--int -n" and "--range xmin:xmax[,ymin:ymax]" can be used to set bins number and range.
+                      #                       | options "--sint [-]n" and "--srange xmin:xmax" can be used to set tone interval[number] and range.
+                      #                       | options "--exch" and "--title" also can be used.
+'--rmap',          # <dim>                 | draw 2D map of correaltion between 1st and 2nd gturls along <dim> axis.
+                      #                       | <dim> can be axis name (string) or dimension number (integer), but only one
+                      #                       | axis is acceptable.
+'--linearline',    # <arg>                 | draw linear line expressed bay <arg>.
                       #                       | <arg> should be "x=<value>", "y=<value>", "x=y", or "y=x", where <value> is integer or float.
                       #                       | multiple lines can be drawn by setting multiple args separated by comma, such as "x=0,y=0".
 '--land',          #                       | mask data with land info, https://www.ncl.ucar.edu/Applications/Data/cdf/landsea.nc.

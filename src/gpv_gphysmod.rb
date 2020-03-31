@@ -1,5 +1,8 @@
 #--
-# modification of GPhys and GGraph methods. and NArray
+# =DESCRIPTION
+#  Modification of GPhys and GGraph methods, and NArray.
+# =AUTHOR 
+#  Hiroki Kashimura
 #++
 
 class Float

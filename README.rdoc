@@ -1,7 +1,5 @@
 =gpv
-<b>NOTE: See GPV #__set_options source code for available options. </b>
-
-gpvは、GPhysライブラリに付属のコマンドラインツール gpview を私的に建て増し改造したものである。今のところ非公開。
+gpvは、GPhysライブラリに付属のコマンドラインツール gpview を私的に建て増し改造したものである。
 
 独自に追加した機能が多くなってきたので、自分用備忘録として、ここにまとめる。
 
@@ -9,8 +7,21 @@ gpvという名前は、コマンド入力を簡単にするために gpview か
 
 気象庁のデータ形式GPVと同じ名前だが、無関係である。# 名前がかぶってしまった...
 
+<b>オプション一覧は src/gpv_options.rb を参照のこと。 </b>
+
+<b>更新ごとに全てのオプションの動作をテストしている訳ではないので、恐らく正しく動作しないものあります。</b>
+
+
 ==Required libraries
+* {C版DCL}[http://www.gfd-dennou.org/library/dcl/]
+* FFTW3
+* GSL
+* NetCDF
 * RubyGems
+  * ruby-dcl
+  * ruby-fftw3
+  * gsl
+  * gphys
   * pry
   * ruby-progressbar
   * parallel
@@ -22,25 +33,40 @@ gpvという名前は、コマンド入力を簡単にするために gpview か
   * pdfcrop (included in TexLive)
   * {cpdf}[http://community.coherentpdf.com]
 
+
+==Install
+(1) 適当なディレクトリにクローンする。
+
+<tt> git clone https://github.com/hiroki-mac/gpv.git </tt>
+
+(2) $PATHが通った適当なディレクトリに gpv_main.rb のシンボリックリンクを張る。
+
+<tt> ln -s gpv/src/gpv_main.rbへのフルパス $PATHが通ったディレクトリ/gpv </tt>
+
+(3) もし実行権限が付与されていなければ、実行権限を与える。
+
+
 ==Settings
-Edit gpv_config.rb 
+環境に合わせて gpv_config.rb を編集する。
 
 ==Usage
-The first command form is
+基本的な使い方は
 
 <tt>gpv gturl1 gturl2 gturl3 ... (options)</tt>
 
-where the format of the gturl is
+である。ここで gturl は以下の形式で与える。
 
 <tt>filepath@varname(,dimname=pos1(:pos2(:thinning_intv))(,dimname=...))</tt>
 
-The second command form is
+変数を以下のように指定することもできる。
 
 <tt>gpv gtfile1 gtfile2 ... --var url (options)</tt>
 
-where the format of the url is
+ここで、urlの形式は
 
 <tt>varname(,dimname=pos1(:pos2(:thinning_intv))(,dimname=...))</tt>
+
+である。
 
 ===Tips (gpviewでも使える小技)
 * シェルのワイルドカード機能を使うことで、複数のファイルを一度に開くことができる。ただし、ファイル名をマッチさせられるように、@ではなく--varオプションで変数名を指定する。
@@ -114,10 +140,15 @@ where the format of the url is
 
   <tt>mean, running_mean (rm), global_mean (gm), stddev, derivative, max, min, eddy, integrate, sum, addingup</tt>
 
+* 惑星半径などの諸定数は、デフォルトで地球の値である。これらは、$PLANET という環境変数の値を Venus や Mars とすることで、
+  諸定数を各惑星（を念頭においたGCM）の値に設定する。ただし変更されないものもある。
+  $PLANET を設定した場合は、gpv 実行時に、使われている定数一覧が表示される。
+　
+
 ==GPV CLASS
 新たにクラスGPVを定義し、コマンドラインから実行できるgpvの機能を、rubyスクリプトのなかで使用できるようにした。 任意のrubyスクリプト内で
 
-<tt>require "/Users/hiroki/RubyScripts/gpv" </tt>
+<tt>require "インストール先/gpv/src/gpv/main.rb" </tt>
 
 などとすることで、使用可能となる。
 

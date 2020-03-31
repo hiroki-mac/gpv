@@ -189,20 +189,6 @@ class GPV
     end
   end
 
-  # def addingup_old(gp, dim)
-  # #  require "pry"; binding.pry
-  #   len = gp.shape[dim]
-  #   na = NArray.float(len).indgen
-  #   newdata = NArray.float(len)
-  #   len.times{|i|
-  #     mask = na.ge(i).to_f
-  #     newdata = newdata + mask*gp[i].val
-  #   }
-  #   gp.replace_val(newdata)
-  #   return gp
-  # end
-
-
   # Adding up along the given dimension.
   def addingup(gp, dim)
     gpaxes = gp.axnames
