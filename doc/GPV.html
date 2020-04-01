@@ -308,7 +308,7 @@
 
           
           <div class="method-source-code" id="join-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 653</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 651</span>
 <span class="ruby-keyword">def</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier ruby-title">join</span>(<span class="ruby-identifier">ary</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">ary</span>.<span class="ruby-identifier">size</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-value">110</span>) <span class="ruby-keyword">then</span> 
     <span class="ruby-keyword">return</span> <span class="ruby-constant">GPhys</span>.<span class="ruby-identifier">join</span>(<span class="ruby-identifier">ary</span>)
@@ -360,7 +360,7 @@
 
           
           <div class="method-source-code" id="__set_options-source">
-            <pre><span class="ruby-comment"># File src/gpv_main.rb, line 43</span>
+            <pre><span class="ruby-comment"># File src/gpv_main.rb, line 45</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">__set_options</span>(<span class="ruby-identifier">opts</span>=<span class="ruby-keyword">nil</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">opts</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">String</span>) <span class="ruby-keyword">then</span>
     <span class="ruby-identifier">prev_argv</span> = <span class="ruby-constant">ARGV</span>.<span class="ruby-identifier">clone</span>
@@ -373,535 +373,7 @@
   <span class="ruby-identifier">check_dclopts</span>
   <span class="ruby-comment">## parse options</span>
   <span class="ruby-identifier">parser</span> = <span class="ruby-constant">GetoptLong</span>.<span class="ruby-identifier">new</span>
-  <span class="ruby-identifier">parser</span>.<span class="ruby-identifier">set_options</span>(
-
-
-
-
-<span class="ruby-comment">###</span>
-<span class="ruby-comment">### global options ###</span>
-<span class="ruby-comment">###</span>
-  [<span class="ruby-string">&#39;--var&#39;</span>,     <span class="ruby-comment">#                             | set the variable name and slicing parameters.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--vf&#39;</span>,      <span class="ruby-comment">#                             | use variable whose name is included in the filename.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--pry&#39;</span>,     <span class="ruby-comment">#                             | start pry after drawing the first figure</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--auto_pry&#39;</span>,<span class="ruby-comment"># &lt;args&gt;                      | automatically execute the given scripts like as in pry after drawing the first figure.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--list&#39;</span>,    <span class="ruby-comment">#                             | execute gplist instead of any other options.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--silent&#39;</span>,  <span class="ruby-comment">#                             | show only calculated values. do not show any messages.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--parallel&#39;</span>,<span class="ruby-comment">#                             | use parallel anyway.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--help&#39;</span>,    <span class="ruby-comment">#                             | show help.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--edit_ncatt&#39;</span>,<span class="ruby-comment">#                           | edit netcdf&#39;s attribute by ncatted commands.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--sequence&#39;</span>, <span class="ruby-comment">#&lt;sequence name&gt;             | execute sequence scripts defined in gpv_sequence.rb.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-
-
-
-<span class="ruby-comment">###</span>
-<span class="ruby-comment">### visualize options ###</span>
-<span class="ruby-comment">###</span>
-  [<span class="ruby-string">&#39;--clrmap&#39;</span>,  <span class="ruby-comment"># &lt;1- or filename&gt;            | set colormap to draw tone/contour. filename of DCL colormap is acceptable.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--itr&#39;</span>,     <span class="ruby-comment"># &lt;1-4,5-7,10-15,20-23,30-33&gt; | set axis scale. default is 1.</span>
-                <span class="ruby-comment">#                             | 1 : linear scale for x/y axis</span>
-                <span class="ruby-comment">#                             | 2 : linear scale for x , log scale for y axis</span>
-                <span class="ruby-comment">#                             | 3 : log scale for x , linear scale for y axis</span>
-                <span class="ruby-comment">#                             | 4 : log scale for x/y axis</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--similar&#39;</span>, <span class="ruby-comment"># &lt;simfac,vxoff,vyoff&gt;        | (for 5&lt;=itr&lt;=7) set similarity parameters which are fed in DCL.grssim.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--map_axis&#39;</span>,<span class="ruby-comment"># &lt;uxc,uyc,rot&gt;               | (for 10&lt;=itr&lt;=33) set mapping parameters which are fed in DCL.umpcnt.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--map_radius&#39;</span>, <span class="ruby-comment"># &lt;radius&gt;                 | (for itr&gt;=20) set clipping radius (degree) around the tangential point. Deafault=90.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--sateliteview&#39;</span>, <span class="ruby-comment">#&lt;distance&gt;              | simulate satelite view. use with --itr 30. &lt;distance&gt; should be given in planetary-radius-unit.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--xcoord&#39;</span>,  <span class="ruby-comment"># &lt;xcoord&gt;                    | name of x-coordinate (use for associate coordinates)</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--ycoord&#39;</span>,  <span class="ruby-comment"># &lt;ycoord&gt;                    | name of y-coordinate (use for associate coordinates)</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--title&#39;</span>,   <span class="ruby-comment"># &lt;title&gt;                     | set title of figure</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--notitle&#39;</span>, <span class="ruby-comment">#                             | do not print title. equivalent to --title &quot;&quot;</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--aspect&#39;</span>,  <span class="ruby-comment"># &lt;aspect&gt;                    | set aspect ratio of Viewport. default is 2.0.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--anim&#39;</span>, <span class="ruby-string">&#39;--animate&#39;</span>, <span class="ruby-comment"># &lt;dim&gt;             | plot animation along &lt;dim&gt;. &lt;dim&gt; must be name of dimension.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--anim_div&#39;</span>,<span class="ruby-comment"># &lt;num&gt;                       | use with --anim to divide anim interval into &lt;num&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--noannotate&#39;</span>, <span class="ruby-comment">#                          | not draw annotations.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--alternate&#39;</span>, <span class="ruby-string">&#39;--Ga&#39;</span>, <span class="ruby-comment">#                   | enable to backing store.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nowait&#39;</span>, <span class="ruby-string">&#39;--Gw&#39;</span>, <span class="ruby-comment">#                      | not wait for any actions if animate</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--smooth&#39;</span>, <span class="ruby-string">&#39;--Gaw&#39;</span>, <span class="ruby-comment">#                     | equal to --anlternate &amp;&amp; --nowait</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--reverse&#39;</span>, <span class="ruby-string">&#39;--Gr&#39;</span>, <span class="ruby-comment">#                     | plot animation reversible if animate</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--exch&#39;</span>, <span class="ruby-comment">#                                | exchange(transpose) x/y axis.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--map&#39;</span>, <span class="ruby-string">&#39;--m&#39;</span>, <span class="ruby-comment"># &lt;map_type&gt;               | plot map. itr number must be set. this option is neglect if itr number is 1-4.</span>
-                   <span class="ruby-comment">#                          | abailable map type is coast_world, border_world, plate_world, state_usa, coast_japan, pref_japan</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--time_ax&#39;</span>,    <span class="ruby-comment"># &lt;nil|false|h|ymd&gt;        | specify type of calendar-type time axis:</span>
-                   <span class="ruby-comment">#                          |  nil   (=&gt; auto slection)</span>
-                   <span class="ruby-comment">#                          | false (=&gt; do not use the time axis even if</span>
-                   <span class="ruby-comment">#                          |           the units of the axis is a time one with since field)</span>
-                   <span class="ruby-comment">#                          | &quot;h&quot;   (=&gt; like nil, but always use the hour-resolving datetime_ax method</span>
-                   <span class="ruby-comment">#                          |           in dclext_datetime_ax.rb)</span>
-                   <span class="ruby-comment">#                          | &quot;ymd&quot; (=&gt; like &quot;h&quot; but for y-m-d type using DCL.uc[xy]acl)</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--sldiv&#39;</span>,      <span class="ruby-comment"># &lt;&lt;y|t&gt;,m,n&gt;              | split the drawing window into multiple panel.</span>
-                   <span class="ruby-comment">#                          | argument should be provied in DCL.sldiv form.</span>
-                   <span class="ruby-comment">#                          | e.g., --sldiv y,2,2 make 2x2 window.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--scatter&#39;</span>,    <span class="ruby-comment"># [xtitle,ytitle]          | make scatter plot with provided 2 gturls.</span>
-                   <span class="ruby-comment">#                          | 1st and 2nd gturls will be used for x- and y-axes, respectively.</span>
-                   <span class="ruby-comment">#                          | titles of x- and y- axes can be specified by arguments xtitle,ytitle (optional)</span>
-                   <span class="ruby-comment">#                          | range of each axis can be specified by option --range [xmin:xmax,ymin:ymax] format.</span>
-                   <span class="ruby-comment">#                          | with &quot;--line&quot; option, lines between marks are drawn.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--color_scatter&#39;</span>, <span class="ruby-comment"># [xtitle,ytitle]       | make color scatter plot with provided 3 gturls.</span>
-                      <span class="ruby-comment">#                       | 1st and 2nd gturls are used for x- and y-axes, respectively.</span>
-                      <span class="ruby-comment">#                       | 3rd gturl is used for color of marks.</span>
-                      <span class="ruby-comment">#                       | titles of x- and y- axes can be specified by arguments xtitle,ytitle (optional)</span>
-                      <span class="ruby-comment">#                       | range of each axis and color can be specified by option --range [xmin:xmax,ymin:ymax,zmin:zmax] format</span>
-                      <span class="ruby-comment">#                          | with &quot;--line&quot; option, lines between marks are drawn.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--cot&#39;</span>,           <span class="ruby-comment">#                       | contour over tone. draw tone with 1st gturl and overplot contour with 2nd gturl.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--histogram&#39;</span>,     <span class="ruby-comment"># [arg]                 | draw 1D histogram, probability density function, or their cumulative plots.</span>
-                      <span class="ruby-comment">#                       | when argument &quot;ratio&quot; is given, histogram are shown in %.</span>
-                      <span class="ruby-comment">#                       | when argument &quot;sphere&quot; is given, histogram are shown in area % consdiring spherical area weight for lat-lon grid data.</span>
-                      <span class="ruby-comment">#                       | when argument &quot;pdf&quot; is given, values are converted to prbability density function.</span>
-                      <span class="ruby-comment">#                       | when commulative_up is given, cumulative plot towords higher direction is drawn.</span>
-                      <span class="ruby-comment">#                       | when commulative_down is given, cumulative plot towords lower direction is drawn.</span>
-                      <span class="ruby-comment">#                       | these args can be used at the same time by comma separation such as &quot;sphere,pdf&quot;.</span>
-                      <span class="ruby-comment">#                       | options &quot;--int -n&quot; and &quot;--range xmin:xmax[,ymin:ymax]&quot; can be used to set bins number and range.</span>
-                      <span class="ruby-comment">#                       | options &quot;--exch&quot;, &quot;--title&quot;, and &quot;--overplot n&quot; also can be used.</span>
-                      <span class="ruby-comment">#                       | option &quot;--line&quot; can be used with to plot in line.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--histogram2D&#39;</span>,   <span class="ruby-comment"># [any]                 | draw 2D histogram with two gtulrs.</span>
-                      <span class="ruby-comment">#                       | if any argument is given, histogram are shown in percentage (%) not in numbers.</span>
-                      <span class="ruby-comment">#                       | options &quot;--int -n&quot; and &quot;--range xmin:xmax[,ymin:ymax]&quot; can be used to set bins number and range.</span>
-                      <span class="ruby-comment">#                       | options &quot;--sint [-]n&quot; and &quot;--srange xmin:xmax&quot; can be used to set tone interval[number] and range.</span>
-                      <span class="ruby-comment">#                       | options &quot;--exch&quot; and &quot;--title&quot; also can be used.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--rmap&#39;</span>,          <span class="ruby-comment"># &lt;dim&gt;                 | draw 2D map of correaltion between 1st and 2nd gturls along &lt;dim&gt; axis.</span>
-                      <span class="ruby-comment">#                       | &lt;dim&gt; can be axis name (string) or dimension number (integer), but only one</span>
-                      <span class="ruby-comment">#                       | axis is acceptable.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--linearline&#39;</span>,    <span class="ruby-comment"># &lt;arg&gt;                 | draw linear line expressed bay &lt;arg&gt;.</span>
-                      <span class="ruby-comment">#                       | &lt;arg&gt; should be &quot;x=&lt;value&gt;&quot;, &quot;y=&lt;value&gt;&quot;, &quot;x=y&quot;, or &quot;y=x&quot;, where &lt;value&gt; is integer or float.</span>
-                      <span class="ruby-comment">#                       | multiple lines can be drawn by setting multiple args separated by comma, such as &quot;x=0,y=0&quot;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--land&#39;</span>,          <span class="ruby-comment">#                       | mask data with land info, https://www.ncl.ucar.edu/Applications/Data/cdf/landsea.nc.</span>
-                      <span class="ruby-comment">#                       | you need to download landsea.nc and place it on correct dir.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--ocean&#39;</span>,         <span class="ruby-comment">#                       | mask data with ocean info, https://www.ncl.ucar.edu/Applications/Data/cdf/landsea.nc.</span>
-                      <span class="ruby-comment">#                       | you need to download landsea.nc and place it on correct dir.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--line&#39;</span>,          <span class="ruby-comment">#                       | make line plot forced. (about first 1D)</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--mark&#39;</span>,          <span class="ruby-comment">#                       | make mark plot forced. (about first 1D)</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--index&#39;</span>,         <span class="ruby-comment"># &lt;index_num&gt;           | set DCL line index, which set the color/thickness of the line primitive. please see DCL documents.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--type&#39;</span>,          <span class="ruby-comment"># &lt;type_num&gt;            | set line type.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--overplot&#39;</span>,      <span class="ruby-comment"># &lt;num&gt;                 | set number of lines on each figure with color.</span>
-                      <span class="ruby-comment">#                       | use with --nocolor if you want to distinguish by line type.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nocolor&#39;</span>,       <span class="ruby-comment">#                       | draw without using color.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--right_axis&#39;</span>,    <span class="ruby-comment">#                       | use with &quot;--overplot 2&quot; and draw 2nd y-axis in right side for 2nd gturl.</span>
-                      <span class="ruby-comment">#                       | range of 2nd y-axis can be specified by --range left_min1:left_max,right_min:right_max.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--top_axis&#39;</span>,      <span class="ruby-comment">#                       | 使い方を忘れた...</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--overplot_rm&#39;</span>,   <span class="ruby-comment"># &lt;span&gt;                | overplot the running mean with thick line. running mean span is required.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--overplot_stddev&#39;</span>,<span class="ruby-comment">#                      | overplot the mean +/- stddev (like errorbars). this must be used with &quot;--mean&quot; option.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  <span class="ruby-comment">### tone or cont option ###</span>
-  [<span class="ruby-string">&#39;--nocont&#39;</span>,        <span class="ruby-comment">#                       | make tone plot, without contour.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--noshade&#39;</span>,       <span class="ruby-comment">#                       | make contour plot, without tone.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--log_int&#39;</span>,       <span class="ruby-comment">#                       | use log interval in contour/tone.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--range&#39;</span>,         <span class="ruby-comment"># &lt;min:max&gt;             | set min/max value for contour/tone/line/mark plot. min or max must be set.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--crange&#39;</span>,        <span class="ruby-comment"># &lt;min:max&gt;             | set min/max value for contour plot. this is more dominant than --range</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--srange&#39;</span>,        <span class="ruby-comment"># &lt;min:max&gt;             | set min/max value for tone plot. this is more dominant than --interval/int</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--interval&#39;</span>, <span class="ruby-string">&#39;--int&#39;</span>,  <span class="ruby-comment"># &lt;num&gt;            | set interval value for contour/tone plot. set the number of lines if you set negative value.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--cint&#39;</span>,          <span class="ruby-comment"># &lt;num&gt;                 | set interval value for contour plot. this is more dominant than --interval/int</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--sint&#39;</span>,          <span class="ruby-comment"># &lt;num&gt;                 | set interval value for tone plot. this is more dominant than --interval/int.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--levels&#39;</span>,        <span class="ruby-comment"># &lt;val1,val2,val3,...&gt;  | set values of contour/tone levels.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--clevels&#39;</span>,       <span class="ruby-comment"># &lt;val1,val2,val3,...&gt;  | set values of contour levels.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--slevels&#39;</span>,       <span class="ruby-comment"># &lt;val1,val2,val3,...&gt;  | set values of tone levels.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--patterns&#39;</span>,      <span class="ruby-comment"># &lt;pattern1,pattern2,..&gt;| set each patterns for tone plot.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--tone&#39;</span>,          <span class="ruby-comment"># &lt;a|e|f|b|c&gt;           | set tone subroutine:</span>
-                      <span class="ruby-comment">#                       | a (=&gt; tone routine is selected automatically depending on the datasize)</span>
-                      <span class="ruby-comment">#                       | e (=&gt; DCL.uetone is used)</span>
-                      <span class="ruby-comment">#                       | f (=&gt; DCL.uetonf is used)</span>
-                      <span class="ruby-comment">#                       | b (=&gt; DCL.uetonb is used)</span>
-                      <span class="ruby-comment">#                       | c (=&gt; DCL.uetonc is used)</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--udsfmt&#39;</span>,        <span class="ruby-comment"># &lt;strings&gt;             | change contour label format. see UDCNTR/DCL manual for the format.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nocolorbar&#39;</span>,    <span class="ruby-comment">#                       | do not draw color bar.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nozero&#39;</span>,        <span class="ruby-comment">#                       | do not draw zero contour.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nodraw&#39;</span>,        <span class="ruby-comment">#                       | do not draw any figures.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--file&#39;</span>,       <span class="ruby-comment"># &lt;png|eps|pdf&gt;[,filename] | raw in file with given format. available formats are png, eps, and pdf.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--crop&#39;</span>,       <span class="ruby-comment">#                          | crop (trim) output png or pdf.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--title_array&#39;</span>,<span class="ruby-comment"># &lt;string,string,...&gt;      | set multiple titles given as --title_array hoge,foo,bar; this gives the title &quot;hoge&quot; to</span>
-                   <span class="ruby-comment">#                          | the 1st figure, &quot;foo&quot; to the 2nd one, and &quot;bar&quot; to the 3rd one.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--miscindex&#39;</span>,  <span class="ruby-comment"># &lt;num&gt;                    | set line index (color and width) of title, label, frame, etc.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--index_array&#39;</span>,<span class="ruby-comment"># &lt;index1,index2,...&gt;      | set array of index used for 1st, 2nd,... lines/mark.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--type_array&#39;</span>, <span class="ruby-comment"># &lt;index1,index2,...&gt;      | set array of type index used for 1st, 2nd,... lines/mark.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--subtitle&#39;</span>,   <span class="ruby-comment"># &lt;string&gt;                 | set subtitle, which locates just below the title and is common for multple figures.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--irange&#39;</span>,     <span class="ruby-comment"># &lt;min:max&gt;                | same as --range but with +/- infinity for both boundaries. use with --int is recomended.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--xrange&#39;</span>,     <span class="ruby-comment"># &lt;min:max&gt;                | set the range of x-axis for line plot and 2D plot.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--yrange&#39;</span>,     <span class="ruby-comment"># &lt;min:max&gt;                | set the range of y-axis for line plot and 2D plot.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--clr_range&#39;</span>,  <span class="ruby-comment"># &lt;min:max&gt;                | set color range. maximum range is 10:99. default is 15:94.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--wm&#39;</span>,         <span class="ruby-comment">#                          | alias for --itr 10 --map coast_world --nocont.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--size&#39;</span>,       <span class="ruby-comment"># &lt;num&gt;                    | set the size factor of x-window (default: 1.25)</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--fullcolor&#39;</span>,  <span class="ruby-comment"># &lt;1|2&gt;                    | draw fullcolor fig. --fullcolor 1 draws with 1 var.</span>
-                   <span class="ruby-comment">#                          | --fullcolor 2 draws with 2 vars; 1st gturl is used for color (hue) and</span>
-                   <span class="ruby-comment">#                          | 2nd one is used for brightness (value).</span>
-                   <span class="ruby-comment">#                          | option of --range xmin:xmax,ymin:ymax can be used.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--step&#39;</span>,       <span class="ruby-comment">#                          | make 1D line plot to step shape.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--zerocenter&#39;</span>, <span class="ruby-comment"># [max]                    | set y-axis center in line plot figure to zero.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--vector&#39;</span>,     <span class="ruby-comment">#                          | draw a vector plot.</span>
-                   <span class="ruby-comment">#                          | When 2 gturls are given, 1st one and 2nd one are used for x- and y-components of the vectors.</span>
-                   <span class="ruby-comment">#                          | When 3 or 4 gturls are given, 2nd one and 3rd one are used for x- and y-components of the vectors,</span>
-                   <span class="ruby-comment">#                          | and tone of 1st one and counter of 4th one are overlaid.</span>
-                   <span class="ruby-comment">#                          | If the 1st dim is lon or lat and the 2nd dim is not lon or lat, vectors are scaled by the geometry aspect ratio.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--vfact&#39;</span>,      <span class="ruby-comment"># &lt;factor&gt;                 | use with &quot;--vector&quot; to change the size of the vector by &lt;factor&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--vint&#39;</span>,       <span class="ruby-comment"># &lt;int&gt;                    | use with &quot;--vector&quot; to change the gird-interval to draw vectors.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--vkeep&#39;</span>,      <span class="ruby-comment">#                          | use with &quot;--vector&quot; to keep the size of unit vector as that of the first plot.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nolegend&#39;</span>,   <span class="ruby-comment">#                          | do not draw legend of line plot.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--textbox&#39;</span>,    <span class="ruby-comment"># &lt;text&gt;,&lt;num&gt;,[l|c]       | draw textbox, legends, and/or color bar in frame #&lt;num&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--fact&#39;</span>,       <span class="ruby-comment"># &lt;fact&gt;                   | factor for charcter size</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--xmean&#39;</span>,      <span class="ruby-comment">#                          | draw line plot of mean along x-axis on the right hand side of the tone/contour plot.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--ymean&#39;</span>,      <span class="ruby-comment">#                          | draw line plot of mean along y-axis below the tone/contour plot.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--maskshading&#39;</span>,<span class="ruby-comment"># &lt;gturl,maskval,ipat&gt;     | draw a mask for values less than or equal to maskval (optional; defalult is 0)</span>
-                   <span class="ruby-comment">#                          | with given gturl (optional; default is same as previously drawn GPhys)</span>
-                   <span class="ruby-comment">#                          | by ipat pattern number (optional; defalult is 1515).</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nolabels&#39;</span>,   <span class="ruby-comment">#                          | do not draw labels.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--fill&#39;</span>,       <span class="ruby-comment">#                          | fill regions between plotted line and zero (or min or max) line. if histogram, fill the boxes.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--lwf&#39;</span>,        <span class="ruby-comment"># &lt;float&gt;                  | set line with factor for pdf drawing. defalut is 999, which looks like DISP drawing.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--axis_options&#39;</span>,<span class="ruby-comment"># &lt;var1=val1,var2=val2&gt;,..| set some axis options of USPACK (i.e., xoff/yoff, xfac/yfac, dxt/dyt, dxl,dyl)</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--bothsides&#39;</span>,   <span class="ruby-comment">#                         | draw bothsides of the planet when itr = 30</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--xint&#39;</span>,  <span class="ruby-comment"># &lt;xlabelint[:division]&gt;        | set x-axis&#39; label-tickmark interval and number of number of division between two label-tickmarks</span>
-              <span class="ruby-comment">#                               | e.g., --xint 10:5 draws label interval with 10 and sub-tickmark interval of 2 (=10/5).</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--yint&#39;</span>,  <span class="ruby-comment"># &lt;ylabelint[:division]&gt;        | same as --xint but for y-axis.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--panelfit&#39;</span>, <span class="ruby-comment"># [margin]                   | force the figure to fit into the panel. margin can be given by ratio [0-1].</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--zoomin&#39;</span>, <span class="ruby-comment"># &lt;xaxis=xmin:xmax,yaxis=ymin:ymax&gt;] |</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--plot_particles&#39;</span>, <span class="ruby-comment"># &lt;gturl of particles&gt;]| overplot particles</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-<span class="ruby-comment">###</span>
-<span class="ruby-comment">### analysis options ###</span>
-<span class="ruby-comment">###</span>
-  [<span class="ruby-string">&#39;--mean&#39;</span>,   <span class="ruby-comment"># &lt;dim&gt;                        | mean along axis &lt;dim&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--stddev&#39;</span>, <span class="ruby-comment"># &lt;dim&gt;                        | standard deviation along axis &lt;dim&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--eddy&#39;</span>,   <span class="ruby-comment"># &lt;dim&gt;                        | deviation from mean along axis &lt;dim&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--diff&#39;</span>,   <span class="ruby-comment">#                              | calculate 1st gturl - 2nd gturl</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--divide&#39;</span>, <span class="ruby-comment">#                              | calculate 1st gturl / 2nd gturl</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--add&#39;</span>,    <span class="ruby-comment">#                              | calculate the sum of multiple variables.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--operation&#39;</span>,  <span class="ruby-comment"># &lt;math_func&gt;              | operation of the specified math function on the data.</span>
-                   <span class="ruby-comment">#                          | &lt;math_func&gt; should be a math function with one argument such as log10, sqrt, sin, etc.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--running_mean&#39;</span>,<span class="ruby-string">&#39;--rm&#39;</span>, <span class="ruby-comment"># &lt;dim&gt;:&lt;span&gt;[:&lt;skip&gt;][,&lt;dim&gt;:&lt;span&gt;[:&lt;skip&gt;]]</span>
-                            <span class="ruby-comment">#                 | calculate the running mean along &lt;dim&gt; with a window of &lt;span&gt;.</span>
-                            <span class="ruby-comment">#                 | multiple dims are not supported.</span>
-                            <span class="ruby-comment">#                 | if integer &lt;skip&gt; is given, the date thinning is performed to the running mean.</span>
-                            <span class="ruby-comment">#                 | for example, --rm t,12,12 to monthly data gives annual mean series (one value per year).</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--global_mean&#39;</span>,<span class="ruby-string">&#39;--gm&#39;</span>,  <span class="ruby-comment">#                 | calculate the global mean considering the weight along latitude.</span>
-                            <span class="ruby-comment">#                 | dims of longitude and latitude must be the 1st and 2nd dims, respectivly.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--ensemble_mean&#39;</span>,<span class="ruby-string">&#39;--em&#39;</span>, <span class="ruby-comment"># [num]          | calculate the ensemble mean.</span>
-                             <span class="ruby-comment">#                | you must provide two or more gturls whose size and dimension are same.</span>
-                             <span class="ruby-comment">#                | if &lt;num&gt; is given, ensemble mean will be calculated for each &lt;num&gt; gturls.</span>
-                             <span class="ruby-comment">#                | if &quot;concat&quot; is given for &lt;num&gt;, provided gturls are concatenated along new dimension &quot;member&quot;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--normalize&#39;</span>,           <span class="ruby-comment"># [ |mean|float]  | normalize data by initial (when no arg.) or mean or given value when data is one-dimension.</span>
-                            <span class="ruby-comment">#                 | normalization for other data is not implemented yet.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--lowpass&#39;</span>,<span class="ruby-string">&#39;--lp&#39;</span>,      <span class="ruby-comment"># &lt;dim&gt;,&lt;wn&gt;      | apply lowpass filter to &lt;dim&gt;-th dimension with wavenumber &lt;wn&gt; using fft.</span>
-                            <span class="ruby-comment">#                 | i.e., this cut off the wavenumbers greater than &lt;wn&gt;.</span>
-                            <span class="ruby-comment">#                 | &lt;dim&gt; must be integer. dimname is not supported yet.</span>
-                            <span class="ruby-comment">#                 |</span>
-                            <span class="ruby-comment">#                 | when use with --sht option, spherical harmonic trasnformation is applied.</span>
-                            <span class="ruby-comment">#                 | in that case, ARGUMENT should be only &lt;wn&gt;, which is total wavenumber.</span>
-                            <span class="ruby-comment">#                 | 1st and 2nd dimension must be lon and lat.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--highpass&#39;</span>,<span class="ruby-string">&#39;--hp&#39;</span>,     <span class="ruby-comment"># &lt;dim&gt;,&lt;wn&gt;      | apply highpass filter to &lt;dim&gt;-th dimension with wavenumber &lt;wn&gt; using fft.</span>
-                            <span class="ruby-comment">#                 | i.e., this cut off the wavenumbers less than &lt;wn&gt;.</span>
-                            <span class="ruby-comment">#                 | &lt;dim&gt; must be integer 0, 1, 2, or 3. dimnames and dim &gt; 3 are not supported yet.</span>
-                            <span class="ruby-comment">#                 |</span>
-                            <span class="ruby-comment">#                 | when use with --sht option, spherical harmonic trasnformation is applied.</span>
-                            <span class="ruby-comment">#                 | in that case, ARGUMENT should be only &lt;wn&gt;, which is total wavenumber.</span>
-                            <span class="ruby-comment">#                 | 1st and 2nd dimension must be lon and lat.</span>
-
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--power_spectra&#39;</span>,<span class="ruby-string">&#39;--ps&#39;</span>,<span class="ruby-comment"># &lt;dim&gt;[,any]     | calculate power spectra using fft along &lt;dim&gt;-th dimension.</span>
-                            <span class="ruby-comment">#                 | by default, wavenumber is used for axis.</span>
-                            <span class="ruby-comment">#                 | if any argument is given after comma, wavelength or period is used for axis.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--derivative&#39;</span>,          <span class="ruby-comment"># &lt;dim&gt;           | calculate the derivative alog axis &lt;dim&gt;. GPhys.threepoint_O2nd_deriv is used.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--srot&#39;</span>,                <span class="ruby-comment">#                 | calculate rotation on sphere with 1st gturl and 2nd gturl. radius can be set by --radius.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--sdiv&#39;</span>,                <span class="ruby-comment">#                 | calculate divergence on sphere with 1st gturl and 2nd gturl. radius can be set by --radius.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--sht&#39;</span>,                 <span class="ruby-comment">#                 | use spherical_harmonics_next module for srot, sdiv.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--uvcomp&#39;</span>,              <span class="ruby-comment">#                 | calculate rot/div components of u/v. Output component should be given by</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>], <span class="ruby-comment">#         | &quot;u_rot&quot;, &quot;u_div&quot;, &quot;v_rot&quot;, of &quot;v_div&quot;.</span>
-  [<span class="ruby-string">&#39;--HKE&#39;</span>,                 <span class="ruby-comment">#                 | calculate horizontal Kinetic energy with 1st gturl and 2nd gturl.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--integrate&#39;</span>, <span class="ruby-comment"># &lt;dims&gt;                    | calculate integration along &lt;dims&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--sum&#39;</span>,       <span class="ruby-comment"># &lt;dims&gt;                    | calculate sum along &lt;dims&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--addingup&#39;</span>,  <span class="ruby-comment"># &lt;dim&gt;[,&lt;dim&gt;,...]         | adding up values along &lt;dim&gt;; i.e., val[i] =  val[0..i].sum</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--max&#39;</span>,       <span class="ruby-comment"># &lt;dims&gt;                    | max values along axis &lt;dims&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--min&#39;</span>,       <span class="ruby-comment"># &lt;dims&gt;                    | min values along axis &lt;dims&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--ES&#39;</span>,        <span class="ruby-comment"># [total|rot|div][,vor_div_given]</span>
-                  <span class="ruby-comment">#                           | calculate Horizontal Kinetic Energy Spectra from U given as 1st gturl</span>
-                  <span class="ruby-comment">#                           | and V given as 2nd gturl. output total, rot, and/or div component.</span>
-                  <span class="ruby-comment">#                           | if &quot;vor_div_given&quot; is given, 1st and 2nd gturls must be Vor and Div, respectivly,</span>
-                  <span class="ruby-comment">#                           | and they will be used for calculation (faster).</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--wnf_analysis&#39;</span>,<span class="ruby-comment"># &lt;sym|asym|bg|sym/bg|asym/bg|log_sym/bg|log_asym/bg&gt;</span>
-                    <span class="ruby-comment">#                         | calculate time-space spectra following Wheeler and Kiladis (1999)</span>
-                    <span class="ruby-comment">#                         | name of component to be output has to be given.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--mvo&#39;</span>,  <span class="ruby-comment"># &lt;mathematical operation&gt;       | mathematical operation for multiple gturls. For mathematical operation,</span>
-             <span class="ruby-comment">#                                | 1st gturl must be indicated by &quot;x&quot;, 2nd by &quot;y&quot;, 3rd by &quot;z&quot;, 4th by &quot;u&quot;,</span>
-             <span class="ruby-comment">#                                | 5th by &quot;v&quot;, 6th by &quot;w&quot;. This cannot treat vars more than 6.</span>
-             <span class="ruby-comment">#                                | Also, this cannot be used repeatedly.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--mvo_only&#39;</span>,   <span class="ruby-comment">#                          | use with &quot;--mvo&quot; to execute &quot;multi variable operation&quot; only.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-
-
-
-
-
-<span class="ruby-comment">###</span>
-<span class="ruby-comment">### data/constants arrange options ###</span>
-<span class="ruby-comment">###</span>
-  [<span class="ruby-string">&#39;--cut&#39;</span>,<span class="ruby-comment"># dimname=pos1[:pos2[:thinning_intv]][,dimname=...]: | apply cut, slice, and/or thinning after mathmatical operation.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--rank_conserving&#39;</span>,<span class="ruby-comment">#                      | conserve all ranks when cut/slice</span>
-      <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--radius&#39;</span>,  <span class="ruby-comment"># &lt;raidus&gt;                    | set planetary radius.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--Omega&#39;</span>,   <span class="ruby-comment"># &lt;Omega&gt;                     | set planetary rotation rate [s-1].</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--rename&#39;</span>,  <span class="ruby-comment"># &lt;varname&gt;                   | rename the output variable name by &lt;varname&gt;. if --long_name is not used, &quot;long_name&quot; is also renamed.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--long_name&#39;</span>, <span class="ruby-comment"># &lt;long_name&gt;               | rename the output variable &quot;long_name&quot; by &lt;long_name&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--regrid&#39;</span>,  <span class="ruby-comment"># &lt;latgrid_num&gt;               | interpolate to the Gausian latitude and cooresponding longitude.</span>
-                <span class="ruby-comment">#                             | number of lat-grid points is required and available numbers are</span>
-                <span class="ruby-comment">#                             | 8, 16, 32, 64, 94, 96, 120, 128, 160, 240, 256, 320, 480, 640. gglat.rb required [TODO: 自前計算にする]</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--GLAT&#39;</span>,
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--read_csv&#39;</span>,  <span class="ruby-comment"># &lt;num&gt;                     | read csv file. the first column is used for the axis and the other columns are used for data values.</span>
-                  <span class="ruby-comment">#                           | &lt;num&gt; specifies how many data columns you want to read.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--composite&#39;</span>,  <span class="ruby-comment"># &lt;dim&gt;,&lt;span&gt;,&lt;skip&gt;      | if &lt;skip&gt; is not given or zero, calculate mean with interval &lt;span&gt;.</span>
-                   <span class="ruby-comment">#                          | i.e., --composite time,12 calculates mean of each month from monthly mean data.</span>
-                   <span class="ruby-comment">#                          | if &lt;skip&gt; is given, calculate composite mean for dimension &lt;dim&gt;</span>
-                   <span class="ruby-comment">#                          | with length &lt;span&gt; with interval of &lt;skip&gt;.</span>
-                   <span class="ruby-comment">#                          | i.e., --composite time,3,9 calculates mean for time=0,1,2,12,13,14,24,...</span>
-                   <span class="ruby-comment">#                          | this can be used to calculate seasonal mean such as DJF from mounthly mean data.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--split_axis&#39;</span>,<span class="ruby-comment"># &lt;dim&gt;,&lt;span&gt;,[newaxisname]| split the &lt;dim&gt; axis with &lt;span&gt;.</span>
-                  <span class="ruby-comment">#                           | for example, --split_axis time,12 applied to monthly data splits the time axis</span>
-                  <span class="ruby-comment">#                           | to year and month axis. name of the new axis can be given by [newnaxisname]</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--calendar360&#39;</span>,  <span class="ruby-comment">#                        | set the calendar type to &quot;360_day calendar&quot;. normally, this will be set automatically.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--calendar365&#39;</span>,  <span class="ruby-comment">#                        | set the calendar type to &quot;365_day calendar&quot;. normally, this will be set automatically.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--flip_data&#39;</span>,    <span class="ruby-comment"># &lt;dim[,dim,..]&gt;         | flip (turn over) the data and axis of &lt;dim&gt;th dimension. &lt;dim&gt; must by given by integer(s).</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--interpolate_pole&#39;</span>, <span class="ruby-comment">#                    | extend the latitude axis to have grid points on each pole (-90/+90 deg), and</span>
-                         <span class="ruby-comment">#                    | interpolate the pole values by mean of values on surrounding grid points.</span>
-                         <span class="ruby-comment">#                    | this assumes the data has lon and lat in its first and second dimension, respectivly.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--set_missing_value&#39;</span>,<span class="ruby-comment"># [float]            | replace the missing values to given value and validate then. default: 0.0.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--ignoreunit&#39;</span>,       <span class="ruby-comment">#                    | ignore unit</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--set_assoc_coords&#39;</span>, <span class="ruby-comment"># &lt;gturl&gt;            | set &lt;gturl&gt; as an associate coordinate.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--sig2p&#39;</span>, <span class="ruby-comment"># &lt;gturl of surface pressure&gt;   | transform sigma coordinate to pressure coordinate. gturl of surface pressure must be given.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--sig2z&#39;</span>, <span class="ruby-comment"># &lt;gturl of Temperature&gt;        | transform sigma coordinate to z (not log_p) coordinate. gturl of Temperature must be given.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--interpolate&#39;</span>, <span class="ruby-comment"># &lt;args&gt;                  |   interpolate after operations.</span>
-                    <span class="ruby-comment">#                         | &lt;args&gt; can be axis_name=90 or axis_name=[0,90,180,270] or axis_name=0:360:4 for example.</span>
-                    <span class="ruby-comment">#                         | 1) axis_name=90 style gives interpolation at the location and rank shrinks.</span>
-                    <span class="ruby-comment">#                         | 2) axis_name=[0,90,180,270] style gives interpolation for multiple location and use then as an axis.</span>
-                    <span class="ruby-comment">#                         | 3) axis_name=0:360:4 style similar to (2) but 0:360:4 means from 0 to 360 with separation of (360-0)/4.</span>
-                    <span class="ruby-comment">#                         | multiple interpolation is not supported yet.</span>
-                    <span class="ruby-comment">#                         | if axis_name is associate_coord, you can indicate the original dim by</span>
-                    <span class="ruby-comment">#                         | adding [dim] after axis_name, such as p[z].</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--extrapolation&#39;</span>,   <span class="ruby-comment">#                     | enable extrapolation, when using --interpolate option.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--unit&#39;</span>,        <span class="ruby-comment"># &lt;unit&gt;                  | set the operated variable&#39;s unit.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--invalidation&#39;</span>,<span class="ruby-comment"># &lt;num or range&gt;          | invalidate the given value or range.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--join&#39;</span>,        <span class="ruby-comment">#                         | join muliple gturls along with an axis whose values are continual across the gturls and are not duplicate.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--extend_backward_along&#39;</span>, <span class="ruby-comment"># &lt;dim&gt;,&lt;len&gt;[,&lt;value&gt;] | extend backward the object along &lt;dim&gt;-axis for &lt;len&gt; numbers with &lt;value&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--thinning&#39;</span>, <span class="ruby-comment"># &lt;num&gt;                      | data thinning by picking up data with &lt;num&gt; interval</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nothinning&#39;</span>, <span class="ruby-comment">#                          | prevent auto data thinning.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--read_fits&#39;</span>,  <span class="ruby-comment">#                          | read fits format image. automatically added if file extension is .fits. (RubyFits required)</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--offset&#39;</span>,     <span class="ruby-comment"># &lt;float&gt;                  | offset the data by &lt;float&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--cyclic_extension&#39;</span>,<span class="ruby-comment"># &lt;dim:num[,dim:num]&gt; | extend the data along &lt;dim&gt; with &lt;num&gt; number cyclically. e.g., --cyclic_extension x:4,y:4.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--axis_units_name&#39;</span>, <span class="ruby-comment"># &lt;axdim:unit[:axname:operation]&gt;[,axdim:unit:axname:operation]</span>
-                        <span class="ruby-comment">#                     | change unit (and name) of axis. multiple axes can be given as</span>
-                        <span class="ruby-comment">#                     | --axis_units_name ax0:deg:lon,ax2:km:height:/1000  for example.</span>
-                        <span class="ruby-comment">#                     | mathematical operation can be applied to the axis values.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--replace_axis&#39;</span>,<span class="ruby-comment">#&lt;axN:val1,val2,val3,...&gt; | replace the value of the axis &lt;axN&gt; (N is 0, 1, 2,...) with given Array [val1, val2, val3, val4,...]</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--zonal_shift&#39;</span>, <span class="ruby-comment">#&lt;speed at equator in m/s&gt;| shift entire field zonally as it is advected by the solid body rotation of &lt;speed at equator in m/s&gt;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-
-
-
-
-
-
-
-<span class="ruby-comment">###</span>
-<span class="ruby-comment">### output options ###</span>
-<span class="ruby-comment">###</span>
-  [<span class="ruby-string">&#39;--nc&#39;</span>,    <span class="ruby-comment"># [outfilename]                 | output operated GPhys object as NetCDF file. output file name can be specified.</span>
-              <span class="ruby-comment">#                               | Default name is &quot;out.nc&quot;.</span>
-              <span class="ruby-comment">#                               | if used with &quot;--anim&quot;, GPhys object for last shown figure is outputtedd.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nc4&#39;</span>,   <span class="ruby-comment"># [outfilename]                 | output operated GPhys object as NetCDF ver 4 with compression.</span>
-              <span class="ruby-comment">#                               | may take longer time to write out.</span>
-              <span class="ruby-comment">#                               | output file name can be specified. Default name is &quot;out.nc&quot;.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--nc4a&#39;</span>,  <span class="ruby-comment"># [outfilename]                 | output operated gphys continually with along time dim.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--csv&#39;</span>,   <span class="ruby-comment"># [outfilename]                 | output operated GPhys object (1 dim only) as CSV file. output file name can be specified.</span>
-              <span class="ruby-comment">#                               | Default name is &quot;out.csv&quot;.</span>
-              <span class="ruby-comment">#                               | if used with &quot;--anim&quot;, GPhys object for last shown figure is outputtedd.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--produce&#39;</span>, <span class="ruby-comment"># &lt;something&gt;                 | produce &lt;something&gt;. &lt;something&gt; can be &quot;solar_zenith_angle&quot;</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--output_assoc_coords&#39;</span>,  <span class="ruby-comment">#                | use with --nc4 or --nc to output associate coordinate as netcdf file.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--gif&#39;</span>,   <span class="ruby-comment">#                               | output gif animation. this must be used with --anim and --file png options.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">NO_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--mp4&#39;</span>,   <span class="ruby-comment"># [number of frames per second] | output mp4 animation. frame rate can be given. this must be used with --anim and --file png options.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">OPTIONAL_ARGUMENT</span>],
-  [<span class="ruby-string">&#39;--ntype&#39;</span>, <span class="ruby-comment"># &lt;type&gt;                        | convert type of values. &lt;type&gt; should be &quot;sfloat&quot;, &quot;float&quot;, etc.</span>
-    <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>],
-
-  <span class="ruby-comment">#                   [&#39;--dlon&#39;,                     GetoptLong::NO_ARGUMENT],</span>
-  <span class="ruby-comment">#                   [&#39;--dlat&#39;,                     GetoptLong::NO_ARGUMENT],</span>
-  <span class="ruby-comment">#                   [&#39;--version&#39;,                  GetoptLong::NO_ARGUMENT]  # to be defined</span>
-
-  [<span class="ruby-string">&#39;--particle_advection&#39;</span>,<span class="ruby-comment"># &lt;&quot;tdiv=num x0,y0,z0 x1,y1,z1 x2:x3:xn,y2:y3:yn,z2:z3:zn&quot;&gt;</span>
-                          <span class="ruby-comment">#                   | perform particle advection. 1st, 2nd, 3rd gturl must be u, v, w,</span>
-                          <span class="ruby-comment">#                   | with lon, lat, z, and time axis. tdiv=num is the number</span>
-                          <span class="ruby-comment">#                   | for time interval to be devided for lagrangian tracing.</span>
-                          <span class="ruby-comment">#                   | E.g., When u data have 1 day interval, tdiv=24 make the lagrangian</span>
-                          <span class="ruby-comment">#                   | tracing by 1 hour interval.</span>
-                          <span class="ruby-comment">#                   | Inital location of a single particle can be given by x1,y1,z1.</span>
-                          <span class="ruby-comment">#                   | Expression like x2:x3:xn,y2:y3:yn,z2:z3:zn gives particles in a mesh</span>
-                          <span class="ruby-comment">#                   | begin with x2 and end at x3 and number of division is xn.</span>
-                          <span class="ruby-comment">#                   | Particle data will be output as &quot;particles.nc&quot;</span>
-     <span class="ruby-constant">GetoptLong</span><span class="ruby-operator">::</span><span class="ruby-constant">REQUIRED_ARGUMENT</span>]
-
-                     )
+  <span class="ruby-identifier">parser</span>.<span class="ruby-identifier">set_options</span>(<span class="ruby-operator">*</span><span class="ruby-constant">OPTIONS_for_GetoptLong</span>)
   <span class="ruby-ivar">@USED_OPTIONS</span> = []
   <span class="ruby-keyword">begin</span>
     <span class="ruby-identifier">parser</span>.<span class="ruby-identifier">each_option</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">name</span>, <span class="ruby-identifier">arg</span><span class="ruby-operator">|</span>
@@ -943,7 +415,7 @@
 
           
           <div class="method-source-code" id="__split_range-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 572</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 570</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">__split_range</span>(<span class="ruby-identifier">range</span>)
 
   <span class="ruby-keyword">if</span> <span class="ruby-regexp">/(.*):(.*)/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">range</span>
@@ -994,7 +466,7 @@
 
           
           <div class="method-source-code" id="addingup-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 207</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 193</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">addingup</span>(<span class="ruby-identifier">gp</span>, <span class="ruby-identifier">dim</span>)
   <span class="ruby-identifier">gpaxes</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axnames</span>
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">dim</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">String</span>) <span class="ruby-keyword">then</span>
@@ -1051,7 +523,7 @@
 
           
           <div class="method-source-code" id="auto_write-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 333</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 331</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">auto_write</span>(<span class="ruby-identifier">outfilename</span>, <span class="ruby-identifier">gary</span>, <span class="ruby-identifier">index</span>, <span class="ruby-identifier">compress</span>=<span class="ruby-keyword">false</span>) <span class="ruby-comment"># 出力ファイル名, Array of GPhys, 時刻のindex, 圧縮の可否</span>
   <span class="ruby-constant">NetCDF</span>.<span class="ruby-identifier">creation_format</span>=(<span class="ruby-constant">NetCDF</span><span class="ruby-operator">::</span><span class="ruby-constant">NC_NETCDF4</span> <span class="ruby-operator">|</span> <span class="ruby-constant">NetCDF</span><span class="ruby-operator">::</span><span class="ruby-constant">NC_CLASSIC_MODEL</span>) <span class="ruby-comment"># if compress</span>
 
@@ -1179,7 +651,7 @@
 
           
           <div class="method-source-code" id="brunt_vaisala_N2-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 719</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 705</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">brunt_vaisala_N2</span>(<span class="ruby-identifier">temp</span>)
   <span class="ruby-identifier">g</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Met</span>.<span class="ruby-identifier">g</span>
   <span class="ruby-identifier">cp</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Met</span><span class="ruby-operator">::</span><span class="ruby-constant">Cp</span>
@@ -1215,7 +687,7 @@
 
           
           <div class="method-source-code" id="bulkRicherdsonNum-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 645</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 631</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">bulkRicherdsonNum</span>(<span class="ruby-identifier">theta</span>, <span class="ruby-identifier">theta_s</span>, <span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">z</span>=<span class="ruby-keyword">nil</span>)
   <span class="ruby-identifier">g</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Met</span>.<span class="ruby-identifier">g</span>
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">z</span>.<span class="ruby-identifier">nil?</span>) <span class="ruby-keyword">then</span>
@@ -1311,7 +783,7 @@
 
           
           <div class="method-source-code" id="common_blocks-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 201</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 199</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">common_blocks</span>(<span class="ruby-identifier">str_ary</span>)
   <span class="ruby-identifier">spstr_ary</span> = <span class="ruby-identifier">str_ary</span>.<span class="ruby-identifier">map</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">s</span><span class="ruby-operator">|</span> <span class="ruby-identifier">s</span>.<span class="ruby-identifier">split</span>(<span class="ruby-string">&quot;_&quot;</span>)}
   <span class="ruby-identifier">length_ary</span> = <span class="ruby-identifier">spstr_ary</span>.<span class="ruby-identifier">map</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">s</span><span class="ruby-operator">|</span> <span class="ruby-identifier">s</span>.<span class="ruby-identifier">length</span>}
@@ -1352,7 +824,7 @@
 
           
           <div class="method-source-code" id="common_chars-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 188</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 186</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">common_chars</span>(<span class="ruby-identifier">str_ary</span>)
   <span class="ruby-identifier">flag_scom</span> = <span class="ruby-keyword">true</span>; <span class="ruby-identifier">flag_ecom</span> = <span class="ruby-keyword">true</span>; <span class="ruby-identifier">i</span> = <span class="ruby-value">0</span>; <span class="ruby-identifier">j</span> = <span class="ruby-value">-1</span>
   <span class="ruby-keyword">while</span> (<span class="ruby-identifier">flag_scom</span> <span class="ruby-keyword">or</span> <span class="ruby-identifier">flag_ecom</span>)
@@ -1522,8 +994,6 @@
     <span class="ruby-identifier">day</span> = (<span class="ruby-identifier">now</span><span class="ruby-operator">/</span><span class="ruby-value">24</span>).<span class="ruby-identifier">floor</span>; <span class="ruby-identifier">hour</span> = <span class="ruby-identifier">now</span><span class="ruby-operator">%</span><span class="ruby-value">24</span>
     <span class="ruby-identifier">string</span> = <span class="ruby-identifier">string1</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">sprintf</span>(<span class="ruby-string">&quot;%2.0f&quot;</span>,<span class="ruby-identifier">day</span>).<span class="ruby-identifier">to_s</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot; Eday &quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">sprintf</span>(<span class="ruby-string">&quot;%2.0f&quot;</span>,<span class="ruby-identifier">hour</span>).<span class="ruby-identifier">to_s</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot; h&quot;</span>
 
-
-
   <span class="ruby-identifier">title</span>(<span class="ruby-identifier">string</span>, <span class="ruby-value">0.5</span>)
   <span class="ruby-ivar">@counter</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
 <span class="ruby-keyword">end</span></pre>
@@ -1637,7 +1107,7 @@
 
           
           <div class="method-source-code" id="csv2gphys-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 239</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 237</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">csv2gphys</span>(<span class="ruby-identifier">gturl</span>)
   <span class="ruby-identifier">csvfile</span>, <span class="ruby-identifier">vcol</span> = <span class="ruby-identifier">gturl</span>.<span class="ruby-identifier">split</span>(<span class="ruby-string">&quot;@&quot;</span>)
   <span class="ruby-identifier">array</span> = <span class="ruby-constant">CSV</span>.<span class="ruby-identifier">read</span>(<span class="ruby-identifier">csvfile</span>) <span class="ruby-comment"># csvの読み込み</span>
@@ -1697,7 +1167,7 @@
 
           
           <div class="method-source-code" id="cut_slice_thinning-source">
-            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 222</span>
+            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 204</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">cut_slice_thinning</span>(<span class="ruby-identifier">gp</span>, <span class="ruby-identifier">var</span>)
   <span class="ruby-identifier">slice</span> = <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>
   <span class="ruby-identifier">cut_slice</span> = <span class="ruby-constant">Hash</span>.<span class="ruby-identifier">new</span>
@@ -1767,7 +1237,7 @@
 
           
           <div class="method-source-code" id="cyclic_extension-source">
-            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 151</span>
+            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 133</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">cyclic_extension</span>(<span class="ruby-identifier">gp</span>,<span class="ruby-identifier">dim</span>,<span class="ruby-identifier">n</span>=<span class="ruby-value">1</span>)
   <span class="ruby-identifier">dim</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axnames</span>[<span class="ruby-identifier">dim</span>.<span class="ruby-identifier">to_i</span>]  <span class="ruby-keyword">if</span> (<span class="ruby-identifier">dim</span>.<span class="ruby-identifier">to_i</span>.<span class="ruby-identifier">to_s</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">dim</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">dim</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">Fixnum</span>)
   <span class="ruby-identifier">ndim</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axnames</span>.<span class="ruby-identifier">index</span>(<span class="ruby-identifier">dim</span>)
@@ -1821,7 +1291,7 @@
 
           
           <div class="method-source-code" id="data_thinning-source">
-            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 177</span>
+            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 159</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">data_thinning</span>(<span class="ruby-identifier">gp</span>, <span class="ruby-identifier">num</span>)
   <span class="ruby-identifier">att</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">data</span>.<span class="ruby-identifier">attr_copy</span> <span class="ruby-comment"># copy attributes</span>
   <span class="ruby-identifier">step</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">first2D</span>.<span class="ruby-identifier">shape</span>.<span class="ruby-identifier">max</span><span class="ruby-operator">/</span><span class="ruby-identifier">num</span>
@@ -1877,7 +1347,7 @@
 
           
           <div class="method-source-code" id="date_diff-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 148</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 146</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">date_diff</span>(<span class="ruby-identifier">date1</span>, <span class="ruby-identifier">date2</span>, <span class="ruby-identifier">unit</span>=<span class="ruby-string">&quot;day&quot;</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-ivar">@OPT_calendar360</span>) <span class="ruby-keyword">then</span>
     <span class="ruby-identifier">day1</span> = (<span class="ruby-identifier">date1</span>.<span class="ruby-identifier">year</span><span class="ruby-value">-1</span>)<span class="ruby-operator">*</span><span class="ruby-value">360.0</span> <span class="ruby-operator">+</span> (<span class="ruby-identifier">date1</span>.<span class="ruby-identifier">month</span><span class="ruby-value">-1</span>)<span class="ruby-operator">*</span><span class="ruby-value">30.0</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">date1</span>.<span class="ruby-identifier">day</span>
@@ -1989,7 +1459,7 @@
 
           
           <div class="method-source-code" id="div_on_meridional_plane-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 496</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 482</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">div_on_meridional_plane</span>(<span class="ruby-identifier">v</span>, <span class="ruby-identifier">w</span>)
   <span class="ruby-identifier">require</span> <span class="ruby-string">&quot;numru/gphys/ep_flux&quot;</span>
   <span class="ruby-constant">GPhys</span><span class="ruby-operator">::</span><span class="ruby-constant">EP_Flux</span>.<span class="ruby-identifier">radius</span>=<span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Planet</span>.<span class="ruby-identifier">radius</span>
@@ -3705,7 +3175,7 @@
 
           
           <div class="method-source-code" id="epflux-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 350</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 336</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">epflux</span>(<span class="ruby-identifier">gp_u</span>,<span class="ruby-identifier">gp_v</span>,<span class="ruby-identifier">gp_omega</span>,<span class="ruby-identifier">gp_t</span>)
   <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;Caution: EP-flux calculation requires *** p-coordinate *** for vertical axis. \n&quot;</span>
   <span class="ruby-identifier">require</span> <span class="ruby-string">&quot;numru/gphys/ep_flux&quot;</span>
@@ -3761,7 +3231,7 @@
 
           
           <div class="method-source-code" id="extend_backward_along-source">
-            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 140</span>
+            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 122</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">extend_backward_along</span>(<span class="ruby-identifier">gp</span>,<span class="ruby-identifier">dim</span>,<span class="ruby-identifier">len</span>,<span class="ruby-identifier">value</span>=<span class="ruby-value">0.0</span>)
   <span class="ruby-identifier">dim</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axnames</span>[<span class="ruby-identifier">dim</span>.<span class="ruby-identifier">to_i</span>]  <span class="ruby-keyword">if</span> (<span class="ruby-identifier">dim</span>.<span class="ruby-identifier">to_i</span>.<span class="ruby-identifier">to_s</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">dim</span>)
   <span class="ruby-identifier">ax_val</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">coord</span>(<span class="ruby-identifier">dim</span>).<span class="ruby-identifier">copy</span>.<span class="ruby-identifier">val</span>
@@ -3800,7 +3270,7 @@
 
           
           <div class="method-source-code" id="find_axisnames-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 594</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 592</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">find_axisnames</span>(<span class="ruby-identifier">gturl</span>)
   <span class="ruby-identifier">file</span>, <span class="ruby-identifier">var</span>, <span class="ruby-identifier">slice</span>, <span class="ruby-identifier">cut_slice</span>, <span class="ruby-identifier">thinning</span>  = <span class="ruby-identifier">parse_gturl</span>(<span class="ruby-identifier">gturl</span>) <span class="ruby-comment"># GPhys::IO.parse_gturl(gturl)</span>
   <span class="ruby-identifier">axes</span> = <span class="ruby-constant">GPhys</span><span class="ruby-operator">::</span><span class="ruby-constant">IO</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">file</span>, <span class="ruby-identifier">var</span>).<span class="ruby-identifier">axnames</span>
@@ -3838,7 +3308,7 @@
 
           
           <div class="method-source-code" id="fits2gphys-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 214</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 212</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">fits2gphys</span>(<span class="ruby-identifier">gturl</span>)
 <span class="ruby-comment">#  require &quot;RubyFits&quot;</span>
   <span class="ruby-identifier">file</span>, <span class="ruby-identifier">num</span> = <span class="ruby-identifier">gturl</span>.<span class="ruby-identifier">split</span>(<span class="ruby-string">&quot;@&quot;</span>)
@@ -3891,7 +3361,7 @@
 
           
           <div class="method-source-code" id="float_string-3F-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 181</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 179</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">float_string?</span>(<span class="ruby-identifier">str</span>)
   <span class="ruby-constant">Float</span>(<span class="ruby-identifier">str</span>)
   <span class="ruby-keyword">true</span>
@@ -3962,7 +3432,7 @@
 
           
           <div class="method-source-code" id="g_epflux-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 378</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 364</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">g_epflux</span>(<span class="ruby-identifier">gp_u</span>,<span class="ruby-identifier">gp_v</span>,<span class="ruby-identifier">gp_omega</span>,<span class="ruby-identifier">gp_t</span>)
   <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;Caution: EP-flux calculation requires *** p-coordinate *** for vertical axis. \n&quot;</span>
   <span class="ruby-identifier">require</span> <span class="ruby-string">&quot;numru/gphys/ep_flux&quot;</span>
@@ -4108,7 +3578,7 @@
 
           
           <div class="method-source-code" id="get_calendar-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 120</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 118</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">get_calendar</span>(<span class="ruby-identifier">gp</span>, <span class="ruby-identifier">dim</span>)
   <span class="ruby-identifier">gp_axis</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axis</span>(<span class="ruby-identifier">dim</span>).<span class="ruby-identifier">to_gphys</span>
   <span class="ruby-ivar">@Calendar</span> = <span class="ruby-identifier">gp_axis</span>.<span class="ruby-identifier">get_att</span>(<span class="ruby-string">&quot;calendar&quot;</span>)
@@ -4145,17 +3615,8 @@
           <div class="method-source-code" id="gglat-source">
             <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 8</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">gglat</span>(<span class="ruby-identifier">gp</span>)
-  <span class="ruby-identifier">require</span> <span class="ruby-string">&quot;gglat&quot;</span>
   <span class="ruby-identifier">lon_dim</span>, <span class="ruby-identifier">lat_dim</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Planet</span>.<span class="ruby-identifier">find_lon_lat_dims</span>(<span class="ruby-identifier">gp</span>)
-  <span class="ruby-identifier">lat_n</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axis</span>(<span class="ruby-identifier">lat_dim</span>).<span class="ruby-identifier">length</span>
-  <span class="ruby-identifier">nlat</span> = <span class="ruby-keyword">nil</span>
-  <span class="ruby-constant">GGLA</span>.<span class="ruby-identifier">length</span>.<span class="ruby-identifier">times</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">n</span><span class="ruby-operator">|</span>
-    <span class="ruby-keyword">if</span> (<span class="ruby-identifier">lat_n</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-constant">GGLA</span>[<span class="ruby-identifier">n</span>].<span class="ruby-identifier">length</span> )
-      <span class="ruby-identifier">nlat</span> = <span class="ruby-constant">NArray</span>.<span class="ruby-identifier">to_na</span>(<span class="ruby-constant">GGLA</span>[<span class="ruby-identifier">n</span><span class="ruby-value">-1</span>].<span class="ruby-identifier">sort</span>)
-      <span class="ruby-keyword">break</span>
-    <span class="ruby-keyword">end</span>
-  }
-  <span class="ruby-identifier">eval</span> <span class="ruby-node">&quot;nlat = NArray.to_na(GGLA#{@OPT_GLAT}.sort)&quot;</span> <span class="ruby-keyword">unless</span> (<span class="ruby-ivar">@OPT_GLAT</span> <span class="ruby-operator">==</span> <span class="ruby-string">&quot;&quot;</span>)
+  <span class="ruby-identifier">nlat</span> = <span class="ruby-constant">SphericalHarmonics</span>.<span class="ruby-identifier">gauss_lat</span>(<span class="ruby-ivar">@OPT_GLAT</span>.<span class="ruby-identifier">to_i</span>)
   <span class="ruby-identifier">vlat</span> = <span class="ruby-constant">VArray</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">nlat</span>,{<span class="ruby-string">&quot;units&quot;</span><span class="ruby-operator">=&gt;</span><span class="ruby-string">&quot;degree_north&quot;</span>},<span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axnames</span>[<span class="ruby-identifier">lat_dim</span>])
   <span class="ruby-identifier">gp</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">interpolate</span>(<span class="ruby-identifier">lat_dim</span><span class="ruby-operator">=&gt;</span> <span class="ruby-identifier">vlat</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">lon_dim</span>) <span class="ruby-keyword">then</span>
@@ -4195,7 +3656,7 @@
 
           
           <div class="method-source-code" id="grad_sy-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 512</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 498</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">grad_sy</span>(<span class="ruby-identifier">gp</span>,<span class="ruby-identifier">lat</span>=<span class="ruby-value">0</span>)
   <span class="ruby-identifier">lam</span>, <span class="ruby-identifier">phi</span>, <span class="ruby-identifier">lond</span>, <span class="ruby-identifier">latd</span>  = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Planet</span>.<span class="ruby-identifier">get_lambda_phi</span>(<span class="ruby-identifier">gp</span>,<span class="ruby-keyword">false</span>)
   <span class="ruby-identifier">cos_phi</span> = <span class="ruby-identifier">phi</span>.<span class="ruby-identifier">cos</span>
@@ -4341,7 +3802,7 @@
 
         <div class="method-description">
           
-          <p>緯度座標軸に極の上 -/+90 deg の格子点を付け加える。データの値は元々の最南/最北点の経度平均値とする。</p>
+          <p>緯度座標軸に極の上 -/+90 deg の格子点を付け加える。データの値は元々の最南/最北点の経度平均値とする。</p>
 
 <pre class="ruby"><span class="ruby-identifier">これだとベクトル量には使ってはいけない。スカラー量にのみ使える。</span>
 </pre>
@@ -4350,7 +3811,7 @@
 
           
           <div class="method-source-code" id="interpolate_pole-source">
-            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 108</span>
+            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 90</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">interpolate_pole</span>(<span class="ruby-identifier">gp</span>)
   <span class="ruby-identifier">lon_dim</span>, <span class="ruby-identifier">lat_dim</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Planet</span>.<span class="ruby-identifier">find_lon_lat_dims</span>(<span class="ruby-identifier">gp</span>)
   <span class="ruby-keyword">unless</span> (<span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axis</span>(<span class="ruby-identifier">lat_dim</span>).<span class="ruby-identifier">to_gphys</span>.<span class="ruby-identifier">val</span>[<span class="ruby-value">0</span>].<span class="ruby-identifier">abs</span> <span class="ruby-operator">==</span> <span class="ruby-value">90.0</span>) <span class="ruby-keyword">then</span>
@@ -4410,7 +3871,7 @@
 
           
           <div class="method-source-code" id="invalidation-source">
-            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 204</span>
+            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 186</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">invalidation</span>(<span class="ruby-identifier">gp</span>)
   <span class="ruby-identifier">rmiss</span> = <span class="ruby-value">-999.0</span>
   <span class="ruby-identifier">miss_val</span> = (<span class="ruby-identifier">eval</span> <span class="ruby-ivar">@OPT_invalidation</span>)
@@ -4598,7 +4059,7 @@
 
           
           <div class="method-source-code" id="main-source">
-            <pre><span class="ruby-comment"># File src/gpv_main.rb, line 607</span>
+            <pre><span class="ruby-comment"># File src/gpv_main.rb, line 75</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">main</span>(<span class="ruby-identifier">gp</span> = <span class="ruby-keyword">nil</span>, <span class="ruby-identifier">argv</span>=<span class="ruby-keyword">nil</span>, <span class="ruby-identifier">window</span>=<span class="ruby-value">0</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">gp</span> <span class="ruby-keyword">or</span> <span class="ruby-identifier">argv</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">String</span>) <span class="ruby-keyword">then</span>
     <span class="ruby-keyword">until</span> (<span class="ruby-constant">ARGV</span>.<span class="ruby-identifier">length</span> <span class="ruby-operator">==</span> <span class="ruby-value">0</span>) <span class="ruby-keyword">do</span>
@@ -4626,6 +4087,26 @@
 <span class="ruby-comment">## Print out help message</span>
 <span class="ruby-keyword">if</span> (<span class="ruby-ivar">@OPT_help</span>)
   <span class="ruby-identifier">help</span>
+  <span class="ruby-keyword">if</span> (<span class="ruby-ivar">@OPT_help</span> <span class="ruby-operator">!=</span> <span class="ruby-string">&quot;&quot;</span>) <span class="ruby-keyword">then</span> 
+    <span class="ruby-constant">OPTIONS</span>.<span class="ruby-identifier">each</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">opt</span><span class="ruby-operator">|</span>
+      <span class="ruby-keyword">if</span> (<span class="ruby-identifier">opt</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-string">&quot;--&quot;</span><span class="ruby-operator">+</span><span class="ruby-ivar">@OPT_help</span>)) <span class="ruby-keyword">then</span> 
+        <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;\n= OPTION\n&quot;</span>
+        <span class="ruby-identifier">opt</span>.<span class="ruby-identifier">each</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">v</span><span class="ruby-operator">|</span>
+          <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;\n   &quot;</span> <span class="ruby-keyword">if</span> (<span class="ruby-identifier">v</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">opt</span>[<span class="ruby-value">-1</span>])
+          <span class="ruby-identifier">print</span> <span class="ruby-identifier">v</span> 
+          <span class="ruby-identifier">print</span> <span class="ruby-string">&quot; &quot;</span>
+          }
+        <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;\n&quot;</span>
+        <span class="ruby-identifier">exit</span>(<span class="ruby-value">1</span>)
+      <span class="ruby-keyword">end</span>
+      }
+      <span class="ruby-identifier">print</span> <span class="ruby-node">&quot;\n ERROR: option --#{@OPT_help} was not found.\n\n&quot;</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;\n= OPTIONS\n&quot;</span>
+  <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;Available OPTIONS are follows:\n&quot;</span>
+  <span class="ruby-constant">OPTIONS</span>.<span class="ruby-identifier">each</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">opt</span><span class="ruby-operator">|</span> <span class="ruby-identifier">opt</span>.<span class="ruby-identifier">each</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">v</span><span class="ruby-operator">|</span>
+    <span class="ruby-identifier">print</span> <span class="ruby-node">&quot;#{v}, &quot;</span> <span class="ruby-keyword">if</span> (<span class="ruby-identifier">v</span>.<span class="ruby-identifier">to_s</span>.<span class="ruby-identifier">start_with?</span>(<span class="ruby-string">&quot;--&quot;</span>))
+  }}
   <span class="ruby-identifier">exit</span>(<span class="ruby-value">1</span>)
 <span class="ruby-keyword">end</span>
 
@@ -5534,9 +5015,6 @@
 
 
   <span class="ruby-comment">## interpolate to gausian latitude and correspond longitude</span>
-  <span class="ruby-comment">## --regrid requires number of latitude grid poins.</span>
-  <span class="ruby-comment">## --GLAT can automatically set the number of grid points.</span>
-  <span class="ruby-identifier">gp</span> = <span class="ruby-identifier">gglat</span>(<span class="ruby-identifier">gp</span>) <span class="ruby-keyword">if</span> (<span class="ruby-ivar">@OPT_GLAT</span>)
   <span class="ruby-identifier">gp</span> = <span class="ruby-identifier">regrid</span>(<span class="ruby-identifier">gp</span>) <span class="ruby-keyword">if</span> (<span class="ruby-ivar">@OPT_regrid</span>)
 
 
@@ -6413,7 +5891,7 @@
 
           
           <div class="method-source-code" id="mstrmfunc_on_z-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 257</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 243</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">mstrmfunc_on_z</span>(<span class="ruby-identifier">v</span>, <span class="ruby-identifier">rho</span>)
   <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;CAUTION: mstrmfunc_on_z needs data from lowest layer for calculation.\n&quot;</span>
   <span class="ruby-identifier">vrm</span> = (<span class="ruby-identifier">v</span><span class="ruby-operator">*</span><span class="ruby-identifier">rho</span>).<span class="ruby-identifier">mean</span>(<span class="ruby-value">0</span>)
@@ -6508,7 +5986,7 @@
 
           
           <div class="method-source-code" id="open_gturl_wildcard-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 482</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 480</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">open_gturl_wildcard</span>(<span class="ruby-identifier">gturl</span>, <span class="ruby-identifier">print</span>=<span class="ruby-keyword">false</span>)
 <span class="ruby-comment">###   Match wildcard expression for variables if &quot;*&quot; and/or &quot;?&quot; is included.</span>
 <span class="ruby-comment">###   Matched variables are added to ARGV array.</span>
@@ -6627,7 +6105,7 @@
 
           
           <div class="method-source-code" id="output_csv-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 271</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 269</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">output_csv</span>(<span class="ruby-identifier">g</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-ivar">@OPT_csv</span> <span class="ruby-operator">==</span> <span class="ruby-string">&quot;&quot;</span>); <span class="ruby-identifier">outfilename</span> = <span class="ruby-string">&quot;out.csv&quot;</span>; <span class="ruby-keyword">else</span>; <span class="ruby-identifier">outfilename</span> = <span class="ruby-ivar">@OPT_csv</span>; <span class="ruby-keyword">end</span>
   <span class="ruby-identifier">axis0</span> = <span class="ruby-identifier">g</span>.<span class="ruby-identifier">axis</span>(<span class="ruby-value">0</span>).<span class="ruby-identifier">to_gphys</span> <span class="ruby-comment"># get first axis as gphys object</span>
@@ -6960,7 +6438,7 @@
 
           
           <div class="method-source-code" id="pv_on_z-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 238</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 224</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">pv_on_z</span>(<span class="ruby-identifier">u</span>,<span class="ruby-identifier">v</span>,<span class="ruby-identifier">theta</span>,<span class="ruby-identifier">rho</span>)
   <span class="ruby-identifier">z</span> = <span class="ruby-value">2</span>
   <span class="ruby-identifier">uz</span> = <span class="ruby-identifier">u</span>.<span class="ruby-identifier">threepoint_O2nd_deriv</span>(<span class="ruby-identifier">z</span>); <span class="ruby-identifier">vz</span> = <span class="ruby-identifier">v</span>.<span class="ruby-identifier">threepoint_O2nd_deriv</span>(<span class="ruby-identifier">z</span>)
@@ -7005,7 +6483,7 @@
 
           
           <div class="method-source-code" id="reflectance-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 560</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 546</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">reflectance</span>(<span class="ruby-identifier">gp</span>) <span class="ruby-comment"># 浅野正二「大気放射学の基礎」式 6.23</span>
   <span class="ruby-comment"># 入力 gp は 太陽天頂角のGPhysオブジェクト</span>
   <span class="ruby-identifier">mask</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">val</span>.<span class="ruby-identifier">get_mask</span>
@@ -7053,19 +6531,10 @@
 
           
           <div class="method-source-code" id="regrid-source">
-            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 32</span>
+            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 23</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">regrid</span>(<span class="ruby-identifier">gp</span>)
-  <span class="ruby-identifier">require</span> <span class="ruby-string">&quot;gglat&quot;</span>
   <span class="ruby-identifier">lon_dim</span>, <span class="ruby-identifier">lat_dim</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Planet</span>.<span class="ruby-identifier">find_lon_lat_dims</span>(<span class="ruby-identifier">gp</span>)
-  <span class="ruby-identifier">lat_n</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axis</span>(<span class="ruby-identifier">lat_dim</span>).<span class="ruby-identifier">length</span>
-  <span class="ruby-identifier">nlat</span> = <span class="ruby-keyword">nil</span>
-  <span class="ruby-constant">GGLA</span>.<span class="ruby-identifier">length</span>.<span class="ruby-identifier">times</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">n</span><span class="ruby-operator">|</span>
-    <span class="ruby-keyword">if</span> (<span class="ruby-identifier">lat_n</span> <span class="ruby-operator">&lt;=</span> <span class="ruby-constant">GGLA</span>[<span class="ruby-identifier">n</span>].<span class="ruby-identifier">length</span> )
-      <span class="ruby-identifier">nlat</span> = <span class="ruby-constant">NArray</span>.<span class="ruby-identifier">to_na</span>(<span class="ruby-constant">GGLA</span>[<span class="ruby-identifier">n</span><span class="ruby-value">-1</span>].<span class="ruby-identifier">sort</span>)
-      <span class="ruby-keyword">break</span>
-    <span class="ruby-keyword">end</span>
-  }
-  <span class="ruby-identifier">eval</span> <span class="ruby-node">&quot;nlat = NArray.to_na(GGLA#{@OPT_regrid}.sort)&quot;</span>
+  <span class="ruby-identifier">nlat</span> = <span class="ruby-constant">SphericalHarmonics</span>.<span class="ruby-identifier">gauss_lat</span>(<span class="ruby-ivar">@OPT_regrid</span>.<span class="ruby-identifier">to_i</span>)
   <span class="ruby-identifier">vlat</span> = <span class="ruby-constant">VArray</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">nlat</span>,{<span class="ruby-string">&quot;units&quot;</span><span class="ruby-operator">=&gt;</span><span class="ruby-string">&quot;degree_north&quot;</span>},<span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axnames</span>[<span class="ruby-identifier">lat_dim</span>])
   <span class="ruby-identifier">nlon</span> = <span class="ruby-constant">NArray</span>.<span class="ruby-identifier">float</span>(<span class="ruby-identifier">vlat</span>.<span class="ruby-identifier">length</span><span class="ruby-operator">*</span><span class="ruby-value">2</span>)
   (<span class="ruby-identifier">vlat</span>.<span class="ruby-identifier">length</span><span class="ruby-operator">*</span><span class="ruby-value">2</span>).<span class="ruby-identifier">times</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-identifier">nlon</span>[<span class="ruby-identifier">i</span>] = <span class="ruby-value">360.0</span><span class="ruby-operator">/</span>(<span class="ruby-identifier">vlat</span>.<span class="ruby-identifier">length</span><span class="ruby-operator">*</span><span class="ruby-value">2</span>)<span class="ruby-operator">*</span><span class="ruby-identifier">i</span> }
@@ -7109,7 +6578,7 @@
 
           
           <div class="method-source-code" id="reopen-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 390</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 388</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">reopen</span>(<span class="ruby-identifier">gp</span>) <span class="ruby-comment"># for using in Parallel.map</span>
   <span class="ruby-identifier">file</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">data</span>.<span class="ruby-identifier">file</span>
   <span class="ruby-keyword">if</span> (<span class="ruby-operator">!</span><span class="ruby-identifier">file</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">file</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">==</span> <span class="ruby-constant">NArray</span>) <span class="ruby-keyword">then</span> <span class="ruby-comment"># gp is on memory</span>
@@ -7155,7 +6624,7 @@
 
           
           <div class="method-source-code" id="reverse-source">
-            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 79</span>
+            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 61</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">reverse</span>(<span class="ruby-identifier">gp</span>,<span class="ruby-identifier">dim</span>)
   <span class="ruby-identifier">raise</span> <span class="ruby-string">&quot;dim must be given by integer: 0,1,2,...&quot;</span> <span class="ruby-keyword">if</span> <span class="ruby-identifier">dim</span>.<span class="ruby-identifier">class</span> <span class="ruby-operator">!=</span> <span class="ruby-constant">Fixnum</span>
   <span class="ruby-comment"># 値を反転させる</span>
@@ -7248,7 +6717,7 @@
 
           
           <div class="method-source-code" id="set_calendar-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 126</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 124</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">set_calendar</span>(<span class="ruby-identifier">gp</span>,<span class="ruby-identifier">dim</span>)
   <span class="ruby-identifier">gp_axis</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axis</span>(<span class="ruby-identifier">dim</span>).<span class="ruby-identifier">to_gphys</span>
   <span class="ruby-identifier">cal</span> = <span class="ruby-identifier">gp_axis</span>.<span class="ruby-identifier">get_att</span>(<span class="ruby-string">&quot;calendar&quot;</span>)
@@ -7299,7 +6768,7 @@
 
           
           <div class="method-source-code" id="set_dims-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 604</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 602</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">set_dims</span>(<span class="ruby-identifier">opt_dims</span>)
   <span class="ruby-identifier">dims</span> = (<span class="ruby-identifier">opt_dims</span>).<span class="ruby-identifier">split</span>(<span class="ruby-regexp">/\s*,\s*/</span>)
   <span class="ruby-identifier">dims</span> = <span class="ruby-identifier">dims</span>.<span class="ruby-identifier">map</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">dim</span><span class="ruby-operator">|</span>
@@ -7405,7 +6874,7 @@
 
           
           <div class="method-source-code" id="set_particles-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 620</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 618</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">set_particles</span>(<span class="ruby-identifier">gp</span>,<span class="ruby-identifier">initlocary</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">initlocary</span>[<span class="ruby-value">0</span>].<span class="ruby-identifier">size</span> <span class="ruby-operator">==</span> <span class="ruby-value">3</span>) <span class="ruby-keyword">then</span> <span class="ruby-identifier">flag_3D</span> = <span class="ruby-keyword">true</span> <span class="ruby-keyword">else</span>  <span class="ruby-identifier">flag_3D</span> = <span class="ruby-keyword">false</span>  <span class="ruby-keyword">end</span>
   <span class="ruby-identifier">x_axis</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">coordinate</span>(<span class="ruby-value">0</span>)
@@ -7674,7 +7143,7 @@
 
           
           <div class="method-source-code" id="solar_zenith_angle-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 519</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 505</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">solar_zenith_angle</span>(<span class="ruby-identifier">gp</span>) <span class="ruby-comment"># solar_zenith_angle at local noon</span>
   <span class="ruby-identifier">gt</span> = <span class="ruby-identifier">gp</span>.<span class="ruby-identifier">axis</span>(<span class="ruby-string">&quot;time&quot;</span>).<span class="ruby-identifier">to_gphys</span>; <span class="ruby-identifier">vt</span> = <span class="ruby-identifier">gt</span>.<span class="ruby-identifier">val</span>;  <span class="ruby-identifier">day_array</span> = []
   <span class="ruby-identifier">lon_dim</span>, <span class="ruby-identifier">lat_dim</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Planet</span>.<span class="ruby-identifier">find_lon_lat_dims</span>(<span class="ruby-identifier">gp</span>, <span class="ruby-keyword">false</span>)
@@ -7744,7 +7213,7 @@
 
           
           <div class="method-source-code" id="split_axis-source">
-            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 60</span>
+            <pre><span class="ruby-comment"># File src/gpv_arrange.rb, line 42</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">split_axis</span>(<span class="ruby-identifier">gp</span>)
   <span class="ruby-identifier">sa_dim</span>, <span class="ruby-identifier">sa_span</span>, <span class="ruby-identifier">sa_axisname</span> = (<span class="ruby-ivar">@OPT_split_axis</span>).<span class="ruby-identifier">split</span>(<span class="ruby-regexp">/\s*,\s*/</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">sa_dim</span>.<span class="ruby-identifier">to_i</span>.<span class="ruby-identifier">to_s</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">sa_dim</span> <span class="ruby-keyword">then</span>
@@ -7791,7 +7260,7 @@
 
           
           <div class="method-source-code" id="stability-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 727</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 713</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">stability</span>(<span class="ruby-identifier">temp</span>)
   <span class="ruby-identifier">g</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Met</span>.<span class="ruby-identifier">g</span>
   <span class="ruby-identifier">cp</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Met</span><span class="ruby-operator">::</span><span class="ruby-constant">Cp</span>
@@ -7827,7 +7296,7 @@
 
           
           <div class="method-source-code" id="static_pressure-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 735</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 721</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">static_pressure</span>(<span class="ruby-identifier">rho</span>,<span class="ruby-identifier">prs</span>)
   <span class="ruby-identifier">g</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Met</span>.<span class="ruby-identifier">g</span>
   <span class="ruby-identifier">zd</span>, <span class="ruby-identifier">type</span> = <span class="ruby-constant">GPhys</span>.<span class="ruby-identifier">vertical_axis_kind?</span>(<span class="ruby-identifier">rho</span>)
@@ -7928,7 +7397,7 @@
 
           
           <div class="method-source-code" id="surface_stress-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 660</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 646</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">surface_stress</span>(<span class="ruby-identifier">theta</span>, <span class="ruby-identifier">theta_s</span>, <span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">rho</span>, <span class="ruby-identifier">z</span>=<span class="ruby-keyword">nil</span>)
   <span class="ruby-comment"># constant parameters (Louis, 1979)</span>
   <span class="ruby-identifier">c_star</span> = <span class="ruby-value">7.4</span>; <span class="ruby-identifier">b</span> = <span class="ruby-value">9.4</span>; <span class="ruby-identifier">k</span> = <span class="ruby-value">0.4</span>; <span class="ruby-identifier">z0</span> = <span class="ruby-constant">UNumeric</span>[<span class="ruby-value">0.01</span>, <span class="ruby-string">&quot;m&quot;</span>]
@@ -7986,7 +7455,7 @@
 
           
           <div class="method-source-code" id="surface_stress_L82-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 689</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 675</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">surface_stress_L82</span>(<span class="ruby-identifier">theta</span>, <span class="ruby-identifier">theta_s</span>, <span class="ruby-identifier">u</span>, <span class="ruby-identifier">v</span>, <span class="ruby-identifier">rho</span>, <span class="ruby-identifier">z</span>=<span class="ruby-keyword">nil</span>)
   <span class="ruby-comment"># constant parameters (Louis, 1982)</span>
   <span class="ruby-identifier">k</span> = <span class="ruby-value">0.4</span>; <span class="ruby-identifier">z0</span> = <span class="ruby-constant">UNumeric</span>[<span class="ruby-value">0.01</span>, <span class="ruby-string">&quot;m&quot;</span>] <span class="ruby-comment"># 粗度長（本当は計算で求める）</span>
@@ -8500,7 +7969,7 @@
 
           
           <div class="method-source-code" id="wnf_analysis-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 275</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 261</span>
   <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">wnf_analysis</span>(<span class="ruby-identifier">gp</span>)
     <span class="ruby-identifier">lon_dim</span>, <span class="ruby-identifier">lat_dim</span> = <span class="ruby-constant">GAnalysis</span><span class="ruby-operator">::</span><span class="ruby-constant">Planet</span>.<span class="ruby-identifier">find_lon_lat_dims</span>(<span class="ruby-identifier">gp</span>, <span class="ruby-keyword">true</span>)
     <span class="ruby-comment"># detrend</span>
@@ -8603,7 +8072,7 @@
 
           
           <div class="method-source-code" id="write_netcdf4-source">
-            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 410</span>
+            <pre><span class="ruby-comment"># File src/gpv_utils.rb, line 408</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">write_netcdf4</span>(<span class="ruby-identifier">gary</span>, <span class="ruby-identifier">ncfilename</span>, <span class="ruby-identifier">deflate</span>=<span class="ruby-value">0</span>, <span class="ruby-identifier">shuffle</span>=<span class="ruby-keyword">true</span>)
   <span class="ruby-constant">NetCDF</span>.<span class="ruby-identifier">creation_format</span>=(<span class="ruby-constant">NetCDF</span><span class="ruby-operator">::</span><span class="ruby-constant">NC_NETCDF4</span> <span class="ruby-operator">|</span> <span class="ruby-constant">NetCDF</span><span class="ruby-operator">::</span><span class="ruby-constant">NC_CLASSIC_MODEL</span>)
   <span class="ruby-identifier">nc</span> = <span class="ruby-constant">NetCDF</span>.<span class="ruby-identifier">create</span>(<span class="ruby-identifier">ncfilename</span>, <span class="ruby-keyword">false</span>, <span class="ruby-keyword">false</span>)
@@ -8828,7 +8297,7 @@
 
           
           <div class="method-source-code" id="zonal_shift_on_sphere-source">
-            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 582</span>
+            <pre><span class="ruby-comment"># File src/gpv_analysis.rb, line 568</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier ruby-title">zonal_shift_on_sphere</span>(<span class="ruby-identifier">gp</span>, <span class="ruby-identifier">u</span>)
   <span class="ruby-keyword">if</span> (<span class="ruby-identifier">u</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-string">&quot;@&quot;</span>)) <span class="ruby-keyword">then</span>
     <span class="ruby-identifier">u</span> = <span class="ruby-identifier">open_gturl</span>(<span class="ruby-identifier">u</span>).<span class="ruby-identifier">mean</span>(<span class="ruby-value">0</span>).<span class="ruby-identifier">val</span>

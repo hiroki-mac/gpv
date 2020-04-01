@@ -63,6 +63,8 @@
   
     <li><a href="./rdoc_css.html">rdoc.css</a>
   
+    <li><a href="./shell_completions/gpv_fish.html">gpv.fish</a>
+  
   </ul>
 </div>
 
@@ -116,7 +118,7 @@
 
 <p>気象庁のデータ形式GPVと同じ名前だが、無関係である。# 名前がかぶってしまった…</p>
 
-<p><strong>オプション一覧は src/gpv_main.rb を参照のこと。 </strong></p>
+<p><strong>オプション一覧は src/gpv_options.rb を参照のこと。 </strong></p>
 
 <p><strong>更新ごとに全てのオプションの動作をテストしている訳ではないので、恐らく正しく動作しないものあります。</strong></p>
 
@@ -201,7 +203,7 @@
 
 <h3 id="label-Tips+-28gpview-E3-81-A7-E3-82-82-E4-BD-BF-E3-81-88-E3-82-8B-E5-B0-8F-E6-8A-80-29">Tips (gpviewでも使える小技)<span><a href="#label-Tips+-28gpview-E3-81-A7-E3-82-82-E4-BD-BF-E3-81-88-E3-82-8B-E5-B0-8F-E6-8A-80-29">&para;</a> <a href="#top">&uarr;</a></span></h3>
 <ul><li>
-<p>シェルのワイルドカード機能を使うことで、複数のファイルを一度に開くことができる。ただし、ファイル名をマッチさせられるように、@ではなく–varオプションで変数名を指定する。</p>
+<p>シェルのワイルドカード機能を使うことで、複数のファイルを一度に開くことができる。ただし、ファイル名をマッチさせられるように、@ではなく--varオプションで変数名を指定する。</p>
 
 <p><code>gpv *.nc --var T</code></p>
 </li><li>
@@ -240,7 +242,7 @@
 
 <p><code>gpv file.nc</code></p>
 </li><li>
-<p>–var オプションで変数名を指定する場合に、{var1,var2,…}のように複数を指定できる。この場合、存在する変数だけを開く。</p>
+<p>--var オプションで変数名を指定する場合に、{var1,var2,…}のように複数を指定できる。この場合、存在する変数だけを開く。</p>
 
 <p><code>gpv file.nc --var \{T,U,V\},time=y2010:y2020</code></p>
 </li><li>
@@ -264,7 +266,7 @@
 
 <p><code>gpv file.nc@T,lat=0 --mean time,lon</code></p>
 
-<p>は赤道上の、東西・時間平均値を表示する。 なお、–mean は単純平均なので、–mean lon,lat は正しく重み付けされた全球平均にはならない。 全球平均を求める時は、追加したオプション –gm を使うべき。</p>
+<p>は赤道上の、東西・時間平均値を表示する。 なお、--mean は単純平均なので、--mean lon,lat は正しく重み付けされた全球平均にはならない。 全球平均を求める時は、追加したオプション --gm を使うべき。</p>
 </li><li>
 <p>2GBを超えるファイルを与えた場合には、分割・並列処理を行う。</p>
 </li><li>
@@ -273,6 +275,27 @@
 <p><code>mean, running_mean (rm), global_mean (gm), stddev, derivative, max, min, eddy, integrate, sum, addingup</code></p>
 </li><li>
 <p>惑星半径などの諸定数は、デフォルトで地球の値である。これらは、$PLANET という環境変数の値を Venus や Mars とすることで、 諸定数を各惑星（を念頭においたGCM）の値に設定する。ただし変更されないものもある。 $PLANET を設定した場合は、gpv 実行時に、使われている定数一覧が表示される。</p>
+</li><li>
+<p>shell_completions/ 以下の適当な補完ファイルを参照することで、オプションのタブ補完が可能になる。</p>
+<ul><li>
+<p>fish シェルの場合</p>
+
+<p>&lt;tt&gt; ln -s インストール先/shell_completions/gpv.fish ~/.config/fish/completions/gpv.fish</p>
+
+<p>補完ファイルは make_fish.rb で生成している。</p>
+</li><li>
+<p>その他のシェルについては未対応。</p>
+</li></ul>
+</li><li>
+<p>ヘルプ機能</p>
+
+<p><code> gpv --help </code></p>
+
+<p>で、利用可能なオプション一覧が出力される。</p>
+
+<p><code> gpv --help オプション名 </code></p>
+
+<p>で与えたオプション名(“--”は除く)の説明が表示される。</p>
 </li></ul>
 
 <p>　</p>
