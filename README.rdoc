@@ -79,13 +79,13 @@ gpvという名前は、コマンド入力を簡単にするために gpview か
 
   <tt>gpv file.nc@{U,V}</tt>
 
-* "*"や"?"をエスケープして渡す（i.e., \*, \?）ことで、GPhys内部でワイルドカードの処理が行われる。
+* "*"や"?"をエスケープして渡す（i.e., \\\*, \\?）ことで、GPhys内部でワイルドカードの処理が行われる。
 
-  <tt>gpv file\*.nc --var T </tt>
+  <tt>gpv file\\\*.nc --var T </tt>
 
   は file*.nc にマッチするすべてのファイルを結合可能と仮定して１つのオブジェクトとして開く。
 
-  <tt>gpv file.nc@\*wind </tt>
+  <tt>gpv file.nc@\\\*wind </tt>
 
   は file.nc に格納された変数のうち、*windにマッチするすべての変数を開く。つまり file.nc に変数 uwind と vwind があるときは、 上記と 
 
@@ -106,7 +106,7 @@ gpvという名前は、コマンド入力を簡単にするために gpview か
 
   <tt>gpv file.nc</tt>
 
-* \-\-var オプションで変数名を指定する場合に、\{var1,var2,...\}のように複数を指定できる。この場合、存在する変数だけを開く。
+* \-\-var オプションで変数名を指定する場合に、\\{var1,var2,...\\}のように複数を指定できる。この場合、存在する変数だけを開く。
 
   <tt>gpv file.nc --var \{T,U,V\},time=y2010:y2020</tt>
 
@@ -120,7 +120,7 @@ gpvという名前は、コマンド入力を簡単にするために gpview か
 
 * 変数切り出し時に、演算式で与えられる。
 
-  <tt>gpv file.nc@T,lat=10\*3</tt>
+  <tt>gpv file.nc@T,lat=10\\\*3</tt>
   
   <tt>gpv file.nc@T,lat=10:10+5</tt>
 

@@ -213,13 +213,13 @@
 
 <p><code>gpv file.nc@{U,V}</code></p>
 </li><li>
-<p>“*”や“?”をエスケープして渡す（i.e., *, ?）ことで、GPhys内部でワイルドカードの処理が行われる。</p>
+<p>“*”や“?”をエスケープして渡す（i.e., \*, \?）ことで、GPhys内部でワイルドカードの処理が行われる。</p>
 
-<p><code>gpv file*.nc --var T </code></p>
+<p><code>gpv file\*.nc --var T </code></p>
 
 <p>は file*.nc にマッチするすべてのファイルを結合可能と仮定して１つのオブジェクトとして開く。</p>
 
-<p><code>gpv file.nc@*wind </code></p>
+<p><code>gpv file.nc@\*wind </code></p>
 
 <p>は file.nc に格納された変数のうち、*windにマッチするすべての変数を開く。つまり file.nc に変数 uwind と vwind があるときは、 上記と </p>
 
@@ -242,7 +242,7 @@
 
 <p><code>gpv file.nc</code></p>
 </li><li>
-<p>--var オプションで変数名を指定する場合に、{var1,var2,…}のように複数を指定できる。この場合、存在する変数だけを開く。</p>
+<p>--var オプションで変数名を指定する場合に、\{var1,var2,…\}のように複数を指定できる。この場合、存在する変数だけを開く。</p>
 
 <p><code>gpv file.nc --var \{T,U,V\},time=y2010:y2020</code></p>
 </li><li>
@@ -256,7 +256,7 @@
 </li><li>
 <p>変数切り出し時に、演算式で与えられる。</p>
 
-<p><code>gpv file.nc@T,lat=10*3</code></p>
+<p><code>gpv file.nc@T,lat=10\*3</code></p>
 
 <p><code>gpv file.nc@T,lat=10:10+5</code></p>
 
