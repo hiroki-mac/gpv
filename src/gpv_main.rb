@@ -99,6 +99,26 @@ ARGV.each{|s| @sources << s.split("@")[0] if File.exist?(s.split("@")[0]) }
 ## Print out help message
 if (@OPT_help)
   help
+  if (@OPT_help != "") then 
+    OPTIONS.each{|opt|
+      if (opt.include?("--"+@OPT_help)) then 
+        print "\n= OPTION\n"
+        opt.each{|v|
+          print "\n   " if (v == opt[-1])
+          print v 
+          print " "
+          }
+        print "\n"
+        exit(1)
+      end
+      }
+      print "\n ERROR: option --#{@OPT_help} was not found.\n\n"
+  end
+  print "\n= OPTIONS\n"
+  print "Available OPTIONS are follows:\n"
+  OPTIONS.each{|opt| opt.each{|v|
+    print "#{v}, " if (v.to_s.start_with?("--"))
+  }}
   exit(1)
 end
 
