@@ -5,7 +5,7 @@ complete -c gpv -l auto_pry -d "<args> | automatically execute the given scripts
 complete -c gpv -l list -d " | execute gplist instead of any other options. "
 complete -c gpv -l silent -d " | show only calculated values. do not show any messages. "
 complete -c gpv -l parallel -d "[dim] | use parallel anyway. "
-complete -c gpv -l help -d " | show help. "
+complete -c gpv -l help -d "[option_name] | show help. show help for a specific option when the option name is given (without '--'). "
 complete -c gpv -l edit_ncatt -d "<ncatted_args> | edit netcdf's attribute by ncatted commands. "
 complete -c gpv -l sequence -d "<sequence name> | execute sequence scripts defined in gpv_sequence.rb. "
 complete -c gpv -l clrmap -d "<1- or filename> | set colormap to draw tone/contour. filename of DCL colormap is acceptable. "
