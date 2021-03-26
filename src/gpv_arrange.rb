@@ -242,6 +242,28 @@ class GPV
       return gp
   end
 
+  def make_bnd_grid(grid, num)
+    z = grid.axis(num) # z軸を取り出す
+    new_z = Axis.new(true,false,z.name+"_bnd") # cell typeの軸を作成
+    new_z.set_cell_guess_bounds(z.pos).set_pos_to_bounds
+    bound_val = new_z.cell_bounds.val
+    new_z.pos.name=(z.name + "_bnd")
+
+    # 上端・下端の値の修正
+    if (z.pos.units.to_s == "m") then
+      # z(高度)軸の場合
+      bound_val[0]  = [0.0, bound_val[0]  ].max
+    else 
+      # sigma軸の場合
+      bound_val[0]  = [1.0, bound_val[0]  ].min
+      bound_val[-1] = [0.0, bound_val[-1] ].max
+    end
+
+    new_z.cell_bounds.replace_val(bound_val)
+    new_grid = grid.change_axis(num, new_z)
+    return new_grid
+  end
+
 
 
 

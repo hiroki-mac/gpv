@@ -373,7 +373,8 @@ OPTIONS = [
    Also, this cannot be used repeatedly."],
 ['--mvo_only', nil, 
   "use with '--mvo' to execute 'multi variable operation' only."],
-
+['--median_filter2D', "<num>" ,
+  "apply 2D median filter by boxes of num x num grids."],
 ###
 ### data/constants arrange options ###
 ###
@@ -462,7 +463,8 @@ OPTIONS = [
    --axis_units_name ax0:deg:lon,ax2:km:height:/1000  for example.
    mathematical operation can be applied to the axis values."],
 ['--replace_axis', "<axN:val1,val2,val3,...>", 
-  "replace the value of the axis <axN> (N is 0, 1, 2,...) with given Array [val1, val2, val3, val4,...]"],
+  "replace the value of the axis <axN> (N is 0, 1, 2,...) with given Array [val1, val2, val3, val4,...]
+   or if gturl is given for val1, the axis is replaced by the value of gturl, where the length of the gturl must be match with the target axis."],
 ['--zonal_shift', "<speed at equator in m/s>", 
   "shift entire field zonally as it is advected by the solid body rotation of <speed at equator in m/s>."],
 

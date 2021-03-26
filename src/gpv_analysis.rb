@@ -240,21 +240,47 @@ class GPV
   # z座標での質量流線関数を求める。
   # \Psi = cos(\phi) \sum (\bar{ \rho * v })dz を計算して、質量流線関数を求める。
   # -1/cos(\phi) * ∂ψ/∂z = \bar{\rho * v}, 1/(a*cos(\phi)) * ∂ψ/∂φ = \bar{\rho w} で定義されている。
+  # 半グリッドずれた(cell boundary)で定義されたPsiを返す
   def mstrmfunc_on_z(v, rho)
     print "CAUTION: mstrmfunc_on_z needs data from lowest layer for calculation.\n"
     vrm = (v*rho).mean(0)
     vrm = vrm*(vrm.axis(0).to_gphys*D2R).cos # \bar{rho*v}cos(\phi)
-    vrm_na = vrm.val
-    psi = vrm_na*0.0 # psi の NArray を用意
-    z = vrm.axis(1).to_gphys.val # z の NArray
+    vrm_na = vrm.val.to_na
+    bnd_grid = make_bnd_grid(vrm.grid, 1)
+    psi = NArray.float(*bnd_grid.shape) # psi の NArray を用意
+    z = bnd_grid.coord(1).val       # sigma の NArray
+    km = z.length-1
 
-    psi[true,0,false] = (vrm_na[true,0,false])*z[0] # 最下層（下端境界と最下層の間の vrm は vrm[0] に等しいとした。経験的。）
-    for k in 1..(z.length-1) # 積み上げ
-      psi[true,k,false] = psi[true,k-1,false] + 0.5*(vrm_na[true,k,false]+vrm_na[true,k-1,false])*(z[k]-z[k-1])
+    psi[true,0,false] = 0.0 
+    for k in 0..(km-1) # 積み上げ
+      psi[true,k+1,false] = psi[true,k,false] + (vrm_na[true,k,false])*(z[k+1]-z[k])
     end
 
-    return GPhys.new(vrm.grid.copy,VArray.new(-psi,{"long_name"=>"mass streamfunction","units"=>"kg.m-1.s-1"},"mstrm"))
+    return GPhys.new(bnd_grid,VArray.new(-psi,{"long_name"=>"mass streamfunction","units"=>"kg.m-1.s-1"},"mstrm"))
   end
+
+  # σ座標での質量流線関数を求める。
+  # \Psi = cos(\phi) \sum (\bar{ v })dp = cos(\phi) ps \sum (\bar{ v })dsigma を計算して、質量流線関数を求める。
+  # -1/cos(\phi) * ∂ψ/∂p = \bar{v}, 1/(a*cos(\phi)) * ∂ψ/∂φ = \bar{omega} で定義されている。
+  # 半グリッドずれた(cell boundary)で定義されたPsiを返す
+  def mstrmfunc_on_sigma(v, ps)
+    print "CAUTION: mstrmfunc_on_sigma needs data from lowest layer for calculation.\n"
+    v = v.mean(0); ps = ps.mean(0)
+    v = (v*(v.axis(0).to_gphys*D2R).cos) * ps  # \bar{v}cos(\phi)ps
+    v_na = v.val.to_na
+    bnd_grid = make_bnd_grid(v.grid, 1)
+    psi = NArray.float(*bnd_grid.shape) # psi の NArray を用意
+    sigma = bnd_grid.coord(1).val       # sigma の NArray
+    km = sigma.length-1
+    
+    psi[true,0,false] = 0.0 # 最下層
+    for k in 0..(km-1) # 積み上げ
+      psi[true,k+1,false] = psi[true,k,false] + (v_na[true,k,false])*(sigma[k+1]-sigma[k])
+    end
+
+    return GPhys.new(bnd_grid,VArray.new(psi,{"long_name"=>"mass streamfunction","units"=>"kg.s-1"},"mstrm"))
+  end
+
 
   # 時空間スペクトル（とりあえずGCM出力データのみに対応）
   # 入力は（lon, lat, time）の3次元データ。ただし lat は赤道域（±15 deg）とする。
@@ -342,17 +368,19 @@ class GPV
     GPhys::EP_Flux.p00=GAnalysis::Met::P00
     GPhys::EP_Flux.gas_const=GAnalysis::Met::R
     GPhys::EP_Flux.cp=GAnalysis::Met::Cp
-  #  GPhys::EP_Flux.scale_height=UNumeric.new(16000.0,  "m") # set scale_height if needed
+    GPhys::EP_Flux.scale_height=UNumeric.new(16000.0,  "m") # set scale_height if needed
+
     ofile = NetCDF.create("epflux.nc")
 
     print "         Scale height of #{GPhys::EP_Flux.scale_height} is used.\n"
 
     GPhys::IO.each_along_dims_write([gp_u, gp_v, gp_omega, gp_t], ofile, -1){|u, v, omega, t|
       epflx_y, epflx_z, v_rmean, w_rmean, gp_lat, gp_z, u_mean, theta_mean,
-            uv_dash, vt_dash, uw_dash, dtheta_dz = ary = GPhys::EP_Flux::ep_full_sphere(u, v, omega, t, true) # false if potential temperature
+            uv_dash, vt_dash, uw_dash, dtheta_dz = ary = GPhys::EP_Flux::ep_full_sphere(u, v, omega, t, false) # false if potential temperature
 
       epflx_div = GPhys::EP_Flux::div_sphere(epflx_y, epflx_z)
       strm_rmean = GPhys::EP_Flux::strm_rmean(v_rmean)
+#      binding.pry
       [ epflx_y, epflx_z, v_rmean, w_rmean, strm_rmean, epflx_div, u_mean, theta_mean, uv_dash, vt_dash, uw_dash, dtheta_dz ]
     }
 
@@ -745,6 +773,19 @@ class GPV
       raise "vertical axis must be z (height)."
     end
   end
+
+  def median_filter2D(gp,n) 
+    raise "num median filter2D must be odd number!!" if n.even?
+    val = gp.val; new_val = NArrayMiss.sfloat(*(val.shape))
+    im, jm = val.shape
+    (n/2..(jm-n/2-1)).each{|j|
+      (n/2..(im-n/2-1)).each{|i|
+        new_val[i,j] = val[(i-n/2)..(i+n/2), (j-n/2)..(j+n/2)].median 
+      }
+    }
+    return gp.replace_val(new_val)
+  end
+
 
 
 

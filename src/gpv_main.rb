@@ -454,14 +454,22 @@ while ARGV[0] do
 
   # replace axis values
   if (@OPT_replace_axis) then
-    axnum, newaxis = @OPT_replace_axis.split(":")
-    num = axnum.sub("ax","").to_i
-    axary = newaxis.split(",")
-    axary.map!{|a| a.to_f}
-    unit = gp.coordinate(num).units.to_s
-    axname = gp.axis(num).name
-    gp.axis(num).set_pos(VArray.new(NArray.to_na(axary), {"units"=>unit}, axname))
-    print "#{axname}'s value was replaced by #{axary}"
+    if @OPT_replace_axis.include?("@")
+      axnum, newaxis_gturl = @OPT_replace_axis.split(":")
+      num = axnum.sub("ax","").to_i
+      newaxis_gp, newaxis_gturl = open_gturl_wildcard(newaxis_gturl)
+      gp.axis(num).set_pos(VArray.new(newaxis_gp.val, {"units"=>newaxis_gp.units.to_s}, newaxis_gp.name))
+      print "axis #{num} was replaced by values of #{newaxis_gturl}"      
+    else 
+      axnum, newaxis = @OPT_replace_axis.split(":")
+      num = axnum.sub("ax","").to_i
+      axary = newaxis.split(",")
+      axary.map!{|a| a.to_f}
+      unit = gp.coordinate(num).units.to_s
+      axname = gp.axis(num).name
+      gp.axis(num).set_pos(VArray.new(NArray.to_na(axary), {"units"=>unit}, axname))
+      print "#{axname}'s value was replaced by #{axary}"
+    end
   end
 
 
@@ -475,7 +483,7 @@ while ARGV[0] do
       print "axis #{gp.axis(num).name} [#{gp.coord(num).units}] was changed to "
       typecode = gp.coordinate(num).typecode
       axis_val = gp.coordinate(num).val.to_type(typecode)
-      axis_val = (eval "axis_val #{ope}") if ope
+      axis_val = (eval "axis_val#{ope}") if ope
       gp.axis(num).set_pos(VArray.new(axis_val, {"units"=>unit}, axname))
 #      gp.axis(num).set_pos(VArray.new(gp.coordinate(num).val, {"units"=>unit}, axname))
       print "#{axname} [#{unit}] \n"
@@ -915,7 +923,7 @@ while ARGV[0] do
       }
 #      @flag_on_memory = nil; @OPT_parallel = false
       if (@OPT_nc4a) then
-        @flag_mvo_gpa = true; @OPT_parallel = true
+        @flag_mvo_gpa = true; @OPT_parallel = true unless @OPT_parallel
       else
         print "combining #{gpa.size} gphys objects... this may take very long time."
         gp = GPV.join(gpa)
@@ -1024,6 +1032,9 @@ while ARGV[0] do
   gp = highpass_sht(gp) if (@OPT_highpass && !@OPT_lowpass && @OPT_sht)
   ## apply bandpass (highpass and lowpass) filter (SphericalHarmonics)
   gp = bandpass_sht(gp) if (@OPT_highpass && @OPT_lowpass && @OPT_sht)
+
+  ## apply 2D median filter
+  gp = median_filter2D(gp,@OPT_median_filter2D.to_i) if @OPT_median_filter2D
 
 
   ## interpolate to gausian latitude and correspond longitude

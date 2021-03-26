@@ -16,10 +16,93 @@ class Float
 end
 
 class NArray
+
   def to_na
     self
   end
+
+  def log10; NMath::log10(self);  end
+  def log;   NMath::log(self) ;   end
+  def exp;   NMath::exp(self) ;   end
+  def sqrt;  NMath::sqrt(self) ;  end
+  def log2;  NMath::log2(self) ;  end
+  def sin;   NMath::sin(self) ;   end
+  def cos;   NMath::cos(self) ;   end
+  def tan;   NMath::tan(self) ;   end
+  def sinh;  NMath::sinh(self) ;  end
+  def cosh;  NMath::cosh(self) ;  end
+  def tanh;  NMath::tanh(self) ;  end
+  def asin;  NMath::asin(self) ;  end
+  def acos;  NMath::acos(self) ;  end
+  def atan;  NMath::atan(self) ;  end
+  def asinh; NMath::asinh(self) ; end
+  def acosh; NMath::acosh(self) ; end
+  def atanh; NMath::atanh(self) ; end
+  def cot;   NMath::cot(self) ;   end
+  def csc;   NMath::csc(self) ;   end
+  def sec;   NMath::sec(self) ;   end
+  def coth;  NMath::coth(self) ;  end
+  def csch;  NMath::csch(self) ;  end
+  def sech;  NMath::sech(self) ;  end
+  def acot;  NMath::acot(self) ;  end
+  def acsc;  NMath::acsc(self) ;  end
+  def asec;  NMath::asec(self) ;  end
+  def acoth; NMath::acoth(self) ; end
+  def acsch; NMath::acsch(self) ; end
+  def asech; NMath::asech(self) ; end
 end
+
+
+class GPhys
+  # Join multiple GPhys objects (not need for any pre-ordering).
+  #
+  # ARGUMENT
+  # * gpnarray [Array (or 1D NArray) of GPhys]
+  # 
+  def GPhys.join(gpary, ignore_overlap=false)
+
+  #< initialization with the first GPhys object >
+    gp = gpary[0]
+    rank = gp.rank
+    gpstore = MDStorage.new(rank)
+    gpstore[ *Array.new(rank, 0) ] = gp     # first element
+    x0s = (0...rank).collect{|d|
+      pos = gp.axis(d).pos
+      x0 = UNumeric[ pos.val[0].round(12), pos.units ] # round(12)を追加した
+      [ x0 ]   # first values of each coordinate
+    }
+
+    #< scan the coordiantes of the remaining GPhys objects >
+    for k in 1...gpary.length
+      gp = gpary[k]
+      idx = Array.new
+      for d in 0...rank
+        pos = gp.axis(d).pos
+        x0 = UNumeric[ pos.val[0].round(12), pos.units ] # round(12)を追加した
+        i = x0s[d].index(x0)
+        if i.nil?
+          x0s[d].push(x0)
+          i = x0s[d].length-1
+        end
+        idx.push(i)
+      end
+      gpstore[*idx] = gp
+    end
+
+    if !ignore_overlap && gpstore.count_non_nil != gpary.length
+      raise(ArgumentError,"Cannot uniquely locate one or more objects; some overlap in the grids?")
+    end
+
+    gpnary = gpstore.to_na
+
+    #< Sort along dimensions to join >
+    gpnary = __sort_gpnary(gpnary)
+
+    #< Join! >
+    self.join_md_nocheck(gpnary)
+  end
+end
+
 
 
 class GPV
@@ -136,6 +219,29 @@ def parse_gturl(gturl)
     # one, otherwise by Array of Strings.
     var = vars_matched.length == 1 ? vars_matched[0] : vars_matched
   end
+
+  if (slice) then 
+    axnames = GPhys::IO.open(file,var).axnames
+    slice.each_key{|k| 
+      unless (axnames.include?(k)) then 
+        p "NOTE: #{k}-axis does not exist in #{file}; ignored."
+        slice.delete(k) 
+      end
+    }
+    slice = nil if (slice.length == 0)
+  end
+  if (cut_slice) then 
+    axnames = GPhys::IO.open(file,var).axnames
+    cut_slice.each_key{|k| 
+      unless (axnames.include?(k)) then 
+        p "NOTE: #{k}-axis does not exist in #{file}; ignored."
+        cut_slice.delete(k)
+      end
+    }
+    cut_slice = nil if (cut_slice.length == 0)
+  end
+
+
   [file, var, slice, cut_slice, thinning]
 end   # def parse_gturl
 
