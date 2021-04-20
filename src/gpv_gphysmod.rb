@@ -50,6 +50,51 @@ class NArray
   def acoth; NMath::acoth(self) ; end
   def acsch; NMath::acsch(self) ; end
   def asech; NMath::asech(self) ; end
+
+  def split(n,dim=-1)
+    if (self.rank <= dim)
+      raise "second arg of split must be less than rank"
+    end
+    s = self.shape[dim]
+    sa = Array.new(self.rank).fill(true)
+    ary = []
+    n.times{|i|
+      sl = sa.clone
+      sl[dim] = (i*s/n)..((i+1)*s/n-1)
+      ary << self[*sl]
+    }
+    return ary
+  end
+
+  def self.concat(ary, dim=-1)
+    shape = ary[0].shape
+    shape_ary = ary.map{|na| na.shape}
+    shape_ary.each{|a|
+      if (shape != a) then
+        shape.size.times{|d|
+          if (shape[d] != a[d]) then
+            dim = d
+            break
+          end
+        }
+      end
+    }
+    shape[dim] = 0
+    shape_ary.each{|a|
+      shape[dim] = shape[dim] + a[dim]
+    }
+    tmp = NArray.new(ary[0].typecode,*shape)
+    s = Array.new(shape.size).fill(true)
+    c = 0
+    ary.each{|na|
+      s[dim] = c..(c+na.shape[dim]-1)
+      tmp[*s] = na
+      c = c + na.shape[dim]
+    }
+    return tmp
+  end
+
+
 end
 
 
@@ -101,6 +146,23 @@ class GPhys
     #< Join! >
     self.join_md_nocheck(gpnary)
   end
+
+  def split(n,dim=-1)
+    if (self.rank <= dim)
+      raise "second arg of split must be less than rank"
+    end
+    s = self.shape[dim]
+    sa = Array.new(self.rank).fill(true)
+    ary = []
+    n.times{|i|
+      sl = sa.clone
+      sl[dim] = (i*s/n)..((i+1)*s/n-1)
+      ary << self[*sl]
+    }
+    return ary
+  end
+
+
 end
 
 

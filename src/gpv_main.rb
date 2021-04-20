@@ -876,6 +876,7 @@ while ARGV[0] do
 
       if (xx.data.file.class == NetCDF) then # NetCDF4 対策
         if (xx.data.file.format >= 3 ) then
+          p "data is being copied on memory"
           xx, yy, zz, uu, vv, ww = [xx, yy, zz, uu, vv, ww].map{|tt|
             if (tt) then
               tt = (0..(da_val_ary.length-1)).to_a.map{|i|
@@ -896,7 +897,7 @@ while ARGV[0] do
         if (@flag_on_memory) then
           x = xx[i]
         else
-          x = reopen(xx).cut_rank_conserving(da_name=>i)
+          x = reopen(xx).cut_rank_conserving(da_name=>da_val_ary[i])
         end
         y, z, u, v, w = [yy, zz, uu, vv, ww].map{|tt|
           if (tt) then
@@ -1439,7 +1440,6 @@ while ARGV[0] do
     print "Required object size is #{(gp.length*nb*fact/1.0E9).round(2)}GB, which is larger than 2GB.\n" unless @OPT_parallel
     print "Operation is processed along #{dims_remained[-1]} dim with #{np} proccesses. This may take a while......\n"
     remaind_dim_val_array = gp.coordinate(dims_remained[-1]).val.to_a
-
     unless (@OPT_mvo_only or @flag_mvo_gpa) then
 
       if (gp.data.file.class == NetCDF) then

@@ -242,23 +242,30 @@ class GPV
       return gp
   end
 
-  def make_bnd_grid(grid, num)
+  def make_bnd_grid(grid, num, ztype=nil) # ztype should be "height", "theta", "sigma", or "pressure"
     z = grid.axis(num) # z軸を取り出す
+    # z軸が、高度かどうか判定
+    if (ztype == nil) then 
+      if (["m", "km"].include?(z.pos.units.to_s)) then ztype = "height"
+      elsif (["K"].include?(z.pos.units.to_s)) then ztype = "theta"
+      else ztype = "sigma" end
+    end 
+    z.pos.replace_val(z.pos.val.log) if (ztype == "sigma" or ztype == "pressure") # σ 軸 or p 軸
     new_z = Axis.new(true,false,z.name+"_bnd") # cell typeの軸を作成
     new_z.set_cell_guess_bounds(z.pos).set_pos_to_bounds
     bound_val = new_z.cell_bounds.val
     new_z.pos.name=(z.name + "_bnd")
 
     # 上端・下端の値の修正
-    if (z.pos.units.to_s == "m") then
-      # z(高度)軸の場合
+    if (ztype == "height") then
       bound_val[0]  = [0.0, bound_val[0]  ].max
-    else 
-      # sigma軸の場合
+    elsif (ztype == "sigma")
+      bound_val = bound_val.exp
       bound_val[0]  = [1.0, bound_val[0]  ].min
       bound_val[-1] = [0.0, bound_val[-1] ].max
+    elsif (ztype == "pressure")
+      bound_val = bound_val.exp
     end
-
     new_z.cell_bounds.replace_val(bound_val)
     new_grid = grid.change_axis(num, new_z)
     return new_grid

@@ -162,6 +162,7 @@ class GPV
     DCL.sgpset('lfprop',true)               # use proportional font
     DCL.uscset('cyspos', 'B' )              # move unit y axis
     DCL.sgiset('ifont', 2)
+    DCL.sgpset('bitlen', 0.0015)            # 点線・破線のパターン間隔を細かくする（初期値は 0.003）
     DCL.uzfact(0.6* (@OPT_fact|| 1).to_f ) unless $flag_uzfact
     $flag_uzfact = true unless $flag_uzfact
 
@@ -2081,7 +2082,7 @@ class GPV
     index = index + 8 if (index%10==0)
     if z_gp then
       DCL.sgscmn(63)
-      GGraph.color_scatter(x_gp,y_gp,z_gp.log10,
+      GGraph.color_scatter(x_gp,y_gp,z_gp,
                     false,
                     "index"=>index,
                     "type" =>(@OPT_type ||1),
