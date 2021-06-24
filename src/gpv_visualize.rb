@@ -1170,6 +1170,9 @@ class GPV
       # mask shading
       maskshading(gp) if @OPT_maskshading
   #-------------------------------------------------------------------------------------------------
+      # given topography 
+      topography if @OPT_topo
+  #-------------------------------------------------------------------------------------------------
 
 
 
@@ -1433,6 +1436,7 @@ class GPV
         GGraph::color_bar("left"=> true,"landscape" => true) unless @OPT_nocolorbar
 
         maskshading(gp) if @OPT_maskshading
+        topography if @OPT_topo
 
   #      GGraph::color_bar("left"=> false,"landscape" => false)
         # test for counter
@@ -1605,6 +1609,7 @@ class GPV
             end
           end
           maskshading(gp) if @OPT_maskshading
+          topography if @OPT_topo
 
       end # end case
     #-------------------------------------------------------------------------------------------------
@@ -1719,10 +1724,46 @@ class GPV
     else
       mask = gp
     end
+    if (@OPT_anim) then
+      loop_ax_val = mask.coord(@OPT_anim).val
+      mask = mask.cut(@OPT_anim=>loop_ax_val[@LOOP_COUNTER])
+    end
     rlev = (newary[1]||0); ipat = (newary[2]||1515)
+    DCL.sgscmn(5) # 白黒
     DCL.uepset("rlev",rlev); DCL.uepset("ipat",ipat)
     GGraph.tone(mask,false,"ltone"=>false, "transpose"=>@OPT_exch)
+    DCL.sgscmn(@OPT_clrmap||63)
   end
+
+  def topography
+    if (@OPT_topo.class == String) then 
+      topo = open_gturl_wildcard(@OPT_topo)[0]
+      @OPT_topo = topo
+    else
+      topo = @OPT_topo
+    end 
+#    binding.pry
+    # 設定保存
+    label = DCL.udpget('label') #ラベルの有無
+    lmsg = DCL.udpget('lmsg') #等値線間隔表示の有無
+    indxmj = DCL.udpget('indxmj') #計曲線
+    indxmn = DCL.udpget('indxmn') #主曲線
+    # 設定変更
+    DCL.udpset('label', false) #ラベルの有無
+    DCL.udpset('lmsg', false) #等値線間隔表示の有無
+    DCL.udpset('indxmj', 1) #計曲線
+    DCL.udpset('indxmn', 1) #主曲線
+
+    GGraph.contour(topo,false,"transpose"=>@OPT_exch,"annotate"=>false,'int'=>@OPT_topo_int.to_f)
+    # 設定戻す
+    DCL.udpset('label', label) #ラベルの有無
+    DCL.udpset('lmsg', lmsg) #等値線間隔表示の有無
+    DCL.udpset('indxmj', indxmj) #計曲線
+    DCL.udpset('indxmn', indxmn) #主曲線
+  end
+
+
+
 
   def line_fill(gp)
     if (gp.class == GPhys) then

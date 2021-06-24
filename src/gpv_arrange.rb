@@ -272,6 +272,39 @@ class GPV
   end
 
 
+  def take_first_valid(gp, dim, rev=false)
+    ary = Array.new(gp.rank).fill(true) 
+    ary[dim] = 0
+
+    new_gp = gp[*ary]*0.0
+    new_val = new_gp.val.to_na
+
+    val = gp[*ary].val
+    if (val.class != NArrayMiss) then
+      raise "Given GPhys object has no missing value attribut (is not NArrayMiss)"
+    end
+    cum_mask = gp[*ary].val.get_mask*0 # 初期値 全部ゼロ
+
+    num = gp.shape[dim]
+    num.times{|k|
+      if (rev == false) then 
+        ary[dim] = k
+      else 
+        ary[dim] = (num - 1) - k
+      end 
+      val = gp[*ary].val
+      cum_mask = cum_mask + val.get_mask
+      mask = cum_mask.eq(1) # 1以外はゼロのマスク
+      new_val = new_val + (val.to_na)*mask
+      if (cum_mask.eq(0).max == 0) then
+        break
+      end
+    }
+    new_gp.replace_val(NArrayMiss.to_nam(new_val,cum_mask))
+    return new_gp
+  end
+
+
 
 
 end

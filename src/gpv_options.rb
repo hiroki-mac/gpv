@@ -282,6 +282,11 @@ OPTIONS = [
   "to be written"],
 ['--plot_particles', "<gturl of particles>", 
   "overplot particles"],
+['--topo', "<gturl of topography data>", 
+  "overplot topography"],
+['--topo_int', "<num>", 
+  "--int for topography"],
+
 ###
 ### analysis options ###
 ###

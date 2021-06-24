@@ -119,19 +119,27 @@ module SphericalHarmonics
       emn = NArray.sfloat(mmax+1, mmax+2)    # 係数を計算しておく
     end
 
-    for m in 0..mmax
+    dpn_ary = Parallel.map(0..mmax, in_progress:np, :progress=>"progress"){|m|
+
+#    for m in 0..mmax
       for n in (m+1)..(mmax+1)
 	       emn[m, n] = sqrt( (n*n - m*m)/((2.0*n+1.0)*(2.0*n-1.0)) )
       end
-    end
+#    end
 
     x_tmp = 1.0/(1.0 - x*x)
-    for m in 0..mmax
+#    for m in 0..mmax
       dpmn[true, m, m] = ( - m*emn[m,m+1]*pmn[true,m,m+1]) *x_tmp # m = n の場合
       for n in (m+1)..mmax
         dpmn[true, m, n] = ((n+1.0)*emn[m,n]*pmn[true,m,n-1] - n*emn[m,n+1]*pmn[true,m,n+1]) *x_tmp
       end
+      dpmn[true,m,true]
+#    end
+    } 
+    for m in 0..mmax
+      dpmn[true,m,true] = dpn_ary[m]
     end
+
 
 #    binding.pry
 #    return pmn, dpmn, emn
@@ -279,9 +287,11 @@ module SphericalHarmonics
 	  pmn_na = @pmn
   end
 	for n in 0..nmax # 三角切断
-#      smn[true,n,false] = Complex(0,0)   #値を代入すると有効化される
+    # if (@flag_pmn_file) then 
+    #   pmn_na = @gpmn[0..n,n,true].val.transpose(1,0) # @gpmnのindex は m, n, j の順番なので入れ替える
+    #   smn[0..n,n, false] = ( (gjm[true, 0..n, false].mul_add(pmn_na.mul!(@gw[true]), 0 )).mul!(0.5) ) #.round(13) # test
+    #   smn[-1..-n,n,false] = smn[1..n,n,false].conj if (n != 0)      
     if (only == false) then
-#        print smn.shape, ", ", gjm.shape, ", " ,pmn_na.shape, "\n"
       smn[0..n,n, false] = ( (gjm[true, 0..n, false].mul_add(pmn_na[true, 0..n, n].mul!(@gw[true]), 0 )).mul!(0.5) ) #.round(13) # test
   	  smn[-1..-n,n,false] = smn[1..n,n,false].conj if (n != 0)
     elsif (n == only) then # 特定の全波数 n だけ変換する場合
@@ -762,7 +772,7 @@ end
 #      変換するGPhysサンプル（次元を参照する）、変換精度（single or double）
 # ガウス緯度を内部計算する場合は、第２引数に、緯度方向の格子点数を与える。
 # また、第２引数に何も与えなければ、lon/2を緯度方向の格子点数とする。
-def sh_init(lon, lat = lon.size/2, mmax = ((lat.size*2-1)/3), gp=nil, precision=nil)
+def sh_init(lon, lat = lon.size/2, mmax = ((lat.size*2-1)/3), gp=nil, precision=nil, pmn_file=nil)
   print "Truncation wavenumber is #{mmax}.\n"
 
    # 倍精度/単精度の選択
@@ -787,9 +797,18 @@ def sh_init(lon, lat = lon.size/2, mmax = ((lat.size*2-1)/3), gp=nil, precision=
     @mu, @gw = gauss_w(lat) #ガウス重み
   end
   print "Gaussian weight and latitude generated.\n"
+  if (pmn_file == nil) then 
+    @pmn, @dpmn, @emn = p_m_nT(@mu, mmax) #三角切断 P^m_n, dP^m_n
+    @flag_pmn_file = false
 
-  @pmn, @dpmn, @emn = p_m_nT(@mu, mmax) #三角切断 P^m_n, dP^m_n
-  print "P^m_n, dP^m_n generated.\n"
+    print "P^m_n, dP^m_n generated.\n"
+  else 
+    print "P^m_n, dP^m_n will be loaded from file: #{pmn_file}"
+    @pmn, @dpmn, @emn = p_m_nT(@mu[0..0], mmax) #三角切断 P^m_n, dP^m_n
+    @gpmn  = GPhys::IO.open_gturl("pmn_gl10.nc@pmn")
+    @gdpmn = GPhys::IO.open_gturl("pmn_gl10.nc@dpmn")
+    @flag_pmn_file = true
+  end
 
   # モジュール変数の作成
   if (gp) then
@@ -1451,5 +1470,47 @@ def sh_energyspectrum(u, v, a=1.0, comp_ary=["total"], vor_div_given=false)
 
 	return gphys_es_ary
 end
+
+def output_pmn(lon, lat = lon.size/2, mmax = ((lat.size*2-1)/3), gp=nil, precision=nil)
+  print "Truncation wavenumber is #{mmax}.\n"
+   # 倍精度/単精度の選択
+  if (precision) then
+    @precision = precision
+  elsif (gp) then
+    case gp.ntype
+    when "float" then
+      @precision = "double"
+    when "sfloat" then
+      @precision = "single"
+    end
+  else
+    @precision = "double" #デフォルトの精度
+  end
+
+  mu = deg2mu(lat)
+
+  pmn, dpmn, emn = p_m_nT(NArray.to_na(mu), mmax) #三角切断 P^m_n, dP^m_n
+  pmn.reshape!(mmax+2,mmax+2,1)
+  dpmn.reshape!(mmax+2,mmax+2,1)
+
+  maxis = Axis.new
+  m_va = VArray.new(NArray.int(mmax+2).indgen!,{"long_name"=>"zonal wave number","units"=>"wave number"},"m")
+  maxis.pos = m_va
+  naxis = Axis.new
+  n_va = VArray.new(NArray.int(mmax+2).indgen!,{"long_name"=>"total wave number","units"=>"wave number"},"n")
+  naxis.pos = n_va
+  jaxis = Axis.new
+  mu_va = VArray.new(NArray.to_na(mu),{"long_name"=>"sin(lat)","units"=>"1"},"mu")
+  jaxis.pos = mu_va
+  grid = Grid.new(maxis, naxis, jaxis)
+  gpmn = GPhys.new(grid,VArray.new(pmn,{"long_name"=>"assoc legendre polynominal","units"=>"1"},"pmn"))
+  gdpmn = GPhys.new(grid,VArray.new(pmn,{"long_name"=>"assoc legendre polynominal deriv","units"=>"1"},"dpmn"))
+
+  return gpmn, gdpmn
+
+
+end
+
+
 
 end

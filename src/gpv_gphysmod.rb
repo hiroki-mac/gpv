@@ -479,5 +479,14 @@ class GPhys
     end
   end
 
+  # 長さ1の次元を付け加える
+  def add_axis(name,val,units,long_name,dim=-1)
+    new_axis = Axis.new(false,false,name) 
+    new_axis.set_pos(VArray.new(NArray.to_na([val]),{"units"=>units, "long_name"=>long_name},name))
+    new_grid = self.grid.insert_axis(dim,new_axis)
+    new_shape = self.shape.insert(dim,1)
+    return GPhys.new(new_grid, self.data.reshape(*new_shape))
+  end
+
 
 end

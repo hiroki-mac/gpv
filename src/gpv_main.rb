@@ -540,7 +540,17 @@ while ARGV[0] do
   if (@OPT_sht or @OPT_ES or @OPT_uvcomp) then
     lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp, true)
     nmax = gp.coordinate(lon_dim).length/3
-    gw, pmn, dpmn = SphericalHarmonics::sh_init(gp.coordinate(lon_dim).val, gp.coordinate(lat_dim).val, nmax, gp)
+    if (@OPT_ES == "output_pmn") then 
+      lat_na = gp.coordinate(lat_dim).val
+      lat_na.length.times{|j|
+        gpmn, gdpmn = SphericalHarmonics::output_pmn(gp.coordinate(lon_dim).val,lat_na[j..j],nmax,gp)
+        auto_write("pmn.nc",  [gpmn, gdpmn],  j)
+        p j
+      }
+      p "pmn and dpmn were written in pmn.nc"
+      exit
+    end
+    gw, pmn, dpmn = SphericalHarmonics::sh_init(gp.coordinate(lon_dim).val, gp.coordinate(lat_dim).val, nmax, gp, nil)
   end
 
   if (@OPT_zonal_shift) then
@@ -1410,8 +1420,8 @@ while ARGV[0] do
 
       next g # return this object
 
-  end
-
+  end # end of proc 
+#---------------------------------------------------
   case gp.ntype
   when "sfloat"
     nb = 4
@@ -1432,7 +1442,7 @@ while ARGV[0] do
                  dims_max, dims_mean, dims_min, dims_stddev, dims_sum].flatten.compact
     dims_remained = gp.axnames - dims_used
     dims_remained.delete_at(-1) if (dims_remained.length > 1 && gp.coordinate(dims_remained[-1]).length > 100) # 分割数が超えると結合に時間が掛かるので。
-    if (@OPT_parallel && @OPT_parallel != "") # 陽に指定する
+    if (@OPT_parallel && @OPT_parallel != "" && @OPT_parallel != true) # 陽に指定する
       dims_remained = [@OPT_parallel]
     end
     # multi-proccesses, many memory use.
@@ -1566,10 +1576,12 @@ while ARGV[0] do
         }
       }
     else
+      @LOOP_COUNTER = 0
       each_along_dims(gp, loopdim){|gp_subset|
         gp_subset = proc.call(gp_subset, 0)
         gary << visualize_and_output(gp_subset)
         plot_particles(gp_subset) if @OPT_plot_particles
+        @LOOP_COUNTER += 1
       }
     end
   elsif (@OPT_zoomin) then
@@ -1783,6 +1795,8 @@ end
 
 if (@outncfile) then
   @outncfile.put_att("command",@comment)
+  @outncfile.put_att("title", "see command")
+  @outncfile.put_att("comment", "see command")
   @outncfile.close
 end
 

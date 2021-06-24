@@ -256,17 +256,17 @@ class GPV
       psi[true,k+1,false] = psi[true,k,false] + (vrm_na[true,k,false])*(z[k+1]-z[k])
     end
 
-    return GPhys.new(bnd_grid,VArray.new(-psi,{"long_name"=>"mass streamfunction","units"=>"kg.m-1.s-1"},"mstrm"))
+    return GPhys.new(bnd_grid,VArray.new(-psi,{"long_name"=>"mass streamfunction","units"=>"kg.m-1.s-1"},"msf"))
   end
 
   # σ座標での質量流線関数を求める。
-  # \Psi = cos(\phi) \sum (\bar{ v })dp = cos(\phi) ps \sum (\bar{ v })dsigma を計算して、質量流線関数を求める。
-  # -1/cos(\phi) * ∂ψ/∂p = \bar{v}, 1/(a*cos(\phi)) * ∂ψ/∂φ = \bar{omega} で定義されている。
+  # \Psi = cos(\phi) \sum (\bar{ v })dsigma を計算して、質量流線関数を求める。
+  # -1/cos(\phi) * ∂ψ/∂sigma = \bar{v}, 1/(a*cos(\phi)) * ∂ψ/∂φ = \bar{sig_dot} で定義されている。
   # 半グリッドずれた(cell boundary)で定義されたPsiを返す
-  def mstrmfunc_on_sigma(v, ps)
+  def mstrmfunc_on_sigma(v)
     print "CAUTION: mstrmfunc_on_sigma needs data from lowest layer for calculation.\n"
-    v = v.mean(0); ps = ps.mean(0)
-    v = (v*(v.axis(0).to_gphys*D2R).cos) * ps  # \bar{v}cos(\phi)ps
+    v = v.mean(0)
+    v = (v*(v.axis(0).to_gphys*D2R).cos)  # \bar{v}cos(\phi)
     v_na = v.val.to_na
     bnd_grid = make_bnd_grid(v.grid, 1)
     psi = NArray.float(*bnd_grid.shape) # psi の NArray を用意
@@ -278,7 +278,7 @@ class GPV
       psi[true,k+1,false] = psi[true,k,false] + (v_na[true,k,false])*(sigma[k+1]-sigma[k])
     end
 
-    return GPhys.new(bnd_grid,VArray.new(psi,{"long_name"=>"mass streamfunction","units"=>"kg.s-1"},"mstrm"))
+    return GPhys.new(bnd_grid,VArray.new(psi,{"long_name"=>"mass streamfunction","units"=>"m.s-1"},"msf"))
   end
 
 
@@ -570,6 +570,69 @@ class GPV
 
     return gtheta0
   end
+
+  def solar_zenith_angle_planet(gp) # 公転軌道は円軌道を仮定
+    # unit_time = min の場合
+    unit_time_in_day  = 1440.0
+    days_in_year      = 365*2
+    unit_time_in_year = unit_time_in_day*days_in_year
+
+    # 赤道傾斜角
+    axial_tilt = 25.9*D2R
+    # 春分の日付 (単位付き)
+    equinox = UNumeric.new(0.0, "minutes since 0000-01-01 00:00:00")
+
+    lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp, false)
+    lat = gp.coord(lat_dim).val*D2R
+    lon = gp.coord(lon_dim).val*D2R
+    time = gp.coord("time").convert_units(equinox.units).val
+
+    # 赤経(?) [time]
+    ra = time.mod(unit_time_in_year - equinox)/unit_time_in_year*2.0*PI
+    # lon=0での時角 [time]
+    ha0 = time.mod(unit_time_in_day)/unit_time_in_day*2.0*PI-PI
+    # sin(赤緯) [time]
+    sin_delta = ra.sin * sin(axial_tilt)
+    # cos(太陽天頂角)
+    cos_Z = NArray.float(lon.length, lat.length, time.length)
+
+    puts "===NOTE==============================="
+    puts "unit_time_in_day = #{unit_time_in_day}"
+    puts "days_in_year = #{days_in_year}"
+    puts "axial_tilt = #{axial_tilt*R2D}"
+    puts "equinox = #{equinox}"
+    puts "===NOTE==============================="
+
+
+    time.length.times{|t|
+      ha = lon + ha0[t]
+      lat.length.times{|j|
+        cos_Z[true,j,t] = ha.cos * cos(lat[j]) * sqrt(1.0 - sin_delta[t]*sin_delta[t]) + sin(lat[j])*sin_delta[t]
+      }
+    }
+    # 日積算量の計算には必要↓
+    # cosH = -tan(delta)*tan(vlat)
+    # 極夜・白夜に対応する
+    # mask_polar_night = cosH.ge(1.0); mask_polar_day = cosH.le(-1.0)
+    # cosH = cosH*(mask_polar_night.eq(0.0)*mask_polar_day.eq(0.0)) +
+    #        mask_polar_night.to_f*1.0 + mask_polar_day.to_f*(-1.0)
+    # hpara = acos(cosH)
+    # cos_theta0 = (hpara*sin(vlat)*sin(delta) + cos(vlat)*cos(delta)*sin(hpara))/PI
+    # theta0 = acos(cos_theta0)*180.0/PI
+
+    # 南中時（時角=0)の天頂角で、その日の天頂角を代表させる。
+    # cos_theta0 = (sin(vlat)*sin(delta)+cos(vlat)*cos(delta))
+    # theta0 = acos(cos_theta0)*180.0/PI
+    # theta0 = NArrayMiss.to_nam(theta0).set_mask(mask_polar_night.eq(0))
+
+    gtheta0 = gp*0.0 + cos_Z.acos*R2D
+    gtheta0.name=("solar_zenith_angle")
+    gtheta0.set_att("long_name", "solar zenith angle")
+    gtheta0.set_att("units","deg")
+
+    return gtheta0
+  end
+
 
   def reflectance(gp) # 浅野正二「大気放射学の基礎」式 6.23
     # 入力 gp は 太陽天頂角のGPhysオブジェクト
