@@ -1627,11 +1627,11 @@ class GPV
           end
           maskshading(gp) if @OPT_maskshading
           topography if @OPT_topo
-          redraw_frame() if @OPT_drawbg
 
       end # end case
     #-------------------------------------------------------------------------------------------------
       draw_linearline(gp[0]) if @OPT_linearline
+      redraw_frame() if @OPT_drawbg
     #-------------------------------------------------------------------------------------------------
         if (@OPT_itr.to_i >= 5) then
           title(title)
@@ -2176,6 +2176,8 @@ class GPV
     DCL.uzpset("ROFFXB", roff[1])
     DCL.uzpset("ROFFYL", roff[2])
     DCL.uzpset("ROFFYR", roff[3])
+    DCL::uzlset('LABELXB', true) unless @OPT_nolabels
+    DCL::uzlset('LABELYL', true) unless @OPT_nolabels
   end
 
   def draw_background(gp2D)
