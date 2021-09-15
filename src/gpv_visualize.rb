@@ -823,6 +823,7 @@ class GPV
 
       if (draw_flag == "noshade") then
         cont_tf = true
+        cont_tf = false if @OPT_drawbg
         mj = DCL.udpget('indxmj'); mn = DCL.udpget('indxmn')
         title = @OPT_title       ; annotate = @annotate
       else
@@ -832,6 +833,11 @@ class GPV
       set_draw_range(gp) if (@OPT_xrange or @OPT_yrange)
 
       gp2D = gp.first2D.copy
+
+      if ( @OPT_drawbg ) then
+        draw_background(gp2D)
+        new_page = false
+      end
 
   #    gp2D = cyclic_extension(gp2D, @OPT_cyclic_extension,4) if @OPT_cyclic_extension
 
@@ -1084,6 +1090,10 @@ class GPV
     # plot linear line
     draw_linearline(gp) if @OPT_linearline && @Overplot == 1
   #-------------------------------------------------------------------------------------------------
+    # redraw frame
+    redraw_frame()
+  #-------------------------------------------------------------------------------------------------
+
     if (@OPT_itr.to_i >= 5) then
       title(title)
       @OPT_title = title
@@ -1170,7 +1180,7 @@ class GPV
       # mask shading
       maskshading(gp) if @OPT_maskshading
   #-------------------------------------------------------------------------------------------------
-      # given topography 
+      # given topography
       topography if @OPT_topo
   #-------------------------------------------------------------------------------------------------
 
@@ -1736,26 +1746,29 @@ class GPV
   end
 
   def topography
-    if (@OPT_topo.class == String) then 
+    if (@OPT_topo.class == String) then
       topo = open_gturl_wildcard(@OPT_topo)[0]
       @OPT_topo = topo
     else
       topo = @OPT_topo
-    end 
+    end
 #    binding.pry
     # 設定保存
     label = DCL.udpget('label') #ラベルの有無
     lmsg = DCL.udpget('lmsg') #等値線間隔表示の有無
     indxmj = DCL.udpget('indxmj') #計曲線
     indxmn = DCL.udpget('indxmn') #主曲線
+
     # 設定変更
     DCL.udpset('label', false) #ラベルの有無
     DCL.udpset('lmsg', false) #等値線間隔表示の有無
     DCL.udpset('indxmj', 1) #計曲線
     DCL.udpset('indxmn', 1) #主曲線
+    DCL.sgscmn(23)
 
-    GGraph.contour(topo,false,"transpose"=>@OPT_exch,"annotate"=>false,'int'=>@OPT_topo_int.to_f)
+    GGraph.contour(topo,false,"transpose"=>@OPT_exch,"annotate"=>false,'int'=>@OPT_topo_int.to_f, 'coloring'=>true)
     # 設定戻す
+    DCL.sgscmn( @OPT_clrmap || 63)
     DCL.udpset('label', label) #ラベルの有無
     DCL.udpset('lmsg', lmsg) #等値線間隔表示の有無
     DCL.udpset('indxmj', indxmj) #計曲線
@@ -2142,6 +2155,43 @@ class GPV
                     "type" =>(@OPT_type || 1).to_i
                     )
     end
+  end
+
+  def redraw_frame()
+    roff = [DCL.uzpget("ROFFXT"), DCL.uzpget("ROFFXB"), DCL.uzpget("ROFFYL"), DCL.uzpget("ROFFYR")]
+    DCL.uzpset("ROFFXT",0.0); DCL.uzpset("ROFFXB",0.0)
+    DCL.uzpset("ROFFYL",0.0); DCL.uzpset("ROFFYR",0.0)
+    DCL::uzlset('LABELXB', false)
+    DCL::uzlset('LABELYL', false)
+    GGraph.axes(nil,nil,"xunits"=>"","xtitle"=>"","xlabel"=>nil)
+    DCL.uzpset("ROFFXT", roff[0])
+    DCL.uzpset("ROFFXB", roff[1])
+    DCL.uzpset("ROFFYL", roff[2])
+    DCL.uzpset("ROFFYR", roff[3])
+  end
+
+  def draw_background(gp2D)
+    DCL.sgscmn(25)
+    gpbg = gp2D.copy
+    bgval = gpbg.val.all_valid
+    bgax =  gpbg.coord(1).val
+    bgval.shape[0].times{|i| bgval[i,true] = (bgax - bgax[0])/(bgax[-1]-bgax[0]) }
+    gpbg.replace_val(bgval)
+    GGraph.tone(gpbg,true,
+                "title"=>@OPT_title,
+                "int"=>-1,
+                "max"=>1, "min"=>0,
+                "inf_max"=>false, "inf_min"=>false,
+                "annotate"=>@annotate,
+                "transpose"=>@OPT_exch,
+                "levels"=>@OPT_slevels,
+                "patterns"=>@OPT_patterns,
+                "auto"=>@auto,
+                "tonf"=>@tonf, "tonb"=>@tonb, "tonc"=>@tonc,
+                "fullcolor"=>@fullcolor,
+                "xcoord"=>@OPT_xcoord, "ycoord"=>@OPT_ycoord,
+                "log"=>@log_int)
+    DCL.sgscmn( @OPT_clrmap || 63)
   end
 
 
