@@ -1274,13 +1274,20 @@ class GPV
         adim.shift
       end
 
+      if ( @OPT_drawbg ) then
+        draw_background(gp[0])
+        new_page = false
+      else
+        new_page = true
+      end
+
       case draw_flag
     #-------------------------------------------------------------------------------------------------
       when "scatter"
         xtitle, ytitle = (@OPT_scatter).split(/\s*,\s*/)
         GGraph.next_axes("xtitle"=>xtitle, "ytitle"=>ytitle)
         GGraph.scatter(gp[0],gp[1],
-                       true,
+                       new_page,
                       "title"=>@OPT_title,
                       "index"=>(@OPT_index||@index_array[0]),
                       "type" =>(@OPT_type ||@type_array[0]),
@@ -1291,7 +1298,7 @@ class GPV
         if (gp.length/2 > 1) then
           (gp.length/2 - 1).times{|i|
             GGraph.scatter(gp[2*i+2],gp[2*i+3],
-                           true,
+                           new_page,
                           "index"=>(@index_array[i+1]||1),
                           "type" =>(@type_array[i+1]||2),
                           "annotate"=>@annotate,
@@ -1323,7 +1330,7 @@ class GPV
           gp << gp[0]*0.0 + gp[0].axis(0).to_gphys
         end
         GGraph.color_scatter(gp[0],gp[1],gp[2],
-                       true,
+                      new_page,
                       "title"=>@OPT_title,
                       "index"=>(@OPT_index||1),
                       "type" =>(@OPT_type ||2),
@@ -1361,7 +1368,7 @@ class GPV
         end
         title = @OPT_notitle ? "" : gp[0].name + " & "+gp[1].name
         GGraph.tone(gp[0],
-                    true,
+                    new_page,
                     "title"=> title,
                     "annotate"=>@annotate,
                     "transpose"=>@OPT_exch,
@@ -1473,7 +1480,7 @@ class GPV
           gph.units="%"
         end
 
-        GGraph.tone(gph,true,
+        GGraph.tone(gph,new_page,
                     "title"=>@OPT_title,
                     "annotate"=>@annotate,
                     "transpose"=>@OPT_exch,
@@ -1518,7 +1525,7 @@ class GPV
 
 
         tone_full(gp,
-                    true,
+                    new_page,
                     "title"=>@OPT_title,
                     "annotate"=>@annotate,
                     "transpose"=>@OPT_exch,
@@ -1538,7 +1545,7 @@ class GPV
           @vfact = (@OPT_vfact || 1).to_f
           @vkeep = true if (anim_counter != 1 && @OPT_vkeep )
           if (@OPT_itr == '5') then
-             GGraph.vector( gp[0], gp[1], true,
+             GGraph.vector( gp[0], gp[1], new_page,
                            "title"=>@OPT_title, "annotate"=>@annotate, "exchange"=>@OPT_exch,
                            "flow_vect"=>false,  "flow_itr5"=>true,     "xintv"=>@xintv,
                            "yintv"=>@yintv,     "factor"=>@vfact,      "unit_vect"=>true,
@@ -1551,7 +1558,7 @@ class GPV
               GGraph.vector_on_merdional_section(gp[0], gp[1], true,
                                 'fact'=>@vfact, 'xintv'=>5, 'yintv'=>1,'unit'=>true, 'annot'=>false, "use_before_scale" => @vkeep)
             else
-              GGraph.tone(gp[0],true,
+              GGraph.tone(gp[0],new_page,
                                 "title"=>@OPT_title, "annotate"=>@annotate,
                                 "transpose"=>@OPT_exch, "levels"=>@OPT_slevels,
                                 "patterns"=>@OPT_patterns, "auto"=>@auto,
@@ -1582,7 +1589,7 @@ class GPV
 
           else # horizontal vector plots
             if (gp.size == 2) then # vectors only
-              GGraph.vector(gp[0], gp[1], true,
+              GGraph.vector(gp[0], gp[1], new_page,
                                "title"=>@OPT_title, "annotate"=>@annotate,
                                "exchange"=>@OPT_exch, "flow_vect"=>true,
                                "xintv"=>@xintv, "yintv"=>@yintv,
@@ -1591,7 +1598,7 @@ class GPV
                                "uy_unit"=>@uy_unit, "keep"=>@vkeep
                                )
             else
-              GGraph.tone(gp[0],true,
+              GGraph.tone(gp[0],new_page,
                                 "title"=>@OPT_title, "annotate"=>@annotate,
                                 "transpose"=>@OPT_exch, "levels"=>@OPT_slevels,
                                 "patterns"=>@OPT_patterns, "auto"=>@auto,
@@ -1620,6 +1627,7 @@ class GPV
           end
           maskshading(gp) if @OPT_maskshading
           topography if @OPT_topo
+          redraw_frame() if @OPT_drawbg
 
       end # end case
     #-------------------------------------------------------------------------------------------------
