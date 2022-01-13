@@ -1,7 +1,7 @@
 #--
 # =DESCRIPTION
 #  Modification of GPhys and GGraph methods, and NArray.
-# =AUTHOR 
+# =AUTHOR
 #  Hiroki Kashimura
 #++
 
@@ -103,7 +103,7 @@ class GPhys
   #
   # ARGUMENT
   # * gpnarray [Array (or 1D NArray) of GPhys]
-  # 
+  #
   def GPhys.join(gpary, ignore_overlap=false)
 
   #< initialization with the first GPhys object >
@@ -282,20 +282,20 @@ def parse_gturl(gturl)
     var = vars_matched.length == 1 ? vars_matched[0] : vars_matched
   end
 
-  if (slice) then 
+  if (slice) then
     axnames = GPhys::IO.open(file,var).axnames
-    slice.each_key{|k| 
-      unless (axnames.include?(k)) then 
+    slice.each_key{|k|
+      unless (axnames.include?(k)) then
         p "NOTE: #{k}-axis does not exist in #{file}; ignored."
-        slice.delete(k) 
+        slice.delete(k)
       end
     }
     slice = nil if (slice.length == 0)
   end
-  if (cut_slice) then 
+  if (cut_slice) then
     axnames = GPhys::IO.open(file,var).axnames
-    cut_slice.each_key{|k| 
-      unless (axnames.include?(k)) then 
+    cut_slice.each_key{|k|
+      unless (axnames.include?(k)) then
         p "NOTE: #{k}-axis does not exist in #{file}; ignored."
         cut_slice.delete(k)
       end
@@ -322,8 +322,9 @@ def open_gturl(gturl)
     gp = gp[slice] if slice
     gp = gp.cut(cut_slice) if cut_slice
   end
-  if (thinning &&  @sources.to_s.include?(".ctl")) then
-    gp = gp.copy ; gp = gp[thinning]
+  if ( thinning ) then
+    gp = gp.copy if ( @sources.to_s.include?(".ctl") )
+    gp = gp[thinning]
   end
   gp
 end   # def open_gturl
@@ -481,7 +482,7 @@ class GPhys
 
   # 長さ1の次元を付け加える
   def add_axis(name,val,units,long_name,dim=-1)
-    new_axis = Axis.new(false,false,name) 
+    new_axis = Axis.new(false,false,name)
     new_axis.set_pos(VArray.new(NArray.to_na([val]),{"units"=>units, "long_name"=>long_name},name))
     new_grid = self.grid.insert_axis(dim,new_axis)
     new_shape = self.shape.insert(dim,1)

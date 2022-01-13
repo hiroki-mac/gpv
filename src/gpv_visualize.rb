@@ -1091,7 +1091,7 @@ class GPV
     draw_linearline(gp) if @OPT_linearline && @Overplot == 1
   #-------------------------------------------------------------------------------------------------
     # redraw frame
-    redraw_frame()
+    redraw_frame() if @OPT_drawbg
   #-------------------------------------------------------------------------------------------------
 
     if (@OPT_itr.to_i >= 5) then
