@@ -245,11 +245,11 @@ class GPV
   def make_bnd_grid(grid, num, ztype=nil) # ztype should be "height", "theta", "sigma", or "pressure"
     z = grid.axis(num) # z軸を取り出す
     # z軸が、高度かどうか判定
-    if (ztype == nil) then 
+    if (ztype == nil) then
       if (["m", "km"].include?(z.pos.units.to_s)) then ztype = "height"
       elsif (["K"].include?(z.pos.units.to_s)) then ztype = "theta"
       else ztype = "sigma" end
-    end 
+    end
     z.pos.replace_val(z.pos.val.log) if (ztype == "sigma" or ztype == "pressure") # σ 軸 or p 軸
     new_z = Axis.new(true,false,z.name+"_bnd") # cell typeの軸を作成
     new_z.set_cell_guess_bounds(z.pos).set_pos_to_bounds
@@ -273,7 +273,7 @@ class GPV
 
 
   def take_first_valid(gp, dim, rev=false)
-    ary = Array.new(gp.rank).fill(true) 
+    ary = Array.new(gp.rank).fill(true)
     ary[dim] = 0
 
     new_gp = gp[*ary]*0.0
@@ -287,11 +287,11 @@ class GPV
 
     num = gp.shape[dim]
     num.times{|k|
-      if (rev == false) then 
+      if (rev == false) then
         ary[dim] = k
-      else 
+      else
         ary[dim] = (num - 1) - k
-      end 
+      end
       val = gp[*ary].val
       cum_mask = cum_mask + val.get_mask
       mask = cum_mask.eq(1) # 1以外はゼロのマスク
@@ -302,6 +302,22 @@ class GPV
     }
     new_gp.replace_val(NArrayMiss.to_nam(new_val,cum_mask))
     return new_gp
+  end
+
+
+  def calc_ground_altitude(gp,topo,dim=2)
+    z = gp.coord(dim)
+    gz_na = NArray.float(*(gp.shape))
+    ranks = [*0..(gp.rank-1)] # 転置用のindex配列
+    ranks.delete_at(dim)
+    ranks.unshift(dim)
+    gz_na = gz_na.transpose(*ranks) + z.val
+    ranks = [*0..(gp.rank-1)]
+    ranks.delete_at(0)
+    ranks.insert(dim,0)
+    gz_na = gz_na.transpose(*ranks) - topo.val.to_na
+    gz = GPhys.new(gp.grid.copy,VArray.new(gz_na,{"long_name"=>"ground altitude","units"=>"m"},"GZ"))
+    return gz
   end
 
 

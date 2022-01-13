@@ -12,7 +12,7 @@ Hiroki Kashimura (hiroki@gfd-dennou.org)
 = USAGE
   gpv hoge.nc@hoge
 
-  see https://github.com/hiroki-mac/gpv 
+  see https://github.com/hiroki-mac/gpv
 =end
 
 #################################################
@@ -34,7 +34,7 @@ require GPV_DIR+"gpv_gphysmod.rb"
 require GPV_DIR+"gpv_spherical_harmonics_next.rb"
 require GPV_DIR+"gpv_lagrange.rb"
 require GPV_DIR+"gpv_sequence.rb"
-  
+
 
 #require "profile"
 
@@ -99,13 +99,13 @@ ARGV.each{|s| @sources << s.split("@")[0] if File.exist?(s.split("@")[0]) }
 ## Print out help message
 if (@OPT_help)
   help
-  if (@OPT_help != "") then 
+  if (@OPT_help != "") then
     OPTIONS.each{|opt|
-      if (opt.include?("--"+@OPT_help)) then 
+      if (opt.include?("--"+@OPT_help)) then
         print "\n= OPTION\n"
         opt.each{|v|
           print "\n   " if (v == opt[-1])
-          print v 
+          print v
           print " "
           }
         print "\n"
@@ -459,8 +459,8 @@ while ARGV[0] do
       num = axnum.sub("ax","").to_i
       newaxis_gp, newaxis_gturl = open_gturl_wildcard(newaxis_gturl)
       gp.axis(num).set_pos(VArray.new(newaxis_gp.val, {"units"=>newaxis_gp.units.to_s}, newaxis_gp.name))
-      print "axis #{num} was replaced by values of #{newaxis_gturl}"      
-    else 
+      print "axis #{num} was replaced by values of #{newaxis_gturl}"
+    else
       axnum, newaxis = @OPT_replace_axis.split(":")
       num = axnum.sub("ax","").to_i
       axary = newaxis.split(",")
@@ -530,6 +530,12 @@ while ARGV[0] do
   end
 
 
+  ## calculate ground altitude from z-coordinate and topography data and set it as associate coordinate
+  if (@OPT_set_GZ_ac) then
+    topo = open_gturl_wildcard(@OPT_set_GZ_ac)[0]
+    gp.set_assoc_coords([calc_ground_altitude(gp,topo)])
+  end
+
   # interpolate the value on the poles (i.e., lat = -90/+90 deg by the mean of values on surrounding grid points)
   gp = interpolate_pole(gp) if @OPT_interpolate_pole
 
@@ -540,7 +546,7 @@ while ARGV[0] do
   if (@OPT_sht or @OPT_ES or @OPT_uvcomp) then
     lon_dim, lat_dim = GAnalysis::Planet.find_lon_lat_dims(gp, true)
     nmax = gp.coordinate(lon_dim).length/3
-    if (@OPT_ES == "output_pmn") then 
+    if (@OPT_ES == "output_pmn") then
       lat_na = gp.coordinate(lat_dim).val
       lat_na.length.times{|j|
         gpmn, gdpmn = SphericalHarmonics::output_pmn(gp.coordinate(lon_dim).val,lat_na[j..j],nmax,gp)
@@ -1390,6 +1396,7 @@ while ARGV[0] do
               nval = NumRu::NArray.to_na(aval) if NArrayType == "bigmem"
             end
             va = VArray.new(nval,{"units"=>va.units.to_s,"long_name"=>va.long_name},cutaxis)
+#            binding.pry
             g = g.interpolate(axes[ax_dim]=>va)
             g = g.cut(cutaxis=>val) unless (val.class == Array or val.class == String)
           else
@@ -1420,7 +1427,7 @@ while ARGV[0] do
 
       next g # return this object
 
-  end # end of proc 
+  end # end of proc
 #---------------------------------------------------
   case gp.ntype
   when "sfloat"

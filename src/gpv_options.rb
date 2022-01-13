@@ -474,6 +474,8 @@ OPTIONS = [
    or if gturl is given for val1, the axis is replaced by the value of gturl, where the length of the gturl must be match with the target axis."],
 ['--zonal_shift', "<speed at equator in m/s>",
   "shift entire field zonally as it is advected by the solid body rotation of <speed at equator in m/s>."],
+['--set_GZ_ac', "<gturl of topography>",
+  "calculate ground altitude from z-coordinate and topography data and set it as associate coordinate."],
 
 ###
 ### output options ###
