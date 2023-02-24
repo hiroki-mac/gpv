@@ -246,7 +246,7 @@ class GPV
     vrm = (v*rho).mean(0)
     vrm = vrm*(vrm.axis(0).to_gphys*D2R).cos # \bar{rho*v}cos(\phi)
     vrm_na = vrm.val.to_na
-    bnd_grid = make_bnd_grid(vrm.grid, 1)
+    bnd_grid = make_bnd_grid(vrm.grid, 1, "height")
     psi = NArray.float(*bnd_grid.shape) # psi の NArray を用意
     z = bnd_grid.coord(1).val       # sigma の NArray
     km = z.length-1
@@ -268,7 +268,7 @@ class GPV
     v = v.mean(0)
     v = (v*(v.axis(0).to_gphys*D2R).cos)  # \bar{v}cos(\phi)
     v_na = v.val.to_na
-    bnd_grid = make_bnd_grid(v.grid, 1)
+    bnd_grid = make_bnd_grid(v.grid, 1, "sigma")
     psi = NArray.float(*bnd_grid.shape) # psi の NArray を用意
     sigma = bnd_grid.coord(1).val       # sigma の NArray
     km = sigma.length-1
@@ -280,6 +280,31 @@ class GPV
 
     return GPhys.new(bnd_grid,VArray.new(psi,{"long_name"=>"mass streamfunction","units"=>"m.s-1"},"msf"))
   end
+
+  # p座標での質量流線関数を求める。
+  # \Psi = 2*pi*cos(\phi)/g * \sum (\bar{ v })dp を計算して、質量流線関数を求める。
+  # -g/(2*pi*a*cos(\phi)) * ∂ψ/∂p = \bar{v}, g/(2*pi*a^2*cos(\phi)) * ∂ψ/∂φ = \bar{p_dot} で定義されている。
+  # 半グリッドずれた(cell boundary)で定義されたPsiを返す
+  def mstrmfunc_on_p(v)
+    print "CAUTION: mstrmfunc_on_p needs data from lowest layer for calculation.\n"
+    g = GAnalysis::Met.g; a = GAnalysis::Planet.radius
+    v = v.mean(0)
+    v = (v*(v.axis(0).to_gphys*D2R).cos)  # \bar{v}cos(\phi)
+    v_na = v.val.to_na
+    bnd_grid = make_bnd_grid(v.grid, 1, "pressure")
+    psi = NArray.float(*bnd_grid.shape) # psi の NArray を用意
+    prs = bnd_grid.coord(1).convert_units("Pa").val       # Pressure (Pa) の NArray
+    km = prs.length-1
+  
+    psi[true,0,false] = 0.0 # 最下層
+    for k in 0..(km-1) # 積み上げ
+      psi[true,k+1,false] = psi[true,k,false] + (v_na[true,k,false])*(prs[k+1]-prs[k]) * 2.0*PI*a/g
+    end
+
+    return GPhys.new(bnd_grid,VArray.new(psi,{"long_name"=>"mass streamfunction","units"=>"kg.s-1"},"msf"))
+  end
+
+
 
 
   # 時空間スペクトル（とりあえずGCM出力データのみに対応）
