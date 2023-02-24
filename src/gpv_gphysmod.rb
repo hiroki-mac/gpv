@@ -489,5 +489,40 @@ class GPhys
     return GPhys.new(new_grid, self.data.reshape(*new_shape))
   end
 
+  def ge(val)
+    gp = self.copy; gp.replace_val(self.val.ge(val))
+    gp.units=("1"); gp.long_name=("number of #{gp.name}.ge(#{val})")
+    return gp
+  end
+
+  def gt(val)
+    gp = self.copy; gp.replace_val(self.val.gt(val))
+    gp.units=("1"); gp.long_name=("number of #{gp.name}.gt(#{val})")
+    return gp
+  end
+
+  def le(val)
+    gp = self.copy; gp.replace_val(self.val.le(val))
+    gp.units=("1"); gp.long_name=("number of #{gp.name}.le(#{val})")
+    return gp
+  end
+
+  def lt(val)
+    gp = self.copy; gp.replace_val(self.val.lt(val))
+    gp.units=("1"); gp.long_name=("number of #{gp.name}.lt(#{val})")
+    return gp
+  end
+
+  def eq(val)
+    gp = self.copy; gp.replace_val(self.val.eq(val))
+    gp.units=("1"); gp.long_name=("number of #{gp.name}.eq(#{val})")
+    return gp
+  end
+
+  def ne(val)
+    gp = self.copy; gp.replace_val(self.val.ne(val))
+    gp.units=("1"); gp.long_name=("number of #{gp.name}.ne(#{val})")
+    return gp
+  end
 
 end

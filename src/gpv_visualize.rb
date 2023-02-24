@@ -1225,6 +1225,9 @@ class GPV
 
     ## open work station and setup draw parameters
     window_setup if (@flag_window_open == 0 or @flag_window_open == 2)
+    
+    set_draw_range(gp[0]) if (@OPT_xrange or @OPT_yrange)
+
 
     if (@OPT_range and !@OPT_rmap)
       ranges = (@OPT_range).split(/\s*,\s*/)
@@ -1396,9 +1399,9 @@ class GPV
           #             )
 
 
-  #      DCL.sgscmn(5) # 色コンターの色番号
-  #       DCL.udpset('indxmj', 25) #計曲線
-  #       DCL.udpset('indxmn', 27) #主曲線
+#        DCL.sgscmn(63) # 色コンターの色番号
+#         DCL.udpset('indxmj', 25) #計曲線
+#         DCL.udpset('indxmn', 27) #主曲線
 
         min_crange, max_crange = __split_range(@OPT_crange)
         GGraph.set_linear_contour_options('int' => @OPT_cint.to_f, 'min' =>min_crange,'max' =>max_crange)
@@ -1556,7 +1559,7 @@ class GPV
             require 'numru/ggraph_on_merdional_section'
             if (gp.size == 2) then # vectors only
               GGraph.vector_on_merdional_section(gp[0], gp[1], true,
-                                'fact'=>@vfact, 'xintv'=>5, 'yintv'=>1,'unit'=>true, 'annot'=>false, "use_before_scale" => @vkeep)
+                                'fact'=>@vfact, 'xintv'=>@xintv, 'yintv'=>@yintv,'unit'=>true, 'annot'=>false, "use_before_scale" => @vkeep, 'newfig'=>false)
             else
               GGraph.tone(gp[0],new_page,
                                 "title"=>@OPT_title, "annotate"=>@annotate,

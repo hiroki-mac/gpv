@@ -159,9 +159,11 @@ class GPV
   def data_thinning(gp, num)
     att = gp.data.attr_copy # copy attributes
     step = gp.first2D.shape.max/num
+    return gp if (step == 0)
     shape = gp.shape; index = []
     shape.size.times{|i|
       if (i > 1) then index << true
+      elsif (shape[i] < shape[0]/step/2) then index << true
       elsif (shape[i]/step > 1) then
         index << (NArray.int(shape[i]/step).indgen!*step).to_a
       else index << true

@@ -439,11 +439,12 @@ class GPV
     nc.put_att("working_directory", @current_dir )
     nc.put_att("process_date", "#{Time.now}" )
 
-  #  binding.pry
+#    binding.pry
     # define vars
     gary.each{|g|
       g = g.to_type(@OPT_ntype) if @OPT_ntype
       g = g.copy if ( (g.data.file != nil || g.data.file.class == NArray) )# && g.rank != 0 && g.assoccoordnames == nil)
+      g.replace_val(g.val.set_missing_value(g.get_att("missing_value")))
       nc.def_var(g.name, g.ntype, nc.dims(g.axnames))
       nc.var(g.name).deflate(deflate, shuffle) # set commpression level and shuffle.
       if (g.val.class == NArrayMiss) then # to set missing values to output netcdf files.
@@ -551,6 +552,7 @@ class GPV
 
       gp.set_assoc_coords([@assoc_coords]) if @OPT_set_assoc_coords
 
+      gp = gp.to_type(@OPT_ntype) if @OPT_ntype
       return gp, gturl
     elsif (gturl.class == GPhys) then
       gp = gturl
@@ -649,11 +651,11 @@ class GPV
   end
 
   def self.join(ary)
-    if (ary.size <= 110) then 
+    if (ary.size <= 110) then
       return GPhys.join(ary)
-    else 
+    else
       n = 0; tmp_ary = []
-      while (n*100 < ary.size) 
+      while (n*100 < ary.size)
         range = (n*100)..([(n+1)*100-1, ary.size-1].min)
         tmp_ary << ary[range]; n = n + 1
       end

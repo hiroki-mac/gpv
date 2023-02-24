@@ -303,7 +303,7 @@ if (@OPT_clrmap) then
   if ( File.exist?(@OPT_clrmap) ) then
     DCL.swpset("CLRMAP", @OPT_clrmap)
   else
-    DCL.sgscmn(@OPT_clrmap||63)
+    DCL.sgscmn(@OPT_clrmap.to_i||63)
   end
 else
   DCL.sgscmn(63)
@@ -503,12 +503,32 @@ while ARGV[0] do
 
   # check whether gp's size and if large turn on the regrid option.
   unless (@OPT_regrid || @OPT_nothinning) then
-    thres = 180
+    thres = 720
     if (@OPT_thinning) then
       gp = data_thinning(gp, @OPT_thinning.to_i)
-    elsif (gp.shape.length >= 2) then
-      @OPT_nocont = true if (gp.first2D.shape.max > thres*2 && !@OPT_noshade)
-      #gp = data_thinning(gp, thres)
+    elsif (gp.shape.length >= 2 && gp.first2D.shape.max > thres*2) then
+      @OPT_nocont = true if (!@OPT_noshade)
+
+      case gp.ntype
+      when "sfloat" then  nb = 4
+      when "float" then nb = 8
+      else nb = 4
+      end
+
+      if (gp.length*nb > 2.2E9) then
+        np = (ENV['OMP_NUM_THREADS']|| 4).to_i
+        dname = gp.axnames[-1]
+#        print "Operation is processed along #{dname} dim with #{np} proccesses. This may take a while...\n"
+        gpa = Parallel.map(gp.coordinate(-1).val.to_a, :in_processes=>1, :progress=>"progress"){|i|
+#          gp_subset = reopen(gp).cut_rank_conserving(dname=>i)
+          gp_subset = gp.cut_rank_conserving(dname=>i)
+          gp_subset = data_thinning(gp_subset, thres)
+        }
+        gp = GPhys.join(gpa)
+
+      else
+        gp = data_thinning(gp, thres)
+      end
     end
   end
 
@@ -533,6 +553,8 @@ while ARGV[0] do
   ## calculate ground altitude from z-coordinate and topography data and set it as associate coordinate
   if (@OPT_set_GZ_ac) then
     topo = open_gturl_wildcard(@OPT_set_GZ_ac)[0]
+    dim = gp.axnames.find_index("lev")
+    dim = 2 unless dim
     gp.set_assoc_coords([calc_ground_altitude(gp,topo)])
   end
 
@@ -1210,13 +1232,31 @@ while ARGV[0] do
 
         ## mean along any axis
         if (opt == "OPT_mean")
+            num = 1
+            dims_mean.each{|d| num = num * g.coord(d).length }
+            if (g.ntype == "sfloat")
+              if (num > 1E6) then
+                raise "ERROR: Data number for mean is too large and loss of trailing digits occours. Try with --ntype float."
+              elsif (num > 1E5) then
+                print "WARNING: Data number for mean is large and prescision may be very low.\n"
+                print "         Consider to use --ntype float.\n"
+              end
+            end
             @stddev = g.stddev(*dims_mean) if @OPT_overplot_stddev
-            g = g.mean(*dims_mean)
-          dims_mean.each{|dim|
-            # @stddev = @stddev.stddev(dim) if @OPT_overplot_stddev
-            # g = g.average(dim)
-            # g = g.mean(dim)
-          }
+
+            if (@OPT_rank_conserving)
+              tmp = g.cut_rank_conserving(dims_mean[0]=>0)
+              tmp.replace_val(g.mean(dims_mean[0]).val.reshape(*tmp.shape))
+              tmp.coordinate(dims_mean[0]).replace_val(NArray.to_na([g.coordinate(dims_mean[0]).val.mean]))
+              g = tmp
+            else
+              g = g.mean(*dims_mean)
+            # dims_mean.each{|dim|
+              # @stddev = @stddev.stddev(dim) if @OPT_overplot_stddev
+              # g = g.average(dim)
+              # g = g.mean(dim)
+            # }
+            end
         end
 
         #### global mean

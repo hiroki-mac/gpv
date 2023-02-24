@@ -1,7 +1,7 @@
 #--
 # =DESCRIPTION
 #  Config part of gpv.
-# =AUTHOR 
+# =AUTHOR
 #  Hiroki Kashimura
 #++
 
@@ -50,7 +50,11 @@ URLfmt = "path[@|/]varname[,dimname=pos1[:pos2[:thinning_intv]][,dimname=...]]"
 AX = "ax"
 
 ## get DCL version number
-DCLVERNUM = `cdclconfig --dclvernum`.to_i
+begin
+  DCLVERNUM = `cdclconfig --dclvernum`.to_i
+rescue
+  DCLVERNUM = `dclconfig --dclvernum`.to_i
+end
 
 ## judge OS type
 host_os = RbConfig::CONFIG['host_os']
