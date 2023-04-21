@@ -350,7 +350,7 @@ OPTIONS = [
   "calculate divergence on sphere with 1st gturl and 2nd gturl. radius can be set by --radius."],
 ['--sht', nil,
   "use spherical_harmonics_next module for srot, sdiv."],
-['--uvcomp', nil,
+['--uvcomp', "<options>",
   "calculate rot/div components of u/v. Output component should be given by nil, u_rot, u_div, v_rot, or v_div."],
 ['--HKE', nil,
   "calculate horizontal Kinetic energy with 1st gturl and 2nd gturl."],

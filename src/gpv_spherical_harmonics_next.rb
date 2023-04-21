@@ -119,7 +119,7 @@ module SphericalHarmonics
       emn = NArray.sfloat(mmax+1, mmax+2)    # 係数を計算しておく
     end
 
-    dpn_ary = Parallel.map(0..mmax, in_progress:np, :progress=>"progress"){|m|
+    dpn_emn_ary = Parallel.map(0..mmax, in_progress:np, :progress=>"progress"){|m|
 
 #    for m in 0..mmax
       for n in (m+1)..(mmax+1)
@@ -133,11 +133,12 @@ module SphericalHarmonics
       for n in (m+1)..mmax
         dpmn[true, m, n] = ((n+1.0)*emn[m,n]*pmn[true,m,n-1] - n*emn[m,n+1]*pmn[true,m,n+1]) *x_tmp
       end
-      dpmn[true,m,true]
+      [dpmn[true,m,true], emn[m, true]]
 #    end
     } 
     for m in 0..mmax
-      dpmn[true,m,true] = dpn_ary[m]
+      dpmn[true,m,true] = dpn_emn_ary[m][0]
+      emn[m,true] = dpn_emn_ary[m][1]
     end
 
 
@@ -950,7 +951,7 @@ def sp_cos2_dmu(gphys_smn)
   end
 
 
-#binding.pry
+
   sval[0..nmax,0,false] = (2)*smn[0..nmax,1,false]*@emn[0..nmax,1]
   for n in 1..nmax-1
     sval[0..nmax,n,false] = (n+2)*smn[0..nmax,n+1,false]*@emn[0..nmax,n+1] - (n-1)*smn[0..nmax,n-1,false]*@emn[0..nmax,n]

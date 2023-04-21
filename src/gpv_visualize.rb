@@ -536,7 +536,7 @@ class GPV
           end
         end
 
-        set_draw_range(gp) if @OPT_xrange  #line plot で横軸の範囲を設定する場合
+        set_draw_range(gp) if (@OPT_xrange || @OPT_yrange) #line plot で横軸の範囲を設定する場合
 
         if (@OPT_zerocenter == "") then
           max = [gp.min.val.abs, gp.max.val.abs].max;  @OPT_range = "#{-max}:#{max}"
@@ -1079,6 +1079,10 @@ class GPV
         end
       end
 
+      if (@OPT_csv) 
+        output_csv(gph)
+      end
+
       if ( @Overplot < @Overplot_max )
         @Overplot += 1
       else
@@ -1546,6 +1550,7 @@ class GPV
           @xintv = (@xintv || (gp[0].shape[0]/30).to_i + 1).to_i
           @yintv = (@yintv || gp[0].shape[1].to_f/gp[0].shape[0]*@xintv*(@OPT_aspect||2).to_f).to_i
           @vfact = (@OPT_vfact || 1).to_f
+          @vkeep = false
           @vkeep = true if (anim_counter != 1 && @OPT_vkeep )
           if (@OPT_itr == '5') then
              GGraph.vector( gp[0], gp[1], new_page,
@@ -1559,7 +1564,7 @@ class GPV
             require 'numru/ggraph_on_merdional_section'
             if (gp.size == 2) then # vectors only
               GGraph.vector_on_merdional_section(gp[0], gp[1], true,
-                                'fact'=>@vfact, 'xintv'=>@xintv, 'yintv'=>@yintv,'unit'=>true, 'annot'=>false, "use_before_scale" => @vkeep, 'newfig'=>false)
+                                'fact'=>@vfact, 'xintv'=>@xintv, 'yintv'=>@yintv,'unit'=>true, 'annot'=>false, "use_before_scale" => @vkeep, 'newfig'=>true)
             else
               GGraph.tone(gp[0],new_page,
                                 "title"=>@OPT_title, "annotate"=>@annotate,
@@ -2045,7 +2050,7 @@ class GPV
       end
 
       ### output operated gphys object as CSV file
-      output_csv(g) if (@OPT_csv)
+      output_csv(g) if ( @OPT_csv && !@OPT_histogram )
       ###
 
 

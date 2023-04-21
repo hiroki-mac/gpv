@@ -104,7 +104,7 @@ class GPhys
   # ARGUMENT
   # * gpnarray [Array (or 1D NArray) of GPhys]
   #
-  def GPhys.join(gpary, ignore_overlap=false)
+  def GPhys.join(gpary, ignore_overlap=false, no_sort=false)
 
   #< initialization with the first GPhys object >
     gp = gpary[0]
@@ -141,7 +141,7 @@ class GPhys
     gpnary = gpstore.to_na
 
     #< Sort along dimensions to join >
-    gpnary = __sort_gpnary(gpnary)
+    gpnary = __sort_gpnary(gpnary) unless no_sort
 
     #< Join! >
     self.join_md_nocheck(gpnary)
