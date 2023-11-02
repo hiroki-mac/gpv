@@ -120,7 +120,7 @@ class GPV
       if (axname.include?("lon") or axname.include?("lat") or axname=="x" or axname=="y")
         gp.axis(ps_dim).set_pos(VArray.new(2.0*PI/ax[1..wn/2]*180/PI, axat, "wavelength - "+axname))
       elsif (axname.include?("time") or axname=="t")
-        gp.axis(ps_dim).set_pos(VArray.new(2.0*PI/ax[1..wn/2], axat, "period - "+axname))
+        gp.axis(ps_dim).set_pos(VArray.new(2.0*ax[-1]/ax[1..wn/2], axat, "period - "+axname))
       end
     end
     print "Operation: power spectra along #{axname} is calculated.\n"
@@ -221,6 +221,7 @@ class GPV
   # z座標でのPVを計算する。引数はz座標上の東西風、南北風、温位、密度。
   # 惑星半径と自転角速度は適切に設定する必要がある。
   # 鉛直軸は第３軸と想定。
+  # コリオリの水平成分と鉛直風の寄与は無視している。
   def pv_on_z(u,v,theta,rho)
     z = 2
     uz = u.threepoint_O2nd_deriv(z); vz = v.threepoint_O2nd_deriv(z)
@@ -237,13 +238,51 @@ class GPV
   #  return (absvor*thetaz + uz*thetay)/rho
   end
 
+  # z座標でのQG-PVを計算する。引数はz座標上の東西風、南北風、温位、密度、基準高度（optional）。
+  # 惑星半径と自転角速度は適切に設定する必要がある。
+  # 鉛直軸は第３軸と想定。
+  # q = ∇^2 Ψ + f + f_0^2/ρ_0 * ∂/∂z (ρ_0/N^2 * ∂Ψ/∂z)
+  #   = ζ + f + f_0/ρ_0 * ∂/∂z (ρ_0/N^2 * b')
+  #   = ω_a + f_0/ρ_0 * ∂/∂z (ρ_0 * θ'/(∂θ_0/∂z)
+  # 
+  # 基本場の量（高度依存）｜密度：ρ_0(z)、温位_0(z)
+  # N^2 = g/θ_0 * ∂θ_0/∂z
+  # b' = g/θ_0 * θ'
+  # f_0 : 基準の回転（普通は惑星渦度、SR大気なら基準高度の回転を加える）
+  def qgpv_on_z(u,v,theta,rho,base_level=0)
+    x = 0; y = 1; z = 2
+    # 絶対渦度
+    if (@OPT_sht) # 球面調和関数変換を使う
+      absvor = SphericalHarmonics::sh_vorticity(u,v,@Radius) + SphericalHarmonics::sinlat*2.0*@Omega.to_f
+    else
+      absvor = GAnalysis::Planet.absvor_s(u,v)
+    end
+    rho_0   = GAnalysis::Planet.ave_s(rho)        # 密度の基本場（水平平均）
+    theta_0 = GAnalysis::Planet.ave_s(theta)      # 温位の基本場（水平平均）
+    theta_d = theta - theta_0                     # 温位擾乱
+    dtheta0_dz = theta_0.threepoint_O2nd_deriv(0) # 安定度の基本場（水平平均）
+
+    if (base_level == 0) # 地面（固体惑星の回転）を基準とする
+      f_0 = absvor - GAnalysis::Planet.rot_s(u,v)
+    else # 任意の高度面の回転を基準とする
+      omega_0 = u.cut(u.coord(y).name=>0, u.coord(z).name=>base_level).mean(x)/GAnalysis::Planet.radius
+      f_0 = (absvor - GAnalysis::Planet.rot_s(u,v))/(GAnalysis::Planet.omega) * (GAnalysis::Planet.omega + omega_0)
+    end
+    
+    return absvor + f_0/rho_0*(rho_0*theta_d/dtheta0_dz).threepoint_O2nd_deriv(z)
+  end  
+
   # z座標での質量流線関数を求める。
   # \Psi = cos(\phi) \sum (\bar{ \rho * v })dz を計算して、質量流線関数を求める。
   # -1/cos(\phi) * ∂ψ/∂z = \bar{\rho * v}, 1/(a*cos(\phi)) * ∂ψ/∂φ = \bar{\rho w} で定義されている。
   # 半グリッドずれた(cell boundary)で定義されたPsiを返す
-  def mstrmfunc_on_z(v, rho)
+  def mstrmfunc_on_z(v, rho, input_vrho_bar=false)
     print "CAUTION: mstrmfunc_on_z needs data from lowest layer for calculation.\n"
-    vrm = (v*rho).mean(0)
+    if (input_vrho_bar) then 
+      vrm = v
+    else
+      vrm = (v*rho).mean(0)
+    end
     vrm = vrm*(vrm.axis(0).to_gphys*D2R).cos # \bar{rho*v}cos(\phi)
     vrm_na = vrm.val.to_na
     bnd_grid = make_bnd_grid(vrm.grid, 1, "height")
@@ -295,11 +334,52 @@ class GPV
     psi = NArray.float(*bnd_grid.shape) # psi の NArray を用意
     prs = bnd_grid.coord(1).convert_units("Pa").val       # Pressure (Pa) の NArray
     km = prs.length-1
-  
+
     psi[true,0,false] = 0.0 # 最下層
     for k in 0..(km-1) # 積み上げ
       psi[true,k+1,false] = psi[true,k,false] + (v_na[true,k,false])*(prs[k+1]-prs[k]) * 2.0*PI*a/g
     end
+
+    return GPhys.new(bnd_grid,VArray.new(psi,{"long_name"=>"mass streamfunction","units"=>"kg.s-1"},"msf"))
+  end
+
+  # AFES-Marsに対応
+  # 欠損を含む
+  def mstrmfunc_on_p2(v)
+    print "CAUTION: mstrmfunc_on_p needs data from lowest layer for calculation.\n"
+    g = GAnalysis::Met.g; a = GAnalysis::Planet.radius
+#    v = v.mean(0)
+    v = (v*(v.axis(0).to_gphys*D2R).cos)  # \bar{v}cos(\phi)
+    v_nam = v.val
+
+    bnd_grid = make_bnd_grid(v.grid, 1, "pressure")
+    psi = NArrayMiss.float(*bnd_grid.shape) # psi の NArray を用意
+    prs = bnd_grid.coord(1).convert_units("Pa").val       # Pressure (Pa) の NArray
+    
+    km = prs.length-1
+    jm = v_nam[true,0].length-1
+
+    for j in 0..(jm-1)
+      valid = v_nam[j,true].valid?
+      if (false) then 
+        for k in 0..(km-1) # index が大きい方から積み上げ
+          kk = (km-1)-k
+          if (valid[kk] == true) then
+            psi.validation(j,(kk-1)..kk)
+            psi[j,kk-1] = psi[j,kk] + (v_nam[j,kk])*(prs[kk-1]-prs[kk]) * 2.0*PI*(a/g).to_f
+          end    
+        end
+      else 
+        for k in 0..(km-1) # index が小さい方から積み上げ
+          if (valid[k] == true) then
+            psi.validation(j,k..(k+1))
+            psi[j,k+1] = psi[j,k] + (v_nam[j,k])*(prs[k+1]-prs[k]) * 2.0*PI*(a/g).to_f
+          end
+        end
+      end
+    end
+
+    psi.set_missing_value!(-9.99E33)
 
     return GPhys.new(bnd_grid,VArray.new(psi,{"long_name"=>"mass streamfunction","units"=>"kg.s-1"},"msf"))
   end
@@ -322,7 +402,9 @@ class GPV
     t = 0
     unit = gp.coord(-1).units.to_s
     unit, since = unit.split("since") if unit.include?("since")
-    if (unit.downcase.include?("min")) then 
+    if (unit.downcase.include?("hour")) then
+      day_in_unit = 24
+    elsif (unit.downcase.include?("min")) then 
       day_in_unit = 1440
     elsif (unit.downcase.include?("sec")) then 
       day_in_unit = 86400
@@ -333,7 +415,7 @@ class GPV
     end
     t_val = gp.coord(-1).val
 #    span = ((t_val[-1]-t_val[0])/day_in_unit).to_i # 1解析期間 (days)
-    span = 1 # 1解析期間 (days)
+    span = 20 # 1解析期間 (days)
     ndpd = day_in_unit/(t_val[1]-t_val[0]) # 1 day あたりのデータ数
     while (((t+1)*span*ndpd)-1 < nt)
       trange = (t*span*ndpd)..[((t+1)*span*ndpd - 1), nt].min
@@ -550,10 +632,53 @@ class GPV
   # Gradient along lat direction on sphere.
   def grad_sy(gp,lat=0)
     lam, phi, lond, latd  = GAnalysis::Planet.get_lambda_phi(gp,false)
-    cos_phi = phi.cos
     ys = gp.cderiv(latd,GAnalysis::Planet.latbc(phi),phi) / GAnalysis::Planet.radius
     return ys
   end
+
+  # Gradient on sphere for lat direction along constant-theta plane.
+  # gp(lat,lev) & theta(lat,lev)
+  def grad_sy_on_theta(gp,theta)
+    lam, phi, lond, latd  = GAnalysis::Planet.get_lambda_phi(gp,false)
+    ny, nz = gp.shape
+    gp.set_assoc_coords([theta])
+    dgp_dy_val = gp.val*0.0
+
+    delta_phi = phi[1].val - phi[0].val
+    theta_levs = theta[0,true].val
+    th_crd = VArray.new( theta_levs, {"units"=>"K", "long_name"=>"potential temperature"}, "Theta" )
+    gp_l = gp[0,true].interpolate(gp.coord(1).name => th_crd)
+    gp_r = gp[1,true].interpolate(gp.coord(1).name => th_crd)
+    gp_new  = (gp_r - gp_l) / (delta_phi * GAnalysis::Planet.radius) 
+    dgp_dy_val[0,true] = gp_new.val.to_na
+
+    (1..ny-2).each{|j|
+      delta_phi = phi[j+1].val - phi[j-1].val
+      theta_levs = theta[j,true].val
+      th_crd = VArray.new( theta_levs, {"units"=>"K", "long_name"=>"potential temperature"}, "Theta" )
+      gp_l = gp[j-1,true].interpolate(gp.coord(1).name => th_crd)
+      gp_r = gp[j+1,true].interpolate(gp.coord(1).name => th_crd)
+      gp_new  = (gp_r - gp_l) / (delta_phi * GAnalysis::Planet.radius) 
+      dgp_dy_val[j,true] = gp_new.val.to_na
+    }
+
+    delta_phi = phi[ny-1].val - phi[ny-2].val
+    theta_levs = theta[ny-1,true].val
+    th_crd = VArray.new( theta_levs, {"units"=>"K", "long_name"=>"potential temperature"}, "Theta" )
+    gp_l = gp[ny-2,true].interpolate(gp.coord(1).name => th_crd)
+    gp_r = gp[ny-1,true].interpolate(gp.coord(1).name => th_crd)
+    gp_new  = (gp_r - gp_l) / (delta_phi * GAnalysis::Planet.radius) 
+    dgp_dy_val[ny-1,true] = gp_new.val.to_na
+
+    dgp_dy     = gp.copy
+    dgp_dy.val = dgp_dy_val
+    dgp_dy.rename("d#{gp.name}_dy")
+    dgp_dy.long_name="d#{gp.name}_dy"
+    dgp_dy.units= (gp/GAnalysis::Planet.radius).units
+    return dgp_dy
+  end
+
+
 
   def solar_zenith_angle(gp) # solar_zenith_angle at local noon
     gt = gp.axis("time").to_gphys; vt = gt.val;  day_array = []
@@ -683,7 +808,7 @@ class GPV
   # シフトは最近傍のグリッドデータを使う（補間・内挿はしない）
   def zonal_shift_on_sphere(gp, u)
     if (u.include?("@")) then
-      u = open_gturl(u).mean(0).val
+      u = open_gturl(u).mean(0).val.to_na
       angvel = u/@Radius
     else
       u = u.to_f
@@ -872,6 +997,37 @@ class GPV
       }
     }
     return gp.replace_val(new_val)
+  end
+
+  # 下端風速ゼロを仮定して、温度風（東西風）を求める。
+  # 入力 gp は気温 T(φ,z)
+  # 鉛直軸が 高度以外の場合は、第2引数で高度を与える。
+  # 理想気体を仮定
+  # ∂u/∂z = - (g/2*Ω*sinφ*a*T)∂T/∂φ 
+  def thermal_wind_zonal(gp,z=nil)
+    a   = GAnalysis::Planet.radius.to_f
+    g   = GAnalysis::Met.g.to_f
+    omega = GAnalysis::Planet.omega.to_f
+
+    lat = gp.coord(0).val*D2R
+    z   = gp.coord(1) if z == nil
+    z   = z.val
+    dTdy = grad_sy(gp).val # 惑星半径で割っている
+    t   = gp.val
+    u   = gp.val*0
+    ngp = gp.copy
+
+    (z.length-1).times{|k|
+      dz = z[k+1]-z[k]
+      lat.length.times{|j|
+        t0 = 0.5*(t[j,k+1]+t[j,k])
+        u[j,k+1] = u[j,k] - dz*( g/t0/(2*omega*sin(lat[j]))*(dTdy[j,k+1]+dTdy[j,k])*0.5)
+      }
+    }
+    ngp.replace_val(u)
+    ngp.set_att("units", "m/s")
+    ngp.set_att("name","u")
+    return ngp
   end
 
 

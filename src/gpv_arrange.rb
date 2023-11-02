@@ -258,6 +258,12 @@ class GPV
     bound_val = new_z.cell_bounds.val
     new_z.pos.name=(z.name + "_bnd")
 
+    # 間隔が狭すぎる or 間隔の変化が大きいと(?)失敗する。その場合は、単純内挿（平均）で置き換える。
+    if (bound_val != bound_val.sort && bound_val[-1..0] != bound_val.sort) then 
+      z_val = z.to_gphys.val
+      bound_val[1..-2] = (z_val[0..-2] + z_val[1..-1])/2.0
+    end
+
     # 上端・下端の値の修正
     if (ztype == "height") then
       bound_val[0]  = [0.0, bound_val[0]  ].max

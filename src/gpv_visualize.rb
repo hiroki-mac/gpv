@@ -529,7 +529,7 @@ class GPV
           rsizet1 = DCL.uzpget("RSIZET1"); rsizet2 = DCL.uzpget("RSIZET2")
           DCL.uzpset("RSIZET1",0); DCL.uzpset("RSIZET2",0)
           DCL::uzlset('LABELYL',false); DCL::uzlset('LABELYR',false)
-          DCL::uzlset('LABELXT',false);DCL::uzlset('LABELXB',false) #; DCL.uscget("cyfmt")
+          DCL::uzlset('LABELXT',false); DCL::uzlset('LABELXB',false) #; DCL.uscget("cyfmt")
           if (@OPT_range) then
             @OPT_right_axis = (@OPT_range).split(/\s*,\s*/)[1] ? (@OPT_range).split(/\s*,\s*/)[1] : ""
             @OPT_range      = (@OPT_range).split(/\s*,\s*/)[0]
@@ -819,6 +819,16 @@ class GPV
           DCL.udpset("lmsg",false)
           GGraph.next_axes("yunits"=>"")
         end
+      end
+
+      if (@OPT_zerocenter == "") then
+        max = [gp.min.val.abs, gp.max.val.abs].max;  @OPT_range = "#{-max}:#{max}"
+        GGraph.set_linear_contour_options( 'min' => -max, 'max' => max )
+        GGraph.set_linear_tone_options( 'min' => -max, 'max' => max )
+      elsif (@OPT_zerocenter) then
+        max = @OPT_zerocenter.to_f;  @OPT_range = "#{-max}:#{max}"
+        GGraph.set_linear_contour_options( 'min' => -max, 'max' => max )
+        GGraph.set_linear_tone_options( 'min' => -max, 'max' => max )
       end
 
       if (draw_flag == "noshade") then
@@ -1640,6 +1650,7 @@ class GPV
     #-------------------------------------------------------------------------------------------------
       draw_linearline(gp[0]) if @OPT_linearline
       redraw_frame() if @OPT_drawbg
+      GGraph::color_bar unless @OPT_nocolorbar
     #-------------------------------------------------------------------------------------------------
         if (@OPT_itr.to_i >= 5) then
           title(title)
@@ -2040,7 +2051,7 @@ class GPV
             val = g.val
             rmiss = (val.to_na*val.get_mask.eq(0).to_f).max
             rmiss = (val.to_na*val.get_mask.eq(0).to_f).min if rmiss == 0.0 # get missing value
-            g.set_att("missing_value", [rmiss])
+            g.set_att("missing_value", NArray.to_na([rmiss]).to_type(val.typecode))
           end
         end
         g.del_att("positive") if g.get_att("positive")

@@ -193,10 +193,16 @@ if (@OPT_sequence) then
   exit
 end
 
-
-
-
-
+## stop execution if the file specified by --nc/nc4/nc4a already exist
+if (@OPT_skip_ifexist) then 
+  if (@OPT_nc && File.exist?(@OPT_nc)) then    
+    print "NOTE: #{@OPT_nc} already exists; execution skipped\n"; exit
+  elsif (@OPT_nc4 && File.exist?(@OPT_nc4)) then    
+    print "NOTE: #{@OPT_nc4} already exists; execution skipped\n"; exit
+  elsif (@OPT_nc4a && File.exist?(@OPT_nc4a)) then    
+    print "NOTE: #{@OPT_nc4a} already exists; execution skipped\n"; exit
+  end
+end
 
 ## alias options
 if (@OPT_wm) then
@@ -1159,7 +1165,11 @@ while ARGV[0] do
     when "OPT_derivative" then
       dims_deriv.each{|dim| ope_string = ope_string << "->derivative(#{dim})" }
     when "OPT_running_mean" then
-      rm_ary.each{|rm| ope_string = ope_string << "->running_mean(#{rm})" }
+      if @OPT_rmeddy then
+        rm_ary.each{|rm| ope_string = ope_string << "->eddy_from_running_mean(#{rm})" }
+      else
+        rm_ary.each{|rm| ope_string = ope_string << "->running_mean(#{rm})" }
+      end
     when "OPT_mean" then
       dims_mean.each{|dim| ope_string = ope_string << "->mean(#{dim})" }
     when "OPT_global_mean" then
@@ -1213,7 +1223,7 @@ while ARGV[0] do
         end
 
 
-        #### running mean
+        #### running mean or eddy from running mean
         if (opt == "OPT_running_mean")
           # g = g.running_mean(rm_dim,rm_span,true)
           # GPhys付属のメソッド running_mean(dim,span,BC,minimal length)
@@ -1222,10 +1232,14 @@ while ARGV[0] do
           # 以下の設定で、従来と同じ振る舞いになる。
           rm_ary.each{|rm|
             rm_dim = rm[0]; rm_span=rm[1]; rm_skip=rm[2]
-            g = g.running_mean(rm_dim,rm_span,10,rm_span)
-            unless rm_skip == 0
-              thinning = Hash.new; thinning[rm_dim] = {(rm_span/2..(-rm_span/2))=>rm_skip}
-              g = g[thinning]
+            if (@OPT_rmeddy) then
+              g = g.rmeddy(rm_dim,rm_span)
+            else
+              g = g.running_mean(rm_dim,rm_span,10,rm_span)
+              unless rm_skip == 0
+                thinning = Hash.new; thinning[rm_dim] = {(rm_span/2..(-rm_span/2))=>rm_skip}
+                g = g[thinning]
+              end
             end
           }
         end

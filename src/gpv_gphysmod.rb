@@ -162,6 +162,13 @@ class GPhys
     return ary
   end
 
+  def rmeddy(dim,span,bc=11)
+    # GPhys付属のメソッド running_mean(dim,span,BC,minimal length)
+    # BCは 10:SIMPLE, 11:CYCLIC, 12:TRIM
+    gp = self - self.running_mean(dim,span,bc,span) 
+    return gp
+  end
+
 
 end
 
@@ -480,6 +487,22 @@ class GPhys
     end
   end
 
+  # 球面重み付き緯度平均。緯度の単位は deg 
+  def ave_sy
+    lond,latd = GAnalysis::Planet.find_lon_lat_dims(self)  # find latd again
+    if (lond) then # 経度軸が残っている場合
+      phi = self.coord(latd).val*D2R
+      cos_phi = self.val*0.0
+      phi.length.times{|j| cos_phi[true,j,false] = NMath.cos(phi[j]) }
+    else # 経度軸がない場合
+      phi = self.coord(latd)*D2R
+      cos_phi = phi.cos
+    end 
+     wgt = cos_phi / cos_phi.sum
+    (self * wgt).sum(latd)
+  end
+
+
   # 長さ1の次元を付け加える
   def add_axis(name,val,units,long_name,dim=-1)
     new_axis = Axis.new(false,false,name)
@@ -487,6 +510,96 @@ class GPhys
     new_grid = self.grid.insert_axis(dim,new_axis)
     new_shape = self.shape.insert(dim,1)
     return GPhys.new(new_grid, self.data.reshape(*new_shape))
+  end
+
+  # 1D GPhys の最大値をとる場所の軸の値を返す
+  def maxval_axisval1D(n=1)
+    if (self.shape.size > 1 )
+      raise "self must be 1D GPhys object"
+    end
+    max_idx = self.val.sort_index[-n]
+    return self.coord(0).val[max_idx]
+  end
+
+  def maxval_axisval(dim,n=1)
+    ndim = self.shape.size
+    out_gp  = self.mean(dim)*0.0
+    out_val = out_gp.val 
+
+    case ndim
+    when 2 then
+      case dim
+      when 0 then
+        self.shape[1].times{|j|
+          out_val[j] = self[true,j].maxval_axisval1D(n)
+        }
+      when 1 then 
+        self.shape[0].times{|i|
+          out_val[i] = self[i,true].maxval_axisval1D(n)
+        }
+      end 
+    when 3 then
+      case dim 
+      when 0 then
+        self.shape[1].times{|j|
+          self.shape[2].times{|k|
+            out_val[j,k] = self[true,j,k].maxval_axisval1D(n)
+          }
+        }
+      when 1 then 
+        self.shape[0].times{|i|
+          self.shape[2].times{|k|
+            out_val[i,k] = self[i,true,k].maxval_axisval1D(n)
+          }
+        }
+      when 2 then 
+        self.shape[0].times{|i|
+          self.shape[1].times{|j|
+            out_val[i,j] = self[i,j,true].maxval_axisval1D(n)
+          }
+        }
+      end 
+    when 4 then
+      case dim 
+      when 0 then
+        self.shape[1].times{|j|
+          self.shape[2].times{|k|
+            self.shape[3].times{|l|
+              out_val[j,k,l] = self[true,j,k,l].maxval_axisval1D(n)
+            }
+          }
+        }
+      when 1 then 
+        self.shape[0].times{|i|
+          self.shape[2].times{|k|
+            self.shape[3].times{|l|
+              out_val[i,k,l] = self[i,true,k,l].maxval_axisval1D(n)
+            }
+          }
+        }
+      when 2 then 
+        self.shape[0].times{|i|
+          self.shape[1].times{|j|
+            self.shape[3].times{|l|
+              out_val[i,j,l] = self[i,j,true,l].maxval_axisval1D(n)
+            }
+          }
+        }
+      when 3 then 
+        self.shape[0].times{|i|
+          self.shape[1].times{|j|
+            self.shape[2].times{|k|
+              out_val[i,j,k] = self[i,j,k,true].maxval_axisval1D(n)
+            }
+          }
+        }
+      end 
+    end
+    out_gp.replace_val(out_val)
+    out_gp.units=self.coord(dim).units
+    out_gp.name=self.coord(dim).name
+    out_gp.long_name=self.coord(dim).long_name
+    return out_gp
   end
 
   def ge(val)

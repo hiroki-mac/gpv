@@ -313,6 +313,9 @@ OPTIONS = [
    multiple dims are not supported.
    if integer <skip> is given, the date thinning is performed to the running mean.
    for example, --rm t,12,12 to monthly data gives annual mean series (one value per year)."],
+['--rmeddy', nil,
+  "must be used with --rm ; calculate the eddy (deviation) from the running mean along <dim> with a window of <span>.
+   multiple dims are not supported."],
 ['--global_mean','--gm', nil,
   "calculate the global mean considering the weight along latitude.
    dims of longitude and latitude must be the 1st and 2nd dims, respectivly."],
@@ -516,7 +519,9 @@ OPTIONS = [
    Inital location of a single particle can be given by x1,y1,z1.
    Expression like x2:x3:xn,y2:y3:yn,z2:z3:zn gives particles in a mesh
    begin with x2 and end at x3 and number of division is xn.
-   Particle data will be output as 'particles.nc'. "]
+   Particle data will be output as 'particles.nc'. "],
+['--skip_ifexist', nil,
+  "use with '--nc/nc4/nc4a' to skip execution if the specified file already exists."]
 ]
 
 

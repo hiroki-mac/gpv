@@ -1292,6 +1292,12 @@ end
 def sh_energyspectrum(u, v, a=1.0, comp_ary=["total"], vor_div_given=false)
 # 参照：Burgess, Erler, and Shepherd (2013) The Troposphere-to-Stratosphere Transition in Kinetic Energy Spectra and Nonlinear Spectral Fluxes as Seen in ECMWF Analyses, JAS, vol. 70, pp. 669-687
 	nmax = @pmn[0,0,true].size - 2
+  a = a.to_f 
+
+  # wavenumber_kind = "total"      # compute ES as a function of total wavenumber n
+  # wavenumber_kind = "zonal"      # compute ES as a function of zonal wavenumber m
+  wavenumber_kind = "meridional" # compute ES as a function of meridional wavenumber l = n - |m|
+  print "Energy spectra is computed as a function of #{wavenumber_kind} wavenumber. \n"
 
   if (vor_div_given == false) then
     print "Note: U & V must be given.\n"
@@ -1366,69 +1372,150 @@ def sh_energyspectrum(u, v, a=1.0, comp_ary=["total"], vor_div_given=false)
 
     es_rank = es.rank
 
-  	for n in 1..nmax
-  		es[n, false] = 0.0
-  		case comp
-  		when "rot" then
-  			for m in -n..n
-  				es[n,false] = es[n, false]  + (svorval[m, n, false].abs)**2
-  			end
-  			es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false].to_na if es_rank > 1
-        es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false] if es_rank == 1
-  		when "rot_u" then
-  			for m in -n..n
-  				es[n,false] = es[n, false]  + (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(svorval[m, n, false].abs)**2
-  			end
-  			es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
-        es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
-  		when "rot_v" then
-  			for m in -n..n
-  				es[n,false] = es[n, false]  + (m.abs)*(svorval[m, n, false].abs)**2
-  			end
-  			es[n, false] = 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
-        es[n, false] = 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
+    case wavenumber_kind
+    when "total"
+    	for n in 1..nmax
+    		es[n, false] = 0.0
+    		case comp
+    		when "rot" then
+    			for m in -n..n
+    				es[n,false] = es[n, false]  + (svorval[m, n, false].abs)**2
+    			end
+    			es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false].to_na if es_rank > 1
+          es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false] if es_rank == 1
+    		when "rot_u" then
+    			for m in -n..n
+    				es[n,false] = es[n, false]  + (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(svorval[m, n, false].abs)**2
+    			end
+    			es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
+          es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
+    		when "rot_v" then
+    			for m in -n..n
+    				es[n,false] = es[n, false]  + (m.abs)*(svorval[m, n, false].abs)**2
+    			end
+    			es[n, false] = 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
+          es[n, false] = 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
 
-  		when "div" then
-  			for m in -n..n
-  				es[n,false] = es[n, false]  + (sdivval[m, n, false].abs)**2
-  			end
-  			es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false].to_na if es_rank > 1
-        es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false] if es_rank == 1
-  		when "div_u" then
-  			for m in -n..n
-  				es[n,false] = es[n, false]  + (m.abs)*(sdivval[m, n, false].abs)**2
-  			end
-  			es[n, false] = 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
-        es[n, false] = 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
-  		when "div_v" then
-  			for m in -n..n
-  				es[n,false] = es[n, false]  + (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(sdivval[m, n, false].abs)**2
-  			end
-  			es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
-        es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
+    		when "div" then
+    			for m in -n..n
+    				es[n,false] = es[n, false]  + (sdivval[m, n, false].abs)**2
+    			end
+    			es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false].to_na if es_rank > 1
+          es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false] if es_rank == 1
+    		when "div_u" then
+    			for m in -n..n
+    				es[n,false] = es[n, false]  + (m.abs)*(sdivval[m, n, false].abs)**2
+    			end
+    			es[n, false] = 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
+          es[n, false] = 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
+    		when "div_v" then
+    			for m in -n..n
+    				es[n,false] = es[n, false]  + (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(sdivval[m, n, false].abs)**2
+    			end
+    			es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
+          es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
 
-  		when "total" then
-  			for m in -n..n
-  				es[n,false] = es[n, false]  + (svorval[m, n, false].abs)**2 + (sdivval[m, n, false].abs)**2
-  			end
-  			es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false].to_na if es_rank > 1
-        es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false] if es_rank == 1
-  		when "total_u" then
-  			for m in -n..n
-  				es[n,false] = es[n, false]  + (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(svorval[m, n, false].abs)**2 \
-  				                                       + (2.0*n+1.0)*(m.abs)*(sdivval[m, n, false].abs)**2
-  			end
-  			es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
-        es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
-  		when "total_v" then
-  			for m in -n..n
-  				es[n,false] = es[n, false]  + (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(sdivval[m, n, false].abs)**2 \
-  				                                       + (2.0*n+1.0)*(m.abs)*(svorval[m, n, false].abs)**2
-  			end
-  			es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
-        es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
-  		end
-  	end
+    		when "total" then
+    			for m in -n..n
+    				es[n,false] = es[n, false]  + (svorval[m, n, false].abs)**2 + (sdivval[m, n, false].abs)**2
+    			end
+    			es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false].to_na if es_rank > 1
+          es[n, false] = 0.5*(a**2)/(n*(n+1.0))*es[n, false] if es_rank == 1
+    		when "total_u" then
+    			for m in -n..n
+    				es[n,false] = es[n, false]  + (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(svorval[m, n, false].abs)**2 \
+    				                                       + (2.0*n+1.0)*(m.abs)*(sdivval[m, n, false].abs)**2
+    			end
+    			es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
+          es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
+    		when "total_v" then
+    			for m in -n..n
+    				es[n,false] = es[n, false]  + (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(sdivval[m, n, false].abs)**2 \
+    				                                       + (2.0*n+1.0)*(m.abs)*(svorval[m, n, false].abs)**2
+    			end
+    			es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false].to_na if es_rank > 1
+          es[n, false] = 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0))*es[n, false] if es_rank == 1
+    		end
+    	end
+    when "zonal"
+      raise "underconstruction"
+    when "meridional"
+    # test for meridional wavenumber
+    # for l in 1..nmax
+    #   es[l, false] = 0.0
+    #   for n in l..nmax
+    #     m = n - l
+    #     es[l,false] = es[l, false]  + 0.5*(a**2)/(n*(n+1.0)) * ( (svorval[m, n, false].abs)**2 + (sdivval[m, n, false].abs)**2 )
+    #   end
+    #   es[l,false] = es[l,false].to_na if es_rank > 1
+    # end
+    # print "ES as a function of meridional wavenumber was calculated."
+
+      for l in 1..nmax
+        es[l, false] = 0.0
+        case comp
+        when "rot" then
+          for n in l..nmax
+            for m in [n-l, l-n].uniq # uniq で n-l=0 の場合に生じる重複を取り除いている
+              es[l,false] = es[l, false]  + 0.5*(a**2)/(n*(n+1.0)) * (svorval[m, n, false].abs)**2
+            end
+          end
+        when "rot_u" then
+          for n in l..nmax
+            for m in [n-l, l-n].uniq
+              es[l,false] = es[l, false]  + 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0)) * (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(svorval[m, n, false].abs)**2
+            end
+          end
+        when "rot_v" then
+          for n in l..nmax
+            for m in [n-l, l-n].uniq
+              es[l,false] = es[l, false]  + 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0)) * (m.abs)*(svorval[m, n, false].abs)**2
+            end
+          end
+
+        when "div" then
+          for n in l..nmax
+            for m in [n-l, l-n].uniq
+              es[l,false] = es[l, false]  + 0.5*(a**2)/(n*(n+1.0)) * (sdivval[m, n, false].abs)**2
+            end
+          end
+        when "div_u" then
+          for n in l..nmax
+            for m in [n-l, l-n].uniq
+              es[l,false] = es[l, false]  + 0.25*(a**2)*(2.0*n+1.0)/(n*n*(n+1.0)*(n+1.0)) * (m.abs)*(sdivval[m, n, false].abs)**2
+            end
+          end
+        when "div_v" then
+          for n in l..nmax
+            for m in [n-l, l-n].uniq
+              es[l,false] = es[l, false]  + 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0)) * (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(sdivval[m, n, false].abs)**2
+            end
+          end
+
+        when "total" then
+          for n in l..nmax
+            for m in [n-l, l-n].uniq
+              es[l,false] = es[l, false]  + 0.5*(a**2)/(n*(n+1.0)) * ( (svorval[m, n, false].abs)**2 + (sdivval[m, n, false].abs)**2 )
+            end
+          end
+        when "total_u" then
+          for n in l..nmax
+            for m in [n-l, l-n].uniq
+              es[l,false] = es[l, false]  + 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0)) * \
+                            ( (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(svorval[m, n, false].abs)**2 + (2.0*n+1.0)*(m.abs)*(sdivval[m, n, false].abs)**2 )
+            end
+          end
+        when "total_v" then
+          for n in l..nmax
+            for m in [n-l, l-n].uniq
+              es[l,false] = es[l, false]  + 0.25*(a**2)/(n*n*(n+1.0)*(n+1.0)) * \
+                            ( (2.0*n*(n+1) - (2.0*n+1)*(m.abs))*(sdivval[m, n, false].abs)**2 + (2.0*n+1.0)*(m.abs)*(svorval[m, n, false].abs)**2 )
+            end
+          end
+        end
+        es[l, false] = es[l, false].to_na if es_rank > 1
+      end      
+    end
 
   	#GPhysオブジェクト化
   	case comp
@@ -1437,10 +1524,17 @@ def sh_energyspectrum(u, v, a=1.0, comp_ary=["total"], vor_div_given=false)
   	when "div", "div_u", "div_v" then
   		old_grid = div.grid_copy
   	end
-
   	yaxis = Axis.new
-  	twn = VArray.new(NArray.int(nmax+1).indgen!,{"long_name"=>"total wave number","units"=>"wave number"},"twn")
-  	yaxis.pos = twn
+    case wavenumber_kind
+    when "total"
+      wn = VArray.new(NArray.int(nmax+1).indgen!,{"long_name"=>"total wave number","units"=>"wave number"},"twn")
+    when "zonal"
+      raise "under construction"
+    when "meridional"
+    	wn = VArray.new(NArray.int(nmax+1).indgen!,{"long_name"=>"meridional wave number","units"=>"wave number"},"mwn")
+    end
+
+  	yaxis.pos = wn
   	new_grid = old_grid.change_axis(1, yaxis).delete_axes(0) #第1軸を置き換える、第0軸を消去する
 
   	case comp
