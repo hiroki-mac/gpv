@@ -13,7 +13,7 @@ gpvという名前は、コマンド入力を簡単にするために gpview か
 
 
 ==Required libraries
-* {C版DCL}[http://www.gfd-dennou.org/library/dcl/]
+* {DCL}[http://www.gfd-dennou.org/library/dcl/]
 * FFTW3
 * GSL
 * NetCDF
